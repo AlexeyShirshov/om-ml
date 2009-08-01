@@ -460,7 +460,7 @@ namespace WXML.Model
                 else if(type.IsUserType)
                 {
                     typeSubElement = CreateElement("UserType");
-                    typeSubElement.SetAttribute("name", type.TypeName);
+                    typeSubElement.SetAttribute("name", type.GetTypeName(null));
                     if(type.UserTypeHint.HasValue && type.UserTypeHint != UserTypeHintFlags.None)
                     {
                         typeSubElement.SetAttribute("hint", type.UserTypeHint.ToString().Replace(",", string.Empty));

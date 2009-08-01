@@ -5,13 +5,20 @@ using System.Linq;
 
 namespace WXML.CodeDom
 {
-    public static class WXMLCodeDomGeneratorNameHelper
+    public class WXMLCodeDomGeneratorNameHelper
     {
-        public delegate WXMLCodeDomGeneratorSettings GetSettingsDelegate();
+        //public delegate WXMLCodeDomGeneratorSettings GetSettingsDelegate();
 
-        public static event GetSettingsDelegate OrmCodeDomGeneratorSettingsRequied;
+        //public static event GetSettingsDelegate OrmCodeDomGeneratorSettingsRequied;
 
-        public static string GetPrivateMemberName(string name)
+        private WXMLCodeDomGeneratorSettings _settings;
+
+        public WXMLCodeDomGeneratorNameHelper(WXMLCodeDomGeneratorSettings settings)
+        {
+            _settings = settings;
+        }
+
+        public string GetPrivateMemberName(string name)
         {
             WXMLCodeDomGeneratorSettings settings = GetSettings();
 
@@ -20,14 +27,9 @@ namespace WXML.CodeDom
             return settings.PrivateMembersPrefix + name.Substring(0, 1).ToLower() + name.Substring(1);
         }
 
-        public static WXMLCodeDomGeneratorSettings GetSettings()
+        public WXMLCodeDomGeneratorSettings GetSettings()
         {
-            WXMLCodeDomGeneratorSettings settings = null;
-            var h = OrmCodeDomGeneratorSettingsRequied;
-            if(h != null)
-                settings = h();
-            if (settings == null) throw new Exception("OrmCodeDomGeneratorSettings requied.");
-            return settings;
+            return _settings;
         }
 
         public static string GetSafeName(string p)
@@ -38,7 +40,7 @@ namespace WXML.CodeDom
         }
 
 
-        public static string GetEntityFileName(EntityDescription entity)
+        public string GetEntityFileName(EntityDescription entity)
         {
             WXMLCodeDomGeneratorSettings settings = GetSettings();
             string baseName = 
@@ -51,7 +53,7 @@ namespace WXML.CodeDom
             return baseName;
         }
 
-        public static string GetEntitySchemaDefFileName(EntityDescription entity)
+        public string GetEntitySchemaDefFileName(EntityDescription entity)
         {
             WXMLCodeDomGeneratorSettings settings = GetSettings();
             string baseName = 
@@ -66,7 +68,7 @@ namespace WXML.CodeDom
     	/// </summary>
     	/// <param name="entity">The entity.</param>
     	/// <returns></returns>
-    	public static string GetEntityClassName(EntityDescription entity)
+    	public string GetEntityClassName(EntityDescription entity)
     	{
     		return GetEntityClassName(entity, false);
     	}
@@ -77,7 +79,7 @@ namespace WXML.CodeDom
 		/// <param name="entity">The entity.</param>
 		/// <param name="qualified">if set to <c>true</c> return qualified name.</param>
 		/// <returns></returns>
-        public static string GetEntityClassName(EntityDescription entity, bool qualified)
+        public string GetEntityClassName(EntityDescription entity, bool qualified)
         {
             WXMLCodeDomGeneratorSettings settings = GetSettings();
             string en = entity.Name;
@@ -115,7 +117,7 @@ namespace WXML.CodeDom
         /// </summary>
         /// <param name="entity">The entity.</param>
         /// <returns></returns>
-        public static string GetEntitySchemaDefClassName(EntityDescription entity)
+        public string GetEntitySchemaDefClassName(EntityDescription entity)
         {
             WXMLCodeDomGeneratorSettings settings = GetSettings();
             return 
@@ -126,17 +128,17 @@ namespace WXML.CodeDom
                 (entity.OrmObjectsDef.AddVersionToSchemaName ? entity.OrmObjectsDef.SchemaVersion : String.Empty);
         }
 
-        public static string GetEntitySchemaDefClassQualifiedName(EntityDescription entity)
+        public string GetEntitySchemaDefClassQualifiedName(EntityDescription entity)
         {
             return string.Format("{0}.{1}", GetEntityClassName(entity, true), GetEntitySchemaDefClassName(entity));
         }
 
-    	public static string GetEntityInterfaceName(EntityDescription entity)
+    	public string GetEntityInterfaceName(EntityDescription entity)
     	{
     		return GetEntityInterfaceName(entity, null, null, false);
     	}
 
-    	public static string GetEntityInterfaceName(EntityDescription entity, string prefix, string suffix, bool qualified)
+    	public string GetEntityInterfaceName(EntityDescription entity, string prefix, string suffix, bool qualified)
     	{
     		string interfaceName = "I" + (prefix ?? string.Empty) + GetEntityClassName(entity, false) + (suffix ?? string.Empty);
 

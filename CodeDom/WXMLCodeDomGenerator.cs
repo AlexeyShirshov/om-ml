@@ -38,48 +38,51 @@ namespace WXML.CodeDom
         {
             public delegate void UpdateSetValueMethodDelegate(PropertyDescription propertyDesc, CodeMemberMethod setvalueMethod);
 
-            public static event WXML.CodeDom.WXMLCodeDomGeneratorNameHelper.GetSettingsDelegate SettingsRequied;
+            //public static event WXML.CodeDom.WXMLCodeDomGeneratorNameHelper.GetSettingsDelegate SettingsRequied;
 
-            private static WXMLCodeDomGeneratorSettings GetSettings()
-            {
-                WXMLCodeDomGeneratorSettings settings = null;
-                var h = SettingsRequied;
-                if (h != null)
-                    settings = h();
-                if (settings == null) throw new Exception("OrmCodeDomGeneratorSettings requied.");
-                return settings;
-            }
+            //private static WXMLCodeDomGeneratorSettings GetSettings()
+            //{
+            //    WXMLCodeDomGeneratorSettings settings = null;
+            //    var h = SettingsRequied;
+            //    if (h != null)
+            //        settings = h();
+            //    if (settings == null) throw new Exception("OrmCodeDomGeneratorSettings requied.");
+            //    return settings;
+            //}
 
-            public static UpdateSetValueMethodDelegate UpdateSetValueMethodMethod
+            public static UpdateSetValueMethodDelegate GetUpdateSetValueMethodMethod(WXMLCodeDomGeneratorSettings settings)
             {
-                get
-                {
-                    WXMLCodeDomGeneratorSettings settings = GetSettings();
-                    if ((settings.LanguageSpecificHacks & LanguageSpecificHacks.SafeUnboxToEnum) ==
-                        LanguageSpecificHacks.SafeUnboxToEnum)
-                        return UpdateSetValueMethodDelegates.EnumPervUpdateSetValueMethod;
-                    return UpdateSetValueMethodDelegates.DefaultUpdateSetValueMethod;
-                }
+                if ((settings.LanguageSpecificHacks & LanguageSpecificHacks.SafeUnboxToEnum) ==
+                    LanguageSpecificHacks.SafeUnboxToEnum)
+                    return new UpdateSetValueMethodDelegates(settings).EnumPervUpdateSetValueMethod;
+                return new UpdateSetValueMethodDelegates(settings).DefaultUpdateSetValueMethod;
             }
 
             /// <summary>
             /// void UpdateSetValueMethodDelegate(CodeMemberField field, PropertyDescription propertyDesc, CodeMemberMethod setvalueMethod);
             /// </summary>
-            public static class UpdateSetValueMethodDelegates
+            public class UpdateSetValueMethodDelegates
             {
-                public static void DefaultUpdateSetValueMethod(PropertyDescription propertyDesc, CodeMemberMethod setvalueMethod)
+                private WXMLCodeDomGeneratorSettings _settings;
+
+                public UpdateSetValueMethodDelegates(WXMLCodeDomGeneratorSettings settings)
+                {
+                    _settings = settings;
+                }
+
+                public void DefaultUpdateSetValueMethod(PropertyDescription propertyDesc, CodeMemberMethod setvalueMethod)
                 {
                     //Type fieldRealType;
                     //fieldRealType = Type.GetType(field.Type.BaseType, false);
 
                     var setValueStatement = new CodeConditionStatement(
                         new CodeMethodInvokeExpression(
-                            WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(propertyDesc),
+                            WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(_settings, propertyDesc),
                             "Equals",
                             new CodeVariableReferenceExpression("fieldName"))
                         );
 
-                	var fieldName = WXMLCodeDomGeneratorNameHelper.GetPrivateMemberName(propertyDesc.PropertyName);
+                	var fieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(propertyDesc.PropertyName);
 
                     //setValueStatement.TrueStatements.Add(
                     //    new CodeVariableDeclarationStatement(typeof(IConvertible), "vConv",
@@ -112,7 +115,7 @@ namespace WXML.CodeDom
 										new CodeAssignStatement(
 											new CodeFieldReferenceExpression(
 												new CodeThisReferenceExpression(), fieldName),
-											new CodeCastExpression(propertyDesc.PropertyType,
+											new CodeCastExpression(propertyDesc.PropertyType.ToCodeType(_settings),
 											                       new CodeArgumentReferenceExpression(
 											                       	"value")))
 									},
@@ -145,16 +148,16 @@ namespace WXML.CodeDom
                         setValueStatement.TrueStatements.Add(new CodeAssignStatement(
                                                  new CodeFieldReferenceExpression(
                                                      new CodeThisReferenceExpression(), fieldName),
-                                                 new CodeCastExpression(propertyDesc.PropertyType,
+                                                 new CodeCastExpression(propertyDesc.PropertyType.ToCodeType(_settings),
                                                      new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(new CodeTypeReference(typeof(Convert))), "ChangeType",
-																		new CodeArgumentReferenceExpression("value"), new CodeTypeOfExpression(propertyDesc.PropertyType)))));
+                                                                        new CodeArgumentReferenceExpression("value"), new CodeTypeOfExpression(propertyDesc.PropertyType.ToCodeType(_settings))))));
                     }
                     else
                     {
                         setValueStatement.TrueStatements.Add(new CodeAssignStatement(
                                                  new CodeFieldReferenceExpression(
                                                      new CodeThisReferenceExpression(), fieldName),
-                                                 new CodeCastExpression(propertyDesc.PropertyType, new CodeArgumentReferenceExpression("value"))));
+                                                 new CodeCastExpression(propertyDesc.PropertyType.ToCodeType(_settings), new CodeArgumentReferenceExpression("value"))));
                     }
                     setValueStatement.TrueStatements.Add(new CodeMethodReturnStatement());
                     setvalueMethod.Statements.Add(setValueStatement);
@@ -165,14 +168,14 @@ namespace WXML.CodeDom
                     return "To" + type.Name;
                 }
 
-                public static void EnumPervUpdateSetValueMethod(PropertyDescription propertyDesc, CodeMemberMethod setvalueMethod)
+                public void EnumPervUpdateSetValueMethod(PropertyDescription propertyDesc, CodeMemberMethod setvalueMethod)
                 {
-                	var fieldName = WXMLCodeDomGeneratorNameHelper.GetPrivateMemberName(propertyDesc.PropertyName);
+                	var fieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(propertyDesc.PropertyName);
                     if (propertyDesc.PropertyType.IsEnum)
                     {
                         var setValueStatement = new CodeConditionStatement(
                         new CodeMethodInvokeExpression(
-                            WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(propertyDesc),
+                            WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(_settings, propertyDesc),
                             "Equals",
                             new CodeVariableReferenceExpression("fieldName"))
 
@@ -200,7 +203,7 @@ namespace WXML.CodeDom
                                         "t",
                                         new CodeArrayIndexerExpression(
                                                                 new CodeMethodInvokeExpression(
-                                                                    new CodeTypeOfExpression(propertyDesc.PropertyType),
+                                                                    new CodeTypeOfExpression(propertyDesc.PropertyType.ToCodeType(_settings)),
                                                                     "GetGenericArguments"
                                                                 ),
                                                                 new CodePrimitiveExpression(0)
@@ -210,7 +213,7 @@ namespace WXML.CodeDom
                                                          new CodeFieldReferenceExpression(
                                                              new CodeThisReferenceExpression(), fieldName),
                                                          new CodeCastExpression(
-                                                         propertyDesc.PropertyType,
+                                                         propertyDesc.PropertyType.ToCodeType(_settings),
                                                          new CodeMethodInvokeExpression(
                                                             new CodeTypeReferenceExpression(typeof(Enum)),
                                                             "ToObject",
@@ -232,12 +235,12 @@ namespace WXML.CodeDom
                                                                  new CodeFieldReferenceExpression(
                                                                      new CodeThisReferenceExpression(), fieldName),
                                                                  new CodeCastExpression(
-																 propertyDesc.PropertyType,
+                                                                 propertyDesc.PropertyType.ToCodeType(_settings),
                                                                  new CodeMethodInvokeExpression(
                                                                     new CodeTypeReferenceExpression(typeof(Enum)),
                                                                     "ToObject",
                                 // typeof(Nullable<int>).GetGenericArguments()[0]
-																	new CodeTypeOfExpression(propertyDesc.PropertyType),
+                                                                    new CodeTypeOfExpression(propertyDesc.PropertyType.ToCodeType(_settings)),
                                                                     new CodeArgumentReferenceExpression(
                                                                                             "value")
                                             ))));
