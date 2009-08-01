@@ -11,8 +11,11 @@ namespace WXMLToWorm.CodeDomExtensions
 {
     public class CodeLinqContextDeclaration : CodeTypeDeclaration
     {
-        public CodeLinqContextDeclaration(LinqSettingsDescriptor linqSettings)
+        private WXMLCodeDomGeneratorSettings _settings;
+
+        public CodeLinqContextDeclaration(WXMLCodeDomGeneratorSettings settings, LinqSettingsDescriptor linqSettings)
         {
+            _settings = settings;
             PopulateMembers += OnPopulateMembers;
             PopulateBaseTypes += OnPopulateBaseTypes;
             LinqSettings = linqSettings;
@@ -46,7 +49,7 @@ namespace WXMLToWorm.CodeDomExtensions
         {
             foreach (var entityDescription in m_entities)
             {
-                Members.Add(new CodeContextEntityWraperMember(entityDescription));
+                Members.Add(new CodeContextEntityWraperMember(_settings, entityDescription));
             }
             if(ContextClassBehaviour == ContextClassBehaviourType.BaseClass || ContextClassBehaviour == ContextClassBehaviourType.BasePartialClass)
             {
@@ -88,9 +91,11 @@ namespace WXMLToWorm.CodeDomExtensions
     public class CodeContextEntityWraperMember : CodeMemberProperty
     {
         private readonly EntityDescription m_entity;
+        private WXMLCodeDomGeneratorSettings _settings;
 
-        public CodeContextEntityWraperMember(EntityDescription entity)
+        public CodeContextEntityWraperMember(WXMLCodeDomGeneratorSettings settings, EntityDescription entity)
         {
+            _settings = settings;
             m_entity = entity;
             string entityName = entity.Name;
             if (entityName.EndsWith("s"))
@@ -101,7 +106,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 entityName += "s";
             Attributes = MemberAttributes.Public | MemberAttributes.Final;
             Name = (entity.RawNamespace ?? string.Empty) + entityName;
-            var entityTypeReference = new CodeTypeReference(WXMLCodeDomGeneratorNameHelper.GetEntityClassName(Entity, true));
+            var entityTypeReference = new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(Entity, true));
             Type = new CodeTypeReference("Worm.Linq.QueryWrapperT", entityTypeReference);
             SetStatements.Clear();
             GetStatements.Add(

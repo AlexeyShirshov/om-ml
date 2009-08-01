@@ -12,9 +12,12 @@ namespace WXMLToWorm.CodeDomExtensions
 {
 	public class CodeEntityProperty : CodeMemberProperty
 	{
-		public CodeEntityProperty(PropertyDescription property)
+        private WXMLCodeDomGeneratorSettings _settings;
+
+		public CodeEntityProperty(WXMLCodeDomGeneratorSettings settings, PropertyDescription property)
 		{
-			Type = property.PropertyType;
+            _settings = settings;
+            Type = property.PropertyType.ToCodeType(_settings);
 			HasGet = true;
 			HasSet = true;
 			Name = property.PropertyName;
@@ -22,12 +25,12 @@ namespace WXMLToWorm.CodeDomExtensions
 			if (property.Group != null && property.Group.Hide)
 				Attributes = MemberAttributes.Family;
 
-			var fieldName = WXMLCodeDomGeneratorNameHelper.GetPrivateMemberName(property.PropertyName);
+			var fieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(property.PropertyName);
 			if (!property.FromBase)
 			{
 				CodeMethodInvokeExpression getUsingExpression = new CodeMethodInvokeExpression(
 					new CodeMethodReferenceExpression(new CodeThisReferenceExpression(), "Read"),
-					WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(property)
+					WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(_settings, property)
 					);
 
 				if (property.PropertyType.IsEntityType && property.PropertyType.Entity.CacheCheckRequired)
@@ -55,7 +58,7 @@ namespace WXMLToWorm.CodeDomExtensions
 				{
 					CodeExpression setUsingExpression = new CodeMethodInvokeExpression(
 						new CodeMethodReferenceExpression(new CodeThisReferenceExpression(), "Write"),
-						WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(property)
+						WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(settings, property)
 						);
 
 					List<CodeStatement> setInUsingStatements = new List<CodeStatement>();
@@ -76,7 +79,7 @@ namespace WXMLToWorm.CodeDomExtensions
 						                         		)
 						                         	));
 						setInUsingStatements.Add(new CodeVariableDeclarationStatement(
-													property.PropertyType,
+                                                    property.PropertyType.ToCodeType(_settings),
 						                         	"oldValue",
 						                         	new CodeFieldReferenceExpression(
 						                         		new CodeThisReferenceExpression(),
@@ -104,7 +107,7 @@ namespace WXMLToWorm.CodeDomExtensions
 							new CodeMethodInvokeExpression(
 								new CodeThisReferenceExpression(),
 								"RaisePropertyChanged",
-								WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(property),
+								WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(_settings ,property),
 								new CodeVariableReferenceExpression("oldValue")
 								)
 							)
@@ -125,7 +128,7 @@ namespace WXMLToWorm.CodeDomExtensions
 				GetStatements.Add(
 				new CodeMethodReturnStatement(
 					new CodeCastExpression(
-						property.PropertyType,
+                        property.PropertyType.ToCodeType(_settings),
 						new CodePropertyReferenceExpression(new CodeBaseReferenceExpression(), property.Name)
 					)
 				)
@@ -151,7 +154,7 @@ namespace WXMLToWorm.CodeDomExtensions
             if (!string.IsNullOrEmpty(property.PropertyAlias))
             {
                 declaration.Arguments.Add(
-                    new CodeAttributeArgument("PropertyAlias", WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(property)));
+                    new CodeAttributeArgument("PropertyAlias", WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(_settings, property)));
             }
 
 			CustomAttributes.Add(declaration);

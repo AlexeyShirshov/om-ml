@@ -9,13 +9,16 @@ namespace WXMLToWorm.CodeDomExtensions
 {
     public class CodePropertiesAccessorTypeDeclaration : CodeTypeDeclaration
     {
-        public CodePropertiesAccessorTypeDeclaration(EntityDescription entity, PropertyGroup group)
+        private WXMLCodeDomGeneratorSettings _settings;
+ 
+        public CodePropertiesAccessorTypeDeclaration(WXMLCodeDomGeneratorSettings settings, EntityDescription entity, PropertyGroup group)
         {
             Entity = entity;
             Group = group;
             IsClass = true;
             Name = group.Name + "Accessor";
             PopulateMembers += OnPopulateMemebers;
+            _settings = settings;
         }
 
         void OnPopulateMemebers(object sender, EventArgs e)
@@ -27,10 +30,10 @@ namespace WXMLToWorm.CodeDomExtensions
                         Entity.Name, Group.Name, Entity.BaseEntity.Name));
 
             var properties = Entity.Properties.Where(p => p.Group == Group);
-            CodeTypeReference entityClassTypeReference = WXMLCodeDomGeneratorHelper.GetEntityClassTypeReference(Entity);
+            CodeTypeReference entityClassTypeReference = WXMLCodeDomGeneratorHelper.GetEntityClassTypeReference(_settings,Entity);
 
             var entityField = new CodeMemberField(entityClassTypeReference,
-                                                  WXMLCodeDomGeneratorNameHelper.GetPrivateMemberName("entity"));
+                                                  new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName("entity"));
             Members.Add(entityField);
 
             var ctor = new CodeConstructor
@@ -52,7 +55,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 var property = new CodeMemberProperty
                                    {
                                        Name = propertyDesc.Name,
-                                       Type = propertyDesc.PropertyType,
+                                       Type = propertyDesc.PropertyType.ToCodeType(_settings),
                                        HasGet = true,
                                        HasSet = false,
                                    };
@@ -75,7 +78,7 @@ namespace WXMLToWorm.CodeDomExtensions
         {
             get
             {
-                return string.Format("{0}.{1}", WXMLCodeDomGeneratorNameHelper.GetEntityClassName(Entity, true), Name);
+                return string.Format("{0}.{1}", new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(Entity, true), Name);
             }
         }
 

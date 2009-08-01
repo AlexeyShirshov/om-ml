@@ -12,6 +12,9 @@ namespace WXML.Model.Descriptors
         private readonly Type _clrType;
         private readonly EntityDescription _entity;
         private readonly UserTypeHintFlags? _userTpeHint;
+        //private WXMLCodeDomGeneratorSettings _settings;
+
+        #region Ctors
 
         public TypeDescription(string id, string typeName, bool treatAsUserType)
             : this(id, typeName, null, treatAsUserType, null)
@@ -57,6 +60,8 @@ namespace WXML.Model.Descriptors
             _entity = entity;
         }
 
+        #endregion
+
         public string Identifier
         {
             get { return _id; }
@@ -87,17 +92,13 @@ namespace WXML.Model.Descriptors
             get { return _entity; }
         }
 
-        public string TypeName
+        public string GetTypeName(WXMLCodeDomGeneratorSettings settings)
         {
-            get
-            {
-                if (IsClrType)
-                    return _clrType.FullName;
-                if (IsUserType)
-                    return _userType;
-            	return WXMLCodeDomGeneratorNameHelper.GetEntityClassName(_entity, true);
-
-            }
+            if (IsClrType)
+                return _clrType.FullName;
+            if (IsUserType)
+                return _userType;
+            return new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(_entity, true);
         }
 
         public bool IsClrType
@@ -172,7 +173,12 @@ namespace WXML.Model.Descriptors
 
         public override string ToString()
         {
-            return TypeName;
+            if (IsClrType)
+                return _clrType.FullName;
+            if (IsUserType)
+                return _userType;
+
+            return _entity.Identifier;
         }
 
         private Type GetTypeByName(string typeName)
@@ -186,12 +192,13 @@ namespace WXML.Model.Descriptors
             throw new TypeLoadException(String.Format("Cannot find type by given name '{0}'", typeName));
         }
 
-        public static implicit operator CodeTypeReference(TypeDescription propertyTypeDesc)
+        public CodeTypeReference ToCodeType(WXMLCodeDomGeneratorSettings settings)
         {
-            return
-                new CodeTypeReference(propertyTypeDesc.IsEntityType
-                                          ? WXMLCodeDomGeneratorNameHelper.GetEntityClassName(propertyTypeDesc.Entity, true)
-                                          : propertyTypeDesc.TypeName);
+            TypeDescription propertyTypeDesc = this;
+
+            return new CodeTypeReference(propertyTypeDesc.IsEntityType
+                  ? new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(propertyTypeDesc.Entity, true)
+                  : propertyTypeDesc.GetTypeName(settings));
         }
     }
 

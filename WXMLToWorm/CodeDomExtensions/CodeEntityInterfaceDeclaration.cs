@@ -37,25 +37,28 @@ namespace WXMLToWorm.CodeDomExtensions
 			}
 		}
 
-		public CodeEntityInterfaceDeclaration()
+        private WXMLCodeDomGeneratorSettings _settings;
+
+		public CodeEntityInterfaceDeclaration(WXMLCodeDomGeneratorSettings settings)
 		{
 			m_typeReference = new CodeTypeReference();
 
 			IsClass = false;
             IsPartial = false;
 			IsInterface = true;
+            _settings = settings;
 
-            var settings = WXMLCodeDomGeneratorNameHelper.GetSettings();
             if ((settings.LanguageSpecificHacks & LanguageSpecificHacks.AllowPartialInterfaces) == LanguageSpecificHacks.AllowPartialInterfaces)
                 IsPartial = true;
 		}
 
-		public CodeEntityInterfaceDeclaration(CodeEntityTypeDeclaration entityTypeDeclaration) : this(entityTypeDeclaration, null, null)
+		public CodeEntityInterfaceDeclaration(WXMLCodeDomGeneratorSettings settings, CodeEntityTypeDeclaration entityTypeDeclaration) 
+            : this(settings, entityTypeDeclaration, null, null)
 		{			
 		}
 
-		public CodeEntityInterfaceDeclaration(CodeEntityTypeDeclaration entityTypeDeclaration, string prefix, string suffix)
-			: this()
+		public CodeEntityInterfaceDeclaration(WXMLCodeDomGeneratorSettings settings, CodeEntityTypeDeclaration entityTypeDeclaration, string prefix, string suffix)
+			: this(settings)
 		{
 			NamePrefix = prefix;
 			NameSuffix = suffix;
@@ -71,7 +74,7 @@ namespace WXMLToWorm.CodeDomExtensions
 		{
 			get
 			{
-				return WXMLCodeDomGeneratorNameHelper.GetEntityInterfaceName(Entity, NamePrefix, NameSuffix, true);
+				return new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityInterfaceName(Entity, NamePrefix, NameSuffix, true);
 			}
 		}
 
@@ -80,7 +83,7 @@ namespace WXMLToWorm.CodeDomExtensions
 			get
 			{
 				if (Entity != null)
-					return WXMLCodeDomGeneratorNameHelper.GetEntityInterfaceName(Entity, NamePrefix, NameSuffix, false);
+					return new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityInterfaceName(Entity, NamePrefix, NameSuffix, false);
 				return null;
 			}
 		}
@@ -123,7 +126,7 @@ namespace WXMLToWorm.CodeDomExtensions
 					BaseTypes.Remove(m_baseInterfaceTypeReference);
 				}
 				m_baseInterfaceTypeReference =
-					new CodeTypeReference(WXMLCodeDomGeneratorNameHelper.GetEntityInterfaceName(Entity.BaseEntity, NamePrefix, NameSuffix, true));
+					new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityInterfaceName(Entity.BaseEntity, NamePrefix, NameSuffix, true));
 				BaseTypes.Add(m_baseInterfaceTypeReference);
 			}
 		}

@@ -20,14 +20,16 @@ namespace WXMLToWorm.CodeDomExtensions
     {
         private CodeEntityTypeDeclaration m_entityClass;
         private readonly CodeTypeReference m_typeReference;
+        private WXMLCodeDomGeneratorSettings _settings;
 
-        public CodeSchemaDefTypeDeclaration()
+        public CodeSchemaDefTypeDeclaration(WXMLCodeDomGeneratorSettings settings)
         {
             m_typeReference = new CodeTypeReference();
             IsClass = true;
             TypeAttributes = TypeAttributes.Class | TypeAttributes.NestedPublic;
             PopulateBaseTypes += OnPopulateBaseTypes;
             PopulateMembers += OnPopulateMembers;
+            _settings = settings;
         }
 
         protected void OnPopulateMembers(object sender, EventArgs e)
@@ -242,7 +244,7 @@ namespace WXMLToWorm.CodeDomExtensions
             method.Parameters.Add(
                 new CodeParameterDeclarationExpression(
                     new CodeTypeReference(
-                        WXMLCodeDomGeneratorNameHelper.GetEntitySchemaDefClassQualifiedName(m_entityClass.Entity) + ".TablesLink"), "tbl"
+                        new WXMLCodeDomGeneratorNameHelper(_settings).GetEntitySchemaDefClassQualifiedName(m_entityClass.Entity) + ".TablesLink"), "tbl"
                     )
                 );
             //	return (SourceFragment)this.GetTables().GetValue((int)tbl)
@@ -413,16 +415,14 @@ namespace WXMLToWorm.CodeDomExtensions
             if (m_entityClass.Entity.IsMultitable)
             {
                 expression.Parameters.Add(new CodeMethodInvokeExpression(
-                                            new CodeThisReferenceExpression(),
-                                            "GetTable",
-                                            new CodeFieldReferenceExpression(
-                                                new CodeTypeReferenceExpression(WXMLCodeDomGeneratorNameHelper.
-                                                                                    GetEntitySchemaDefClassQualifiedName
-                                                                                    (m_entityClass.Entity) +
-                                                                                ".TablesLink"),
-                                                WXMLCodeDomGeneratorNameHelper.GetSafeName(action.SourceFragment.Identifier)
-                                                )
-                                            ));
+                    new CodeThisReferenceExpression(), "GetTable",
+                    new CodeFieldReferenceExpression(
+                        new CodeTypeReferenceExpression(new WXMLCodeDomGeneratorNameHelper(_settings).
+                            GetEntitySchemaDefClassQualifiedName(m_entityClass.Entity) + ".TablesLink"),
+                        WXMLCodeDomGeneratorNameHelper.GetSafeName(action.SourceFragment.Identifier)
+                        )
+                    )
+                );
             }
             else
             {
@@ -478,11 +478,11 @@ namespace WXMLToWorm.CodeDomExtensions
                 //	}
 
                 CodeMemberField field = new CodeMemberField(new CodeTypeReference(typeof(SourceFragment)),
-                                                            WXMLCodeDomGeneratorNameHelper.GetPrivateMemberName("table"));
+                                                            new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName("table"));
                 Members.Add(field);
 
                 CodeMemberField lockField = new CodeMemberField(new CodeTypeReference(typeof(object)),
-                                                            WXMLCodeDomGeneratorNameHelper.GetPrivateMemberName("tableLock"));
+                                                            new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName("tableLock"));
                 Members.Add(lockField);
 
                 lockField.InitExpression = new CodeObjectCreateExpression(lockField.Type);
@@ -684,7 +684,7 @@ namespace WXMLToWorm.CodeDomExtensions
         }
 
 
-        private static CodeExpression[] GetM2MRelationCreationExpressions(RelationDescription relationDescription, EntityDescription entity)
+        private CodeExpression[] GetM2MRelationCreationExpressions(RelationDescription relationDescription, EntityDescription entity)
         {
             if (relationDescription.Left.Entity != relationDescription.Right.Entity)
             {
@@ -698,7 +698,7 @@ namespace WXMLToWorm.CodeDomExtensions
             throw new ArgumentException("To realize m2m relation on self use SelfRelation instead.");
         }
 
-        private static CodeExpression[] GetM2MRelationCreationExpressions(SelfRelationDescription relationDescription, EntityDescription entity)
+        private CodeExpression[] GetM2MRelationCreationExpressions(SelfRelationDescription relationDescription, EntityDescription entity)
         {
 
             return new CodeExpression[]
@@ -712,7 +712,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
         }
 
-        private static CodeExpression GetM2MRelationCreationExpression(EntityDescription relatedEntity, SourceFragmentDescription relationTable, EntityDescription underlyingEntity, string fieldName, bool cascadeDelete, bool? direct, IList<RelationConstantDescriptor> relationConstants)
+        private CodeExpression GetM2MRelationCreationExpression(EntityDescription relatedEntity, SourceFragmentDescription relationTable, EntityDescription underlyingEntity, string fieldName, bool cascadeDelete, bool? direct, IList<RelationConstantDescriptor> relationConstants)
         {
             //if (underlyingEntity != null && direct.HasValue)
             //    throw new NotImplementedException("M2M relation on self cannot have underlying entity.");
@@ -735,7 +735,7 @@ namespace WXMLToWorm.CodeDomExtensions
             //    OrmCodeGenHelper.GetEntityNameReferenceExpression(relatedEntity)
             //        //new CodePrimitiveExpression(relatedEntity.Name)
             //    );
-            entityTypeExpression = WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(relatedEntity);
+            entityTypeExpression = WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings,relatedEntity);
 
             if (underlyingEntity == null)
                 tableExpression = new CodeMethodInvokeExpression(
@@ -751,7 +751,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 tableExpression = new CodePropertyReferenceExpression(
                     new CodeMethodInvokeExpression(
                         new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), "_schema"),
-                        "GetEntitySchema", WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(underlyingEntity)),
+                        "GetEntitySchema", WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings, underlyingEntity)),
                     "Table");
             //tableExpression = new CodeMethodInvokeExpression(
             //    new CodeThisReferenceExpression(),
@@ -849,8 +849,8 @@ namespace WXMLToWorm.CodeDomExtensions
 
             var baseFieldName = method.Name;
 
-            var fieldName = WXMLCodeDomGeneratorNameHelper.GetPrivateMemberName(method.Name);
-            var dicFieldName = WXMLCodeDomGeneratorNameHelper.GetPrivateMemberName(baseFieldName + "Dic");
+            var fieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(method.Name);
+            var dicFieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(baseFieldName + "Dic");
             var dicFieldTypeReference = new CodeTypeReference(typeof(Dictionary<string, List<string>>));
 
             if (m_entityClass.Entity.BaseEntity == null ||
@@ -868,7 +868,7 @@ namespace WXMLToWorm.CodeDomExtensions
             var field = new CodeMemberField(method.ReturnType, fieldName);
             Members.Add(field);
 
-            var lockObjFieldName = WXMLCodeDomGeneratorNameHelper.GetPrivateMemberName(baseFieldName + "Lock");
+            var lockObjFieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(baseFieldName + "Lock");
 
             var lockObj = new CodeMemberField(new CodeTypeReference(typeof(object)), lockObjFieldName);
             lockObj.InitExpression = new CodeObjectCreateExpression(lockObj.Type);
@@ -923,8 +923,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 foreach (var propertyDescription in propertyDescriptions.Value)
                 {
                     inlockStatemets.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression(listVar.Name), "Add",
-                                                                       WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(
-                                                                        propertyDescription)));
+                       WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(_settings,propertyDescription)));
                 }
             }
             // List<string[]> res = new List<string[]>();
@@ -1070,7 +1069,7 @@ namespace WXMLToWorm.CodeDomExtensions
         private void OnPopulateBaseClass()
         {
             if (EntityClass.Entity.BaseEntity != null)
-                BaseTypes.Add(new CodeTypeReference(WXMLCodeDomGeneratorNameHelper.GetEntitySchemaDefClassQualifiedName(EntityClass.Entity.BaseEntity)));
+                BaseTypes.Add(new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(_settings).GetEntitySchemaDefClassQualifiedName(EntityClass.Entity.BaseEntity)));
         }
 
         private void OnPupulateSchemaInterfaces()
@@ -1090,8 +1089,8 @@ namespace WXMLToWorm.CodeDomExtensions
             BaseTypes.Add(new CodeTypeReference(typeof(Worm.Entities.Meta.IDefferedLoading)));
         }
 
-        public CodeSchemaDefTypeDeclaration(CodeEntityTypeDeclaration entityClass)
-            : this()
+        public CodeSchemaDefTypeDeclaration(WXMLCodeDomGeneratorSettings settings, CodeEntityTypeDeclaration entityClass)
+            : this(settings)
         {
             EntityClass = entityClass;
         }
@@ -1119,7 +1118,7 @@ namespace WXMLToWorm.CodeDomExtensions
             get
             {
                 if (m_entityClass != null && m_entityClass.Entity != null)
-                    return WXMLCodeDomGeneratorNameHelper.GetEntitySchemaDefClassName(m_entityClass.Entity);
+                    return new WXMLCodeDomGeneratorNameHelper(_settings).GetEntitySchemaDefClassName(m_entityClass.Entity);
                 return null;
             }
         }
@@ -1129,7 +1128,7 @@ namespace WXMLToWorm.CodeDomExtensions
             get
             {
                 if (m_entityClass != null && m_entityClass.Entity != null)
-                    return WXMLCodeDomGeneratorNameHelper.GetEntitySchemaDefClassQualifiedName(m_entityClass.Entity);
+                    return new WXMLCodeDomGeneratorNameHelper(_settings).GetEntitySchemaDefClassQualifiedName(m_entityClass.Entity);
                 return null;
             }
         }
@@ -1142,7 +1141,7 @@ namespace WXMLToWorm.CodeDomExtensions
             IsPartial = m_entityClass.IsPartial;
             Attributes = m_entityClass.Attributes;
             if (m_entityClass.Entity.BaseEntity != null &&
-                Name == WXMLCodeDomGeneratorNameHelper.GetEntitySchemaDefClassName(m_entityClass.Entity.BaseEntity))
+                Name == new WXMLCodeDomGeneratorNameHelper(_settings).GetEntitySchemaDefClassName(m_entityClass.Entity.BaseEntity))
                 Attributes |= MemberAttributes.New;
         }
 

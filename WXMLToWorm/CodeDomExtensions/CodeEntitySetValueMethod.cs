@@ -12,7 +12,8 @@ namespace WXMLToWorm.CodeDomExtensions
 {
 	public class CodeEntitySetValueMethod : CodeMemberMethod
 	{
-		public CodeEntitySetValueMethod(EntityDescription entity)
+        //WXMLCodeDomGeneratorSettings _settings
+		public CodeEntitySetValueMethod(WXMLCodeDomGeneratorSettings settings, EntityDescription entity)
 		{
 			Name = "SetValueOptimized";
 			// тип возвращаемого значения
@@ -39,7 +40,7 @@ namespace WXMLToWorm.CodeDomExtensions
 				if (property.Disabled)
 					continue;
 
-                WXMLCodeDomGenerator.Delegates.UpdateSetValueMethodMethod(property, this);
+                WXMLCodeDomGenerator.Delegates.GetUpdateSetValueMethodMethod(settings)(property, this);
 			}
 
 			if (entity.BaseEntity != null)

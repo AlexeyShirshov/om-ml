@@ -21,13 +21,15 @@ namespace WXMLToWorm.CodeDomExtensions
         private CodeSchemaDefTypeDeclaration m_schema;
         private readonly Dictionary<string, CodePropertiesAccessorTypeDeclaration> m_propertiesAccessor;
         private bool _useType;
+        private WXMLCodeDomGeneratorSettings _settings;
 
-        public CodeEntityTypeDeclaration(bool useType)
+        public CodeEntityTypeDeclaration(WXMLCodeDomGeneratorSettings settings, bool useType)
         {
             m_typeReference = new CodeTypeReference();
             m_propertiesAccessor = new Dictionary<string, CodePropertiesAccessorTypeDeclaration>();
             PopulateMembers += OnPopulateMembers;
             _useType = useType;
+            _settings = settings;
         }
 
         protected virtual void OnPopulateMembers(object sender, System.EventArgs e)
@@ -83,7 +85,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 }
                 accessorName = WXMLCodeDomGeneratorNameHelper.GetMultipleForm(accessorName);
 
-                var entityTypeExpression = _useType ? WXMLCodeDomGeneratorHelper.GetEntityClassTypeReferenceExpression(relatedEntity) : WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(relatedEntity);
+                var entityTypeExpression = _useType ? WXMLCodeDomGeneratorHelper.GetEntityClassTypeReferenceExpression(_settings,relatedEntity) : WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings,relatedEntity);
 
                 var desc = new CodeObjectCreateExpression(
                     new CodeTypeReference(typeof(M2MRelationDesc)),
@@ -101,7 +103,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 staticProperty.GetStatements.Add(new CodeMethodReturnStatement(
                     new CodeObjectCreateExpression(typeof(RelationDescEx),
                     new CodeObjectCreateExpression(typeof(EntityUnion),
-                        WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(m_entity)
+                        WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings,m_entity)
                     ), desc)
                 ));
 
@@ -131,7 +133,7 @@ namespace WXMLToWorm.CodeDomExtensions
                             "GetCmd",
                             new CodePropertyReferenceExpression(
                                 new CodePropertyReferenceExpression(
-                                    WXMLCodeDomGeneratorHelper.GetEntityClassReferenceExpression(m_entity),
+                                    WXMLCodeDomGeneratorHelper.GetEntityClassReferenceExpression(_settings, m_entity),
                                     staticProperty.Name
                                 ),
                                 "M2MRel"
@@ -154,7 +156,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
                 if (!string.IsNullOrEmpty(accessorName))
                 {
-                    var entityTypeExpression = _useType ? WXMLCodeDomGeneratorHelper.GetEntityClassTypeReferenceExpression(m_entity) : WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(m_entity);
+                    var entityTypeExpression = _useType ? WXMLCodeDomGeneratorHelper.GetEntityClassTypeReferenceExpression(_settings,m_entity) : WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings, m_entity);
 
                     var desc = new CodeObjectCreateExpression(
                         new CodeTypeReference(typeof(M2MRelationDesc)),
@@ -174,7 +176,7 @@ namespace WXMLToWorm.CodeDomExtensions
                     staticProperty.GetStatements.Add(new CodeMethodReturnStatement(
                         new CodeObjectCreateExpression(typeof(RelationDescEx),
                         new CodeObjectCreateExpression(typeof(EntityUnion),
-                            WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(m_entity)
+                            WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings,m_entity)
                         ), desc)
                     ));
 
@@ -208,7 +210,7 @@ namespace WXMLToWorm.CodeDomExtensions
                                 "GetCmd",
                                 new CodePropertyReferenceExpression(
                                     new CodePropertyReferenceExpression(
-                                        WXMLCodeDomGeneratorHelper.GetEntityClassReferenceExpression(m_entity),
+                                        WXMLCodeDomGeneratorHelper.GetEntityClassReferenceExpression(_settings, m_entity),
                                         staticProperty.Name
                                     ),
                                     "M2MRel"
@@ -226,7 +228,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
                 if (!string.IsNullOrEmpty(accessorName))
                 {
-                    var entityTypeExpression = WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(m_entity);
+                    var entityTypeExpression = WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings,m_entity);
                     var desc = new CodeObjectCreateExpression(
                         new CodeTypeReference(typeof(M2MRelationDesc)),
                         entityTypeExpression);
@@ -245,7 +247,7 @@ namespace WXMLToWorm.CodeDomExtensions
                     staticProperty.GetStatements.Add(new CodeMethodReturnStatement(
                         new CodeObjectCreateExpression(typeof(RelationDescEx), 
                         new CodeObjectCreateExpression(typeof(EntityUnion),
-                            WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(m_entity)
+                            WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings,m_entity)
                         ), desc)
                     ));
                     //desc.Parameters.Add(new CodePrimitiveExpression(relation.Reverse.FieldName));
@@ -278,7 +280,7 @@ namespace WXMLToWorm.CodeDomExtensions
                                 "GetCmd",
                                 new CodePropertyReferenceExpression(
                                     new CodePropertyReferenceExpression(
-                                        WXMLCodeDomGeneratorHelper.GetEntityClassReferenceExpression(m_entity),
+                                        WXMLCodeDomGeneratorHelper.GetEntityClassReferenceExpression(_settings,m_entity),
                                         staticProperty.Name
                                     ),
                                     "M2MRel"
@@ -299,7 +301,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
         private void GetRelationMethods(string relationIdentifier, string propName)
         {
-            string cln = WXMLCodeDomGeneratorNameHelper.GetEntityClassName(m_entity, true);
+            string cln = new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(m_entity, true);
             string dn = cln + ".Descriptor";
 
             if (_useType)
@@ -365,15 +367,15 @@ namespace WXMLToWorm.CodeDomExtensions
                             relationDescType,
                             new CodeObjectCreateExpression(
                                 typeof(EntityUnion),
-                                WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(m_entity)
+                                WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings,m_entity)
                             ),
                             new CodeObjectCreateExpression(
                                 typeof(RelationDesc),
                                 new CodeObjectCreateExpression(
                                     new CodeTypeReference(typeof(EntityUnion)),
-                                    WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(entityRelation.Entity)
+                                    WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings, entityRelation.Entity)
                                 ),
-                                WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(entityRelation.Property),
+                                WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(_settings,entityRelation.Property),
                                 new CodePrimitiveExpression(entityRelation.Name ?? "default")
                             )
                         )
@@ -382,8 +384,8 @@ namespace WXMLToWorm.CodeDomExtensions
 
                 Members.Add(staticProperty);
 
-                string cd = WXMLCodeDomGeneratorNameHelper.GetEntityClassName(entityRelation.Property.Entity, true) + ".Properties";
-                string dn = WXMLCodeDomGeneratorNameHelper.GetEntityClassName(entityRelation.Entity, true) + ".Descriptor";
+                string cd = new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(entityRelation.Property.Entity, true) + ".Properties";
+                string dn = new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(entityRelation.Entity, true) + ".Descriptor";
 
                 Members.Add(Define.Method(MemberAttributes.Public | MemberAttributes.Final | MemberAttributes.Static, 
                     typeof(RelationDescEx),
@@ -429,7 +431,7 @@ namespace WXMLToWorm.CodeDomExtensions
                             "GetCmd",
                             new CodePropertyReferenceExpression(
                                 new CodePropertyReferenceExpression(
-                                    WXMLCodeDomGeneratorHelper.GetEntityClassReferenceExpression(m_entity),
+                                    WXMLCodeDomGeneratorHelper.GetEntityClassReferenceExpression(_settings,m_entity),
                                     staticProperty.Name
                                 ),
                                 "Rel"
@@ -452,7 +454,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 CodePropertiesAccessorTypeDeclaration accessor;
                 if (!m_propertiesAccessor.TryGetValue(propertyDescription.Group.Name, out accessor))
                     m_propertiesAccessor[propertyDescription.Group.Name] =
-                        new CodePropertiesAccessorTypeDeclaration(Entity, propertyDescription.Group);
+                        new CodePropertiesAccessorTypeDeclaration(_settings,Entity, propertyDescription.Group);
 
             }
             foreach (var accessor in m_propertiesAccessor.Values)
@@ -475,8 +477,8 @@ namespace WXMLToWorm.CodeDomExtensions
 
         }
 
-        public CodeEntityTypeDeclaration(EntityDescription entity, bool useType)
-            : this(useType)
+        public CodeEntityTypeDeclaration(WXMLCodeDomGeneratorSettings settings, EntityDescription entity, bool useType)
+            : this(settings,useType)
         {
             Entity = entity;
             m_typeReference.BaseType = FullName;
@@ -489,7 +491,7 @@ namespace WXMLToWorm.CodeDomExtensions
             {
                 if (m_schema == null)
                 {
-                    m_schema = new CodeSchemaDefTypeDeclaration(this);
+                    m_schema = new CodeSchemaDefTypeDeclaration(_settings, this);
                 }
                 return m_schema;
             }
@@ -500,7 +502,7 @@ namespace WXMLToWorm.CodeDomExtensions
             get
             {
                 if (Entity != null)
-                    return WXMLCodeDomGeneratorNameHelper.GetEntityClassName(Entity, false);
+                    return new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(Entity, false);
                 return null;
             }
         }
@@ -509,7 +511,7 @@ namespace WXMLToWorm.CodeDomExtensions
         {
             get
             {
-                return WXMLCodeDomGeneratorNameHelper.GetEntityClassName(Entity, true);
+                return new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(Entity, true);
             }
         }
 

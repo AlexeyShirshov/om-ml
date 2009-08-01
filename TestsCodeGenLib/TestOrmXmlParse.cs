@@ -230,7 +230,7 @@ namespace TestsCodeGenLib
             Assert.IsNotNull(prop.SourceFragment, "Table is undefined");
             Assert.AreEqual<string>("tblArtists", prop.SourceFragment.Identifier, "Table.Identifier is undefined");
             Assert.AreEqual<string>("id", prop.FieldName, "FieldName is undefined");
-            Assert.AreEqual<string>("System.Int32", prop.PropertyType.TypeName, "PropertyTypeString is undefined");
+            Assert.AreEqual<string>("System.Int32", prop.PropertyType.GetTypeName(null), "PropertyTypeString is undefined");
             Assert.AreEqual<string>("Property ID Description", prop.Description, "Description is undefined");
             Assert.AreEqual<AccessLevel>(AccessLevel.Private, prop.FieldAccessLevel, "FieldAccessLevel");
             Assert.AreEqual<AccessLevel>(AccessLevel.Public, prop.PropertyAccessLevel, "PropertyAccessLevel");
@@ -242,7 +242,7 @@ namespace TestsCodeGenLib
             Assert.IsNotNull(prop.SourceFragment, "Table is undefined");
             Assert.AreEqual<string>("tblArtists", prop.SourceFragment.Identifier, "Table.Identifier is undefined");
             Assert.AreEqual<string>("name", prop.FieldName, "FieldName is undefined");
-            Assert.AreEqual<string>("System.String", prop.PropertyType.TypeName, "PropertyTypeString is undefined");
+            Assert.AreEqual<string>("System.String", prop.PropertyType.GetTypeName(null), "PropertyTypeString is undefined");
             Assert.AreEqual<string>("Property Title Description", prop.Description, "Description");
             Assert.AreEqual<AccessLevel>(AccessLevel.Private, prop.FieldAccessLevel, "FieldAccessLevel");
             Assert.AreEqual<AccessLevel>(AccessLevel.Assembly, prop.PropertyAccessLevel, "PropertyAccessLevel");
@@ -255,7 +255,7 @@ namespace TestsCodeGenLib
             Assert.IsNotNull(prop.SourceFragment, "Table is undefined");
             Assert.AreEqual<string>("tblArtists", prop.SourceFragment.Identifier, "Table.Identifier is undefined");
             Assert.AreEqual<string>("display_name", prop.FieldName, "FieldName is undefined");
-            Assert.AreEqual<string>("System.String", prop.PropertyType.TypeName, "PropertyTypeString is undefined");
+            Assert.AreEqual<string>("System.String", prop.PropertyType.GetTypeName(null), "PropertyTypeString is undefined");
             Assert.AreEqual<string>("Property Title Description", prop.Description, "Property Title Description");
             Assert.AreEqual<AccessLevel>(AccessLevel.Family, prop.FieldAccessLevel, "FieldAccessLevel");
             Assert.AreEqual<AccessLevel>(AccessLevel.Family, prop.PropertyAccessLevel, "PropertyAccessLevel");
