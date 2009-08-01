@@ -1,0 +1,843 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema
+		id="WXMLSchema"
+		targetNamespace="http://wise-orm.com/WXMLSchema.xsd"
+		elementFormDefault="qualified"
+		xmlns="http://wise-orm.com/WXMLSchema.xsd"
+		xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		xmlns:NS="http://wise-orm.com/WXMLSchema.xsd"
+
+		version="1.0">
+  <xs:complexType name="Entity_t">
+    <xs:annotation>
+      <xs:documentation>Сущность</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="SourceFragments" type="SourceFragmentRefCollection_t" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Список используемых таблиц</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Properties" type="PropertiesGroupedCollection_t" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Свойства сущности</xs:documentation>
+        </xs:annotation>
+        <!--<xs:key name="propPropertyId">
+					<xs:annotation>
+						<xs:documentation>Идентификатор</xs:documentation>
+					</xs:annotation>
+					<xs:selector xpath="NS:Property" />
+					<xs:field xpath="@id" />
+				</xs:key>-->
+        <xs:key name="propPropertyName">
+          <xs:annotation>
+            <xs:documentation>Свойства объекта сущности должны быть уникальны</xs:documentation>
+          </xs:annotation>
+          <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
+          <xs:field xpath="@propertyName" />
+        </xs:key>
+        <!--<xs:unique name="propName">
+          <xs:annotation>
+            <xs:documentation>Колонки сущности должны быть уникальны</xs:documentation>
+          </xs:annotation>
+          <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
+          <xs:field xpath="@fieldName" />
+        </xs:unique>-->
+        <xs:keyref name="propTableRef" refer="SourceFragmentId">
+          <xs:annotation>
+            <xs:documentation>Ссылка на таблицы</xs:documentation>
+          </xs:annotation>
+          <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
+          <xs:field xpath="@table" />
+        </xs:keyref>
+        <xs:keyref name="propType" refer="TypeId">
+          <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
+          <xs:field xpath="@typeRef" />
+        </xs:keyref>
+        <xs:unique name="propertyAlias">
+          <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
+          <xs:field xpath="@propertyAlias" />
+        </xs:unique>
+      </xs:element>
+      <xs:element name="SuppressedProperties" type="SupperessedPropertiesCollection_t" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Suppressed properties list</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Relations" type="EntitySimpleRelationsCollection_t" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>One to Many relations</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:Name" use="required">
+      <xs:annotation>
+        <xs:documentation>Идентификатор сущности</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="name" type="Name_t" use="required">
+      <xs:annotation>
+        <xs:documentation>Наименование сущности</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="description" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>Описание сущности</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="namespace" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Пространство имен для сущности</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="baseEntity" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>ИД базовой сущности</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="behaviour" type="EntityBehaviour_t" use="optional" default="Default">
+      <xs:annotation>
+        <xs:documentation>Entity generator behaviour</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+	  <xs:attribute name="useGenerics" type="xs:boolean" use="optional" default="false">
+		  <xs:annotation>
+			  <xs:documentation>Определяет генерировать generic или строго типизированные методы.</xs:documentation>
+		  </xs:annotation>
+	  </xs:attribute>
+	  <xs:attribute name="makeInterface" type="xs:boolean" use="optional" default="false">
+		  <xs:annotation>
+			  <xs:documentation>Определяет генерировать интерфейс для сущности</xs:documentation>
+		  </xs:annotation>
+	  </xs:attribute>
+		<xs:attribute name="disabled" type="xs:boolean" use="optional" default="false">
+			<xs:annotation>
+				<xs:documentation>Определяет генерить ли сущность или нет</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="cacheCheckRequired" use="optional" default="false">
+			<xs:annotation>
+				<xs:documentation>
+					Опредяет требуется ли роверка по кэшу при прямой ссылке на объект.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="SupperessedPropertiesCollection_t">
+    <xs:annotation>
+      <xs:documentation>Suppressed properties collection</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Property" type="SuppressedProperty_t" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>Suppressed property</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SuppressedProperty_t">
+    <xs:annotation>
+      <xs:documentation>Suppressed property type</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="name" type="Name_t">
+      <xs:annotation>
+        <xs:documentation>Property name</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="SourceFragmentRefCollection_t">
+    <xs:annotation>
+      <xs:documentation>Список используемых таблиц</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="SourceFragment" type="SourceFragmentRef_t" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>Ссылка на сурс фрагменты</xs:documentation>
+        </xs:annotation>
+        <xs:keyref name="TableRefRef" refer="SourceFragmentId">
+          <xs:selector xpath="." />
+          <xs:field xpath="@ref" />
+        </xs:keyref>
+        <xs:keyref name="TableAnchorRef" refer="SourceFragmentId">
+          <xs:selector xpath="." />
+          <xs:field xpath="@anchorTableRef" />
+        </xs:keyref>
+      </xs:element>
+    </xs:sequence>
+	<xs:attribute name="inheritsBase" type="xs:boolean" use="optional" default="true">
+		<xs:annotation>
+			<xs:documentation>
+				Inherits table list from base entity.
+			</xs:documentation>
+		</xs:annotation>
+	</xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="SourceFragmentRef_t">
+    <xs:annotation>
+      <xs:documentation>Ссылка на сурс фрагмент</xs:documentation>
+    </xs:annotation>
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="join" minOccurs="1" maxOccurs="1">
+        <xs:complexType>
+          <xs:attribute name="refColumn" type="xs:string" use="required" />
+          <xs:attribute name="anchorColumn" type="xs:string" use="required" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="ref" type="xs:Name" use="required" />
+    <xs:attribute name="anchorTableRef" type="xs:Name" />
+    <xs:attribute name="type" type="JoinTypeEnum_t" use="optional" default="inner" />
+  </xs:complexType>
+  <xs:complexType name="EntitiesCollection_t">
+    <xs:annotation>
+      <xs:documentation>Коллекция сущностей</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Entity" type="Entity_t" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Property_t">
+    <xs:annotation>
+      <xs:documentation>Свойство сущности</xs:documentation>
+    </xs:annotation>
+    <!--<xs:attribute name="id" type="xs:Name" use="required">
+			<xs:annotation>
+				<xs:documentation>Идентификатор свойства</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>-->
+    <xs:attribute name="propertyName" type="Name_t" use="required">
+      <xs:annotation>
+        <xs:documentation>Имя свойства</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="propertyAlias" type="Name_t" use="optional">
+      <xs:annotation>
+        <xs:documentation></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="attributes" type="PropertyAttributeEnum_t" use="optional">
+      <xs:annotation>
+        <xs:documentation>Атрибуты свойства</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="description" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>Описание свойства</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="typeRef" type="xs:Name" use="required">
+      <xs:annotation>
+        <xs:documentation>Тип свойства (возможна ссылка на сущность)</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="dbTypeName" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Имя типа поля БД</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="dbTypeSize" type="xs:integer" use="optional">
+      <xs:annotation>
+        <xs:documentation>Размер типа поля БД</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="dbTypeNullable" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:documentation>Тип поля БД является nullable</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="fieldName" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>Наименование колонки из БД</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="table" type="xs:Name" use="required">
+      <xs:annotation>
+        <xs:documentation>Ссылка на таблицу БД</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="classfieldAccessLevel" type="AccessLevel_t" use="optional" default="Private">
+      <xs:annotation>
+        <xs:documentation>Уровень доступа к полю класса</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="propertyAccessLevel" type="AccessLevel_t" use="optional" default="Public">
+      <xs:annotation>
+        <xs:documentation>Уровень доступа к полю класса</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+        <xs:attribute name="disabled" type="xs:boolean" use="optional" default="false">
+          <xs:annotation>
+            <xs:documentation>Признак отключения проперти</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+	<xs:attribute name="obsolete" type="ObsoleteType_t" use="optional" default="None">
+	  <xs:annotation>
+		<xs:documentation>Make property obsolete.</xs:documentation>
+	  </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="obsoleteDescription" type="xs:string" use="optional">
+	  <xs:annotation>
+		<xs:documentation>Description for obsolete property.</xs:documentation>
+	  </xs:annotation>
+	</xs:attribute>
+	  <xs:attribute name="enablePropertyChanged" type="xs:boolean" use="optional" default="false">
+		  <xs:annotation>
+			  <xs:documentation>
+				Включает для свойства поднятие события PropertyChanged, при этом реализация идет на уровне конкретной сущности. При этом в целом для сущности отключается общий механизм этого события.
+			  </xs:documentation>
+		  </xs:annotation>
+	  </xs:attribute>
+		<xs:attribute name="defferedLoadGroup" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					Группа свойства для отложенной загрузки.
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+    <xs:attribute name="fieldAlias" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>Алиас колонки из БД</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="PropertiesCollection_t">
+    <xs:annotation>
+      <xs:documentation>Коллекция свойств сущности</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Property" type="Property_t" minOccurs="0" maxOccurs="unbounded">
+      </xs:element>
+    </xs:sequence>  
+  </xs:complexType>
+  <xs:complexType name="PropertiesGroupedCollection_t">
+    <xs:annotation>
+      <xs:documentation>Сгруппированная коллекция свойств сущности</xs:documentation>
+    </xs:annotation>
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="Property" type="Property_t" />
+        </xs:choice>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="Group">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Property" type="Property_t" minOccurs="0" maxOccurs="unbounded" />
+              </xs:sequence>
+              <xs:attribute name="name" type="Name_t" use="required" />
+              <xs:attribute name="hide" type="xs:boolean" use="optional" default="true" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+	<xs:complexType name="SourceFragmentsCollection_t">
+		<xs:annotation>
+			<xs:documentation>Коллекция сурс фрагментов</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="SourceFragment" minOccurs="0" maxOccurs="unbounded" type="SourceFragment_t">
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="SourceFragment_t">
+		<xs:annotation>
+			<xs:documentation>Сурс фрагмент</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="id" type="xs:string" use="required" />
+		<xs:attribute name="name" type="xs:string" use="required" />
+		<xs:attribute name="selector" type="xs:string" use="optional" />
+	</xs:complexType>
+  <xs:complexType name="EntitySimpleRelationsCollection_t">
+    <xs:annotation>
+      <xs:documentation>One to Many relations collection</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Relation" type="EntitySimpleRelation_t" minOccurs="0" maxOccurs="unbounded">
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="EntityRelationsCollection_t">
+    <xs:annotation>
+      <xs:documentation>Коллекция связей сущностей</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+	  <xs:choice minOccurs="0" maxOccurs="unbounded">
+		<xs:element name="Relation" type="EntityRelation_t">
+		  <xs:keyref name="RelationTableRef" refer="SourceFragmentId">
+			<xs:selector xpath="." />
+			<xs:field xpath="@table" />
+		  </xs:keyref>
+		  <xs:keyref name="RelationEntityRef" refer="EntityId">
+			<xs:selector xpath="." />
+			<xs:field xpath="@underlyingEntity" />
+		  </xs:keyref>
+		  <xs:keyref name="EntityRelationTargetEntity" refer="EntityId">
+			<xs:selector xpath=".//." />
+			<xs:field xpath="@entity" />
+		  </xs:keyref>
+		</xs:element>
+		<xs:element name="SelfRelation" type="EntitySelfRelation_t">
+		  <xs:keyref name="SelftRelationTableRef" refer="SourceFragmentId">
+			<xs:selector xpath="." />
+			<xs:field xpath="@table" />
+		  </xs:keyref>
+		  <xs:keyref name="SelfRelationEntityRef" refer="EntityId">
+			<xs:selector xpath="." />
+			<xs:field xpath="@underlyingEntity" />
+		  </xs:keyref>
+		  <xs:keyref name="EntitySelfRelationTargetEntity" refer="EntityId">
+			<xs:selector xpath="." />
+			<xs:field xpath="@entity" />
+		  </xs:keyref>
+		</xs:element>
+	  </xs:choice>      
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Constants_t">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="Constant" minOccurs="1" maxOccurs="1" type="Constant_t" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Constant_t">
+    <xs:attribute name="name" type="xs:string" />
+    <xs:attribute name="value" type="xs:string" />
+  </xs:complexType>
+  <xs:complexType name="EntitySelfRelation_t">
+	<xs:annotation>
+	  <xs:documentation>Связь сущности самой с собой</xs:documentation>
+	</xs:annotation>
+	<xs:all>
+    <xs:element name="Constants" type="Constants_t" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="Direct" type="SelfDirectionTarget_t" minOccurs="1" maxOccurs="1"></xs:element>
+	  <xs:element name="Reverse" type="SelfDirectionTarget_t" minOccurs="1" maxOccurs="1"></xs:element>
+	</xs:all>
+	<xs:attribute name="table" type="xs:Name" use="required">
+	  <xs:annotation>
+		<xs:documentation>Имя таблицы связи</xs:documentation>
+	  </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="underlyingEntity" type="Name_t" use="optional">
+	  <xs:annotation>
+		<xs:documentation>Сущность реализующая связь</xs:documentation>
+	  </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="entity" type="Name_t" use="required">
+	  <xs:annotation>
+		<xs:documentation>Сущность реализующая связь</xs:documentation>
+	  </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="disabled" type="xs:boolean" use="optional" default="false">
+	  <xs:annotation>
+		<xs:documentation>Disable relation</xs:documentation>
+	  </xs:annotation>
+	</xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="EntityRelation_t">
+    <xs:annotation>
+      <xs:documentation>Связь сущностей</xs:documentation>
+    </xs:annotation>
+    <xs:all>
+      <xs:element name="Constants" type="Constants_t" minOccurs="0" maxOccurs="1" />
+      <xs:element name="Left" type="LinkTarget_t" minOccurs="1" maxOccurs="1">
+      </xs:element>
+      <xs:element name="Right" type="LinkTarget_t" minOccurs="1" maxOccurs="1">
+      </xs:element>
+    </xs:all>
+    <xs:attribute name="table" type="xs:Name" use="required">
+      <xs:annotation>
+        <xs:documentation>Имя таблицы связи</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="underlyingEntity" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Сущность</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="disabled" type="xs:boolean" use="optional" default="false">
+      <xs:annotation>
+        <xs:documentation>Disable relation</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="EntitySimpleRelation_t">
+    <xs:annotation>
+      <xs:documentation>One to Many relation</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="entity" type="xs:Name" use="required">
+      <xs:annotation>
+        <xs:documentation>Имя таблицы связи</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="propertyAlias" type="Name_t" use="optional">
+      <xs:annotation>
+        <xs:documentation></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="name" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Relation name</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="accessorName" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Accesor property name.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="disabled" type="xs:boolean" use="optional" default="false">
+      <xs:annotation>
+        <xs:documentation>Disable relation</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="accessorDescription" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>Комментарий для свойства сущности</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="SelfDirectionTarget_t">
+	<xs:annotation>
+	  <xs:documentation>Точка ссылки</xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="fieldName" type="xs:string" use="required">
+	  <xs:annotation>
+		<xs:documentation>Имя поля таблицы связи</xs:documentation>
+	  </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="cascadeDelete" type="xs:Name" use="required">
+	  <xs:annotation>
+		<xs:documentation>Каскадное удаление</xs:documentation>
+	  </xs:annotation>
+	</xs:attribute>
+	  <xs:attribute name="accessorName" type="xs:Name" use="optional">
+		  <xs:annotation>
+			  <xs:documentation>Имя связанной сущности для генерации методов.</xs:documentation>
+		  </xs:annotation>
+	  </xs:attribute>
+	  <xs:attribute name="accessedEntityType" type="xs:Name" use="optional">
+		  <xs:annotation>
+			  <xs:documentation>Тип связанной сущности для генерации методов</xs:documentation>
+		  </xs:annotation>
+	  </xs:attribute>
+    <xs:attribute name="accessorDescription" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>Комментарий для свойства сущности</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="LinkTarget_t">
+    <xs:annotation>
+      <xs:documentation>Точка ссылки</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="entity" type="xs:Name" use="required">
+      <xs:annotation>
+        <xs:documentation>Сущность</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="fieldName" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>Имя поля таблицы связи</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="cascadeDelete" type="xs:Name" use="required">
+      <xs:annotation>
+        <xs:documentation>Каскадное удаление</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+	  <xs:attribute name="accessorName" type="xs:Name" use="optional">
+		  <xs:annotation>
+			  <xs:documentation>Имя связанной сущности для генерации методов.</xs:documentation>
+		  </xs:annotation>
+	  </xs:attribute>
+	  <xs:attribute name="accessedEntityType" type="xs:Name" use="optional">
+		  <xs:annotation>
+			  <xs:documentation>Тип связанной сущности для генерации методов</xs:documentation>
+		  </xs:annotation>
+	  </xs:attribute>
+    <xs:attribute name="accessorDescription" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>Комментарий для свойства сущности</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="TypesCollection_t">
+    <xs:annotation>
+      <xs:documentation>Коллекция типов</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Type" minOccurs="0" maxOccurs="unbounded" type="Type_t" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Type_t">
+    <xs:annotation>
+      <xs:documentation>Описание типа</xs:documentation>
+    </xs:annotation>
+    <xs:choice minOccurs="1" maxOccurs="1">
+      <xs:element name="Entity" type="EntityRef_t">
+        <xs:keyref name="typeEntityRef" refer="EntityId">
+          <xs:selector xpath="."/>
+          <xs:field xpath="@ref" />
+        </xs:keyref>
+      </xs:element>
+      <xs:element name="ClrType" type="ClrType_t" />
+      <xs:element name="UserType" type="UserType_t" />
+    </xs:choice>
+    <xs:attribute name="id" type="xs:Name" use="required">
+      <xs:annotation>
+        <xs:documentation>ИД типа</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="EntityRef_t">
+    <xs:annotation>
+      <xs:documentation>Ссылка на сущность</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="ref" type="xs:Name" use="required" />
+  </xs:complexType>
+  <xs:complexType name="ClrType_t">
+    <xs:annotation>
+      <xs:documentation>Тип CLR</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="name" type="xs:string" use="required" />
+  </xs:complexType>
+  <xs:complexType name="UserType_t">
+    <xs:annotation>
+      <xs:documentation>Пользовательский тип не подлежащий проверке</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="hint" type="TypeHint_t" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="TypeRef_t">
+    <xs:annotation>
+      <xs:documentation>Ссылка на тип</xs:documentation>
+    </xs:annotation>
+  </xs:complexType>
+  <xs:complexType name="IncludesCollection_t">
+    <xs:annotation>
+      <xs:documentation>Набор ссылок на документы для импорта</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="WXMLModel" minOccurs="0" maxOccurs="unbounded" type="OrmObjects_t">
+      </xs:element>
+      <!--<xs:element minOccurs="0" maxOccurs="unbounded" ref="xi:include"/>-->
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="PropertyAttributeEnum_t">
+    <xs:annotation>
+      <xs:documentation>Атрибуты свойства сущности</xs:documentation>
+    </xs:annotation>
+    <xs:list>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="None" />
+          <xs:enumeration value="SyncInsert" />
+          <xs:enumeration value="SyncUpdate" />
+          <xs:enumeration value="InsertDefault" />
+          <xs:enumeration value="RV" />
+          <xs:enumeration value="RowVersion" />
+          <xs:enumeration value="ReadOnly" />
+          <xs:enumeration value="PK" />
+          <xs:enumeration value="PrimaryKey" />
+          <xs:enumeration value="Private" />
+          <xs:enumeration value="Factory" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:list>
+  </xs:simpleType>
+  <xs:simpleType name="JoinTypeEnum_t">
+    <xs:annotation>
+      <xs:documentation>Типы джоинов</xs:documentation>
+    </xs:annotation>
+    <xs:list>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="inner" />
+          <xs:enumeration value="outer" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:list>
+  </xs:simpleType>
+  <xs:simpleType name="TypeHint_t">
+    <xs:list>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Enum" />
+          <xs:enumeration value="ValueType" />
+          <xs:enumeration value="Nullable" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:list>
+  </xs:simpleType>
+  <xs:simpleType name="AccessLevel_t">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Family" />
+      <xs:enumeration value="Assembly" />
+      <xs:enumeration value="Private" />
+      <xs:enumeration value="Public" />
+	  <xs:enumeration value="FamilyOrAssembly" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="EntityBehaviour_t">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Default">
+        <xs:annotation>
+          <xs:documentation>Default behaviour when generator creates default classes(entity and schema) with full method set.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PartialObjects">
+        <xs:annotation>
+          <xs:documentation>'Partial object' behaviour when generator creates classes(entity and schema) without user depended behaviour for future extension.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ForcePartial">
+        <xs:annotation>
+          <xs:documentation>Force 'partial' modifier with default behaviour.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <!--<xs:enumeration value="Abstract">
+				<xs:annotation>
+					<xs:documentation>Set abstract modifier.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>-->
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ObsoleteType_t">
+	<xs:restriction base="xs:string">
+	  <xs:enumeration value="None">
+		<xs:annotation>
+		  <xs:documentation>None obsolete.</xs:documentation>
+		</xs:annotation>
+	  </xs:enumeration>
+	  <xs:enumeration value="Warning">
+		<xs:annotation>
+		  <xs:documentation>Make obsolete with warning.</xs:documentation>
+		</xs:annotation>
+	  </xs:enumeration>
+	  <xs:enumeration value="Error">
+		<xs:annotation>
+		  <xs:documentation>Make obsolete with error.</xs:documentation>
+		</xs:annotation>
+	  </xs:enumeration>
+	</xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="Name_t">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Za-z0-9_]{1,}" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="WXMLModel" type="OrmObjects_t">
+    <xs:annotation>
+      <xs:documentation>Entities schema</xs:documentation>
+    </xs:annotation>
+    <xs:key name="EntityId">
+      <xs:selector xpath="NS:Entities/NS:Entity | ./NS:Includes/NS:WXMLModel/NS:Entities/NS:Entity" />
+      <xs:field xpath="@id" />
+    </xs:key>
+    <xs:key name="SourceFragmentId">
+      <xs:selector xpath="NS:SourceFragments/NS:SourceFragment | ./NS:Includes/NS:WXMLModel/NS:SourceFragments/NS:SourceFragment" />
+      <xs:field xpath="@id" />
+    </xs:key>
+    <!--<xs:key name="TableName">
+      <xs:selector xpath="NS:Tables/NS:Table" />
+      <xs:field xpath="." />
+    </xs:key>-->
+    <xs:key name="TypeId">
+      <xs:selector xpath="NS:Types/NS:Type | ./NS:Includes/NS:WXMLModel/NS:Types/NS:Type" />
+      <xs:field xpath="@id" />
+    </xs:key>
+  </xs:element>
+  <xs:simpleType name="LinqClassContextBehaviour_t">
+    <xs:annotation>
+      <xs:documentation>Context generation behaviour</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="BaseClass">
+        <xs:annotation>
+          <xs:documentation>Generates as base class for future inheritance</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PartialClass">
+        <xs:annotation>
+          <xs:documentation>Generates partial class.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="BasePartialClass">
+        <xs:annotation>
+          <xs:documentation>Generates as base partial class for future inheritance</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="LinqSettings_t">
+    <xs:annotation>
+      <xs:documentation>Linq settings</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="enable" type="xs:boolean" use="required">
+      <xs:annotation>
+        <xs:documentation>Enables linq support(generate linq context class)</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="contextName" type="xs:Name" use="optional" default="LinqContext">
+      <xs:annotation>
+        <xs:documentation>Context class name</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="filename" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Context class file name</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="contextClassBehaviour" type="LinqClassContextBehaviour_t" use="optional" default="BaseClass">
+      <xs:annotation>
+        <xs:documentation>Context class generation behaviour</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+    <xs:complexType name="OrmObjects_t">
+    <xs:annotation>
+      <xs:documentation>Entites schmema</xs:documentation>
+    </xs:annotation>
+    <xs:all>
+      <xs:element name="Entities" type="EntitiesCollection_t" minOccurs="0" maxOccurs="1" />
+			<xs:element name="SourceFragments" type="SourceFragmentsCollection_t" minOccurs="0" maxOccurs="1" />
+	  <xs:element name="EntityRelations" type="EntityRelationsCollection_t" minOccurs="0" maxOccurs="1" />
+      <xs:element name="Types" type="TypesCollection_t" maxOccurs="1" minOccurs="0" />
+      <xs:element name="Includes" type="IncludesCollection_t" maxOccurs="1" minOccurs="0" />
+      <xs:element name="Linq" type="LinqSettings_t" maxOccurs="1" minOccurs="0" />
+    </xs:all>
+    <xs:attribute name="defaultNamespace" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Default namespace used in case entity has no any namespace specified.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="schemaVersion" type="xs:string" use="optional" />
+	  <xs:attribute name="entityBaseType" type="xs:Name" use="optional">
+		  <xs:annotation>
+			  <xs:documentation xml:lang="ru">
+				Ссылка на тип, описанный в елементе &lt;types/&gt;, который будет использоваться как базовый для классов сущностей.
+			  </xs:documentation>
+		  </xs:annotation>
+	  </xs:attribute>
+	  <xs:attribute name="enableCommonPropertyChangedFire" type="xs:boolean" use="optional">
+		  <xs:annotation>
+			  <xs:documentation>
+				Отключить поднятие событий изменения для свойств.
+			  </xs:documentation>
+		  </xs:annotation>
+	  </xs:attribute>
+	  <xs:attribute name="enableReadOnlyPropertiesSetter" type="xs:boolean" use="optional">
+		  <xs:annotation>
+			  <xs:documentation>Enables generation of setters for properties marked readonly.</xs:documentation>
+		  </xs:annotation>
+	  </xs:attribute>
+    <xs:attribute name="generateEntityName" default="true" use="optional" type="xs:boolean">
+      <xs:annotation>
+        <xs:documentation>Indicates whether generates EntityName or not</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="generateSchemaOnly" default="false" use="optional" type="xs:boolean"></xs:attribute>
+    <xs:attribute name="addVersionToSchemaName" default="false" use="optional" type="xs:boolean"></xs:attribute>
+      <xs:attribute name="singleFile" default="false" use="optional" type="xs:boolean"/>
+  </xs:complexType>
+</xs:schema>
