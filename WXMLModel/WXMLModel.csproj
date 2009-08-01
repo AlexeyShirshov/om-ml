@@ -1,0 +1,129 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>WXML.Model</RootNamespace>
+    <AssemblyName>WXML.Model</AssemblyName>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>Worm.snk</AssemblyOriginatorKeyFile>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
+    <DocumentationFile>bin\Debug\WXML.Model.xml</DocumentationFile>
+    <NoWarn>1591</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'DebugNonUserInstance|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DebugNonUserInstance\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DocumentationFile>bin\Debug\Worm.CodeGen.Core.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="LinqToCodedom, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Binaries\LinqToCodedom.dll</HintPath>
+    </Reference>
+    <Reference Include="Mvp.Xml, Version=2.2.0.0, Culture=neutral, PublicKeyToken=6ead800d778c9b9f, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Binaries\Mvp.Xml.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CodeDom\CodeCompileFileUnit.cs" />
+    <Compile Include="Model\DatabaseColumn.cs" />
+    <Compile Include="Model\Descriptors\SourceFragmentRefDescription.cs" />
+    <Compile Include="Model\Descriptors\EntityRelationDescription.cs" />
+    <Compile Include="Model\Descriptors\LinqSettingsDescriptor.cs" />
+    <Compile Include="Model\Descriptors\RelationConstantDescriptor.cs" />
+    <Compile Include="Model\Descriptors\SelfRelationDescription.cs" />
+    <Compile Include="Model\Descriptors\SelfRelationTarget.cs" />
+    <Compile Include="Model\Descriptors\SourceFragmentDescription.cs" />
+    <Compile Include="Model\Enums.cs" />
+    <Compile Include="Database\WXMLModelGenerator.cs" />
+    <Compile Include="CodeDom\WXMLCodeDomGenerator.cs" />
+    <Compile Include="CodeDom\WXMLCodeDomGeneratorHelper.cs" />
+    <Compile Include="CodeDom\WXMLCodeDomGeneratorNameHelper.cs" />
+    <Compile Include="CodeDom\CodeDomPatterns.cs" />
+    <Compile Include="Model\Descriptors\TypeDescription.cs" />
+    <Compile Include="Exceptions.cs" />
+    <Compile Include="CodeDom\WXMLCodeDomGeneratorSettings.cs" />
+    <Compile Include="Model\Descriptors\EntityDescription.cs" />
+    <Compile Include="Model\Descriptors\LinkTarget.cs" />
+    <Compile Include="Model\Descriptors\PropertyDescription.cs" />
+    <Compile Include="Model\Descriptors\RelationDescription.cs" />
+    <Compile Include="Model\WXMLModel.cs" />
+    <Compile Include="WXML\WXMLModelWriterSettings.cs" />
+    <Compile Include="WXML\WXMLModelWriter.cs" />
+    <Compile Include="WXML\WXMLModelReader.cs" />
+    <Compile Include="CommandLineParser.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResourceManager.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Schemas\OrmObjectsSchema.xsd">
+      <SubType>
+      </SubType>
+    </EmbeddedResource>
+    <None Include="Schemas\OrmObjectsSchema.xsx">
+      <DependentUpon>OrmObjectsSchema.xsd</DependentUpon>
+    </None>
+    <None Include="Worm.snk" />
+    <EmbeddedResource Include="Schemas\XInclude.xsd">
+      <SubType>
+      </SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

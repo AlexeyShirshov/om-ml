@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<oos:WXMLModel xmlns:oos="http://wise-orm.com/WXMLSchema.xsd" defaultNamespace="OrmCodeGenTests" entityBaseType="tBase">
+	<oos:Types>
+		<oos:Type id="tBase">
+			<oos:UserType  name="OrmCodeGenTests.TestOrmBase"/>
+		</oos:Type>
+		<oos:Type id="tInt32">
+			<oos:ClrType name="System.Int32"/>
+		</oos:Type>
+	</oos:Types>
+	<oos:SourceFragments>
+		<oos:SourceFragment id="tblEntity1" name="entity1" selector="dbo" />
+	</oos:SourceFragments>
+	<oos:Entities>
+		<oos:Entity id="eEntity1" name="Entity1">
+			<oos:SourceFragments>
+				<oos:SourceFragment ref="tblEntity1"/>
+			</oos:SourceFragments>
+			<oos:Properties>
+				<oos:Property attributes="PrimaryKey" fieldName="id" propertyName="Identifier1" table="tblEntity1" typeRef="tInt32" />
+			</oos:Properties>
+		</oos:Entity>
+	</oos:Entities>
+</oos:WXMLModel>

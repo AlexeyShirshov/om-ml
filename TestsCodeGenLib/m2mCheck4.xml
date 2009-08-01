@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<WXMLModel xmlns="http://wise-orm.com/WXMLSchema.xsd" defaultNamespace="test" xmlns:xi="http://www.w3.org/2001/XInclude">
+	<Includes>
+		<!--<xi:include parse="xml" href="tables.xml" />
+		<xi:include parse="xml" href="tablessub.xml" />-->
+	</Includes>
+	<Entities>
+		<Entity id="e1" name="E1">
+			<SourceFragments>
+				<SourceFragment ref="tbl1"/>
+				<!--<SourceFragment ref="tbl2"/>-->
+				<!--<SourceFragment ref="tblS1"/>-->
+			</SourceFragments>
+			<Properties>
+				<Property fieldName="id" propertyName="Identifier1" propertyAlias="ID" description="prop" table="tbl1" typeRef="tInt32" attributes="PrimaryKey"/>
+				<Property fieldName="title" propertyName="Title" description="prop title" table="tbl1" typeRef="tString" dbTypeName="nvarchar" dbTypeSize="50" dbTypeNullable="false"/>
+			</Properties>
+		</Entity>
+    <Entity id="e2" name="E2" >
+      <SourceFragments>
+        <SourceFragment ref="tbl2"/>
+        <!--<SourceFragment ref="tbl2"/>-->
+        <!--<SourceFragment ref="tblS1"/>-->
+      </SourceFragments>
+      <Properties>
+          <Property fieldName="prop4" propertyName="prop4" table="tbl2" typeRef="tString"/>
+          <Property fieldName="id" propertyName="Identifier1" propertyAlias="ID" description="prop" table="tbl2" typeRef="tInt32" attributes="PrimaryKey"/>
+      </Properties>
+    </Entity>
+    <Entity id="e12" name="E12" >
+      <SourceFragments>
+        <SourceFragment ref="tbl12"/>
+        <!--<SourceFragment ref="tbl2"/>-->
+        <!--<SourceFragment ref="tblS1"/>-->
+      </SourceFragments>
+      <Properties>
+        <Property fieldName="id" propertyName="Identifier1" propertyAlias="ID" description="prop" table="tbl12" typeRef="tInt32" attributes="PrimaryKey"/>
+        <Property fieldName="e1" propertyName="E1" table="tbl12" typeRef="tE1"/>
+        <Property fieldName="e2" propertyName="E2" table="tbl12" typeRef="tE2"/>
+      </Properties>
+    </Entity>
+    <Entity id="e12n" name="E12" baseEntity="e12">
+      <SourceFragments>
+        <SourceFragment ref="tbl12"/>
+        <!--<SourceFragment ref="tbl2"/>-->
+        <!--<SourceFragment ref="tblS1"/>-->
+      </SourceFragments>
+      <Properties>
+        <Property fieldName="peop" propertyName="peop" table="tbl12" typeRef="tString"/>
+      </Properties>
+    </Entity>
+	</Entities>
+  <EntityRelations>
+    <Relation table="tbl12" underlyingEntity="e12">
+      <Left entity="e1" fieldName="e1" cascadeDelete="false"/>
+      <Right entity="e2" fieldName="e2" cascadeDelete="false"/>
+    </Relation>
+    <Relation table="tbl12" underlyingEntity="e12n">
+      <Left entity="e1" fieldName="e1" cascadeDelete="false"/>
+      <Right entity="e2" fieldName="e2" cascadeDelete="false"/>
+    </Relation>
+  </EntityRelations>
+	<Types>
+    <Type id="tInt32">
+      <ClrType name="System.Int32" />
+    </Type>
+		<Type id="tString">
+			<ClrType name="System.String" />
+		</Type>
+		<Type id="tTestUT1">
+			<UserType name="TestUT1" hint="Enum"/>
+		</Type>
+		<Type id="tTestUT2">
+			<UserType name="TestUT2" hint="ValueType"/>
+		</Type>
+		<Type id="tTestUT3">
+			<UserType name="TestUT3" hint="Nullable"/>
+		</Type>
+		<Type id="tTestUT4">
+			<UserType name="TestUT4" hint="Enum Nullable"/>
+		</Type>
+		<Type id="tTestUT5">
+			<UserType name="TestUT5" hint="ValueType Nullable"/>
+		</Type>
+    <Type id="tE1">
+      <Entity ref="e1" />
+    </Type>
+    <Type id="tE2">
+      <Entity ref="e2" />
+    </Type>
+	</Types>
+	<SourceFragments>
+		<SourceFragment id="tbl1" name="tbl1" />
+    <SourceFragment id="tbl2" name="tbl2" />
+    <SourceFragment id="tbl12" name="tbl12" />
+	</SourceFragments>
+</WXMLModel>

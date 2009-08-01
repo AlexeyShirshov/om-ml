@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<WXMLModel xmlns="http://wise-orm.com/WXMLSchema.xsd" defaultNamespace="test" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <Entities>
+    <Entity id="e1" name="E1" namespace="NS1" makeInterface="true">
+      <SourceFragments>
+        <SourceFragment ref="tbl1"/>
+      </SourceFragments>
+      <Properties>
+        <!--<Property propertyName="ID" attributes="PK" table="tblArtists" fieldName="id" typeRef="tInt32" description="Идентификатор"/>-->
+        <Property propertyName="Id1" attributes="PK" table="tbl1" fieldName="id1" typeRef="tInt32" description="prop" propertyAlias="ID1" />
+        <Property propertyName="Id2" attributes="PK" table="tbl1" fieldName="id2" typeRef="tInt32" description="prop" propertyAlias="ID2" />
+        <Property propertyName="Prop1" table="tbl1" fieldName="title" typeRef="tString" description="prop"  />
+      </Properties>
+    </Entity>
+    <Entity id="e11" name="E1" namespace="NS2" baseEntity="e1">
+      <SourceFragments>
+        <SourceFragment ref="tbl2" anchorTableRef="tbl1">
+          <join refColumn="xx" anchorColumn="yy" />
+        </SourceFragment>
+      </SourceFragments>
+      <Properties>
+        <Property propertyName="Prop11" table="tbl1" fieldName="prop11" typeRef="tString" description="prop11"/>
+      </Properties>
+      <SuppressedProperties>
+        <Property name="Prop1"/>
+      </SuppressedProperties>
+    </Entity>
+  </Entities>
+  <Types>
+    <Type id="tString">
+      <ClrType name="System.String" />
+    </Type>
+    <Type id="tInt32">
+      <ClrType name="System.Int32" />
+    </Type>
+  </Types>
+  <SourceFragments>
+    <SourceFragment id="tbl1" name="tbl1" />
+    <SourceFragment id="tbl2" name="tbl2" />
+  </SourceFragments>
+</WXMLModel>

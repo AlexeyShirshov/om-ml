@@ -1,0 +1,136 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binaries", "Binaries", "{0626EF5D-2788-40A4-AC76-D9B33FE387BA}"
+	ProjectSection(SolutionItems) = preProject
+		Binaries\LinqToCodedom.dll = Binaries\LinqToCodedom.dll
+		Binaries\LinqToCodedom.pdb = Binaries\LinqToCodedom.pdb
+		Binaries\Mvp.Xml.dll = Binaries\Mvp.Xml.dll
+		Binaries\Mvp.Xml.xml = Binaries\Mvp.Xml.xml
+		Binaries\Worm.Orm.dll = Binaries\Worm.Orm.dll
+		Binaries\Worm.Orm.pdb = Binaries\Worm.Orm.pdb
+		Binaries\Worm.Orm.xml = Binaries\Worm.Orm.xml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLModel", "WXMLModel\WXMLModel.csproj", "{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Worm", "Worm", "{6D9187BB-6467-42E5-853C-85A048443B79}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenerator", "WormGenerator\WormCodeGenerator.csproj", "{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLToWorm", "WXMLToWorm\WXMLToWorm.csproj", "{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCustomTool", "WormCustomTool\WormCustomTool.csproj", "{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLDatabase", "DatabaseConnector\WXMLDatabase.csproj", "{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenTesting", "TestsCodeGenLib\CodeGenTesting.csproj", "{FD0ADB48-33C6-4399-9943-6ACAB857CF53}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 7
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs04.codeplex.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = DatabaseConnector\\WXMLDatabase.csproj
+		SccProjectName1 = DatabaseConnector
+		SccLocalPath1 = DatabaseConnector
+		SccProjectUniqueName2 = TestsCodeGenLib\\CodeGenTesting.csproj
+		SccProjectTopLevelParentUniqueName2 = WXML.sln
+		SccProjectName2 = TestsCodeGenLib
+		SccLocalPath2 = TestsCodeGenLib
+		SccProjectUniqueName3 = WormCustomTool\\WormCustomTool.csproj
+		SccProjectTopLevelParentUniqueName3 = WXML.sln
+		SccProjectName3 = WormCustomTool
+		SccLocalPath3 = WormCustomTool
+		SccProjectUniqueName4 = WormGenerator\\WormCodeGenerator.csproj
+		SccProjectTopLevelParentUniqueName4 = WXML.sln
+		SccProjectName4 = WormGenerator
+		SccLocalPath4 = WormGenerator
+		SccProjectUniqueName5 = WXMLModel\\WXMLModel.csproj
+		SccProjectName5 = WXMLModel
+		SccLocalPath5 = WXMLModel
+		SccProjectUniqueName6 = WXMLToWorm\\WXMLToWorm.csproj
+		SccProjectTopLevelParentUniqueName6 = WXML.sln
+		SccProjectName6 = WXMLToWorm
+		SccLocalPath6 = WXMLToWorm
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug AddIn|Any CPU = Debug AddIn|Any CPU
+		Debug_Trace|Any CPU = Debug_Trace|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		DebugNonUserInstance|Any CPU = DebugNonUserInstance|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}.Debug AddIn|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}.Debug AddIn|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}.Debug_Trace|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}.Debug_Trace|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug AddIn|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug AddIn|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug_Trace|Any CPU.ActiveCfg = Debug_Trace|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug_Trace|Any CPU.Build.0 = Debug_Trace|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug AddIn|Any CPU.ActiveCfg = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug AddIn|Any CPU.Build.0 = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug_Trace|Any CPU.ActiveCfg = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug_Trace|Any CPU.Build.0 = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.DebugNonUserInstance|Any CPU.ActiveCfg = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.DebugNonUserInstance|Any CPU.Build.0 = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug AddIn|Any CPU.ActiveCfg = Debug AddIn|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug AddIn|Any CPU.Build.0 = Debug AddIn|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug_Trace|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug_Trace|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.Debug AddIn|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.Debug AddIn|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.Debug_Trace|Any CPU.ActiveCfg = Debug_Trace|Any CPU
+		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.Debug_Trace|Any CPU.Build.0 = Debug_Trace|Any CPU
+		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug AddIn|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug AddIn|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug_Trace|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug_Trace|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001} = {6D9187BB-6467-42E5-853C-85A048443B79}
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9} = {6D9187BB-6467-42E5-853C-85A048443B79}
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0} = {6D9187BB-6467-42E5-853C-85A048443B79}
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53} = {6D9187BB-6467-42E5-853C-85A048443B79}
+	EndGlobalSection
+EndGlobal
