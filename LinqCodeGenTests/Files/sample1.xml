@@ -26,7 +26,7 @@
 			</oos:Properties>
     </oos:Entity>
 
-    <oos:Entity id="eEntity2" name="Entity2" namespace="xxx">
+    <oos:Entity id="eEntity2" name="Entity2" namespace="xxx.yyy">
       <oos:SourceFragments>
         <oos:SourceFragment ref="tblEntity2"/>
       </oos:SourceFragments>
