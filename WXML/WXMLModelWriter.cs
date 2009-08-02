@@ -38,6 +38,14 @@ namespace WXML.Model
             return generator._ormXmlDocumentSet;
         }
 
+        public WXMLModel Model
+        {
+            get
+            {
+                return _ormObjectsDef;
+            }
+        }
+
         private void GenerateXmlDocumentInternal()
         {
             CreateXmlDocument();
@@ -55,6 +63,31 @@ namespace WXML.Model
             FillEntities();
 
             FillRelations();
+
+            FillExtensions();
+        }
+
+        private void FillExtensions()
+        {
+            if (Model.Extensions.Count > 0)
+            {
+                var extensionsContainer = CreateElement("extensions");
+                _ormXmlDocumentMain.DocumentElement.AppendChild(extensionsContainer);
+
+                foreach (var extension in Model.Extensions)
+                {
+                    FillExtension(extensionsContainer, extension);
+                }
+            }
+        }
+
+        private void FillExtension(XmlElement extensionsContainer, KeyValuePair<string, XmlDocument> extension)
+        {
+            var extensionElement = CreateElement("extension");
+            extensionsContainer.AppendChild(extensionElement);
+
+            extensionElement.SetAttribute("name", extension.Key);
+            extensionElement.InnerXml = extension.Value.InnerXml;
         }
 
         private void FillLinqSettings()
@@ -393,6 +426,14 @@ namespace WXML.Model
                     entityElement.AppendChild(relationsNode);
                 }
 
+                if (entity.Extensions.Count > 0)
+                {
+                    foreach (var extension in entity.Extensions)
+                    {
+                        FillExtension(entityElement, extension);
+                    }
+                }
+
                 entitiesNode.AppendChild(entityElement);
             }
         }
@@ -435,8 +476,8 @@ namespace WXML.Model
                     propertyElement.SetAttribute("dbTypeNullable", XmlConvert.ToString(property.DbTypeNullable.Value));
 				if (!string.IsNullOrEmpty(property.DefferedLoadGroup))
 					propertyElement.SetAttribute("defferedLoadGroup", property.DefferedLoadGroup);
-                if (!string.IsNullOrEmpty(property.ColumnName))
-                    propertyElement.SetAttribute("fieldAlias", property.ColumnName);
+                if (!string.IsNullOrEmpty(property.FieldAlias))
+                    propertyElement.SetAttribute("fieldAlias", property.FieldAlias);
                 propertiesNode.AppendChild(propertyElement);
             }
         }

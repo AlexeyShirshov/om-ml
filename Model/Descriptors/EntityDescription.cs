@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 
 namespace WXML.Model.Descriptors
 {
@@ -16,6 +17,7 @@ namespace WXML.Model.Descriptors
         private readonly WXMLModel _ormObjectsDef;
         private EntityDescription _baseEntity;
         private Dictionary<string, object> _items = new Dictionary<string,object>();
+        private Dictionary<string, XmlDocument> _extensions = new Dictionary<string, XmlDocument>();
 
         #endregion Private Fields
 
@@ -44,22 +46,15 @@ namespace WXML.Model.Descriptors
             Behaviour = behaviour;
         }
 
-        //private CodeEntityTypeDeclaration _decl;
-        //public CodeEntityTypeDeclaration TypeDeclaration 
-        //{
-        //    get
-        //    {
-        //        if (_decl == null)
-        //        {
-        //            _decl = Worm.CodeGen.Core.WXMLModelToCodeDomConverter.s_ctrl.Current.GetEntityDeclaration(this);
-        //        }
-        //        return _decl;
-        //    }
-        //    set
-        //    {
-        //        _decl = value;
-        //    }
-        //}
+        #region Properties
+
+        public Dictionary<string, XmlDocument> Extensions
+        {
+            get
+            {
+                return _extensions;
+            }
+        }
 
         public string Identifier
         {
@@ -128,6 +123,8 @@ namespace WXML.Model.Descriptors
                 return (BaseEntity == null && s == 1) || (BaseEntity != null && BaseEntity.HasSinglePk);
             }
         }
+        
+        #endregion
 
         public int GetPKCount()
         {
