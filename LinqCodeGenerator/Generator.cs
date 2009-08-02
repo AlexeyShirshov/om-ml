@@ -79,7 +79,8 @@ namespace LinqCodeGenerator
                               where !string.IsNullOrEmpty(e.Namespace)
                               select e.Namespace)
                               .Distinct()
-                              .Select(n => new { name=n, ns = c.AddNamespace(n)});
+                              .Select(n => new { name = n, ns = c.AddNamespace(n) })
+                              .ToArray();
 
             foreach(EntityDescription e in Model.ActiveEntities)
             {
@@ -186,6 +187,10 @@ namespace LinqCodeGenerator
             if (p.HasAttribute(Field2DbRelations.PrimaryKey))
                 nullable += " IDENTITY";
 
+            string size = string.Empty;
+            if (p.DbTypeSize.HasValue)
+                size = "(" + p.DbTypeSize.Value.ToString() + ")";
+
             System.Data.Linq.Mapping.AutoSync async = System.Data.Linq.Mapping.AutoSync.Default;
 
             if (p.HasAttribute(Field2DbRelations.SyncInsert) && p.HasAttribute(Field2DbRelations.SyncUpdate))
@@ -197,11 +202,11 @@ namespace LinqCodeGenerator
 
             if (p.HasAttribute(Field2DbRelations.PK))
             {                
-                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.FieldName, DbType = p.DbTypeName + nullable, IsPrimaryKey = true, AutoSync = async }, attr);
+                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.FieldName, DbType = p.DbTypeName + size + nullable, IsPrimaryKey = true, AutoSync = async }, attr);
             }
             else
             {
-                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.FieldName, DbType = p.DbTypeName + nullable, AutoSync = async }, attr);
+                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.FieldName, DbType = p.DbTypeName + size + nullable, AutoSync = async }, attr);
             }
 
             return attr;
