@@ -314,13 +314,18 @@ namespace LinqCodeGenerator
 
         public Assembly Compile(LinqToCodedom.CodeDomGenerator.Language language)
         {
+            return Compile(null, language);
+        }
+
+        public Assembly Compile(string assemblyPath, LinqToCodedom.CodeDomGenerator.Language language)
+        {
             CodeDomGenerator c = _GenerateCode(language);
 
             c.AddReference("System.Core.dll");
             c.AddReference("System.Data.dll");
             c.AddReference("System.Data.Linq.dll");
 
-            return c.Compile(null, language);
+            return c.Compile(assemblyPath, language);
         }
 
         #endregion
