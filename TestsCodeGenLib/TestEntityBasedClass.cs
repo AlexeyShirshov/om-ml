@@ -108,14 +108,5 @@ namespace TestsCodeGenLib
 				Assert.IsTrue(error.IsWarning, error.ToString());
 			}
 		}
-
-		public static Stream GetSampleFileStream(string name)
-		{
-			System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-			string resourceName;
-			resourceName = string.Format("{0}.{1}", assembly.GetName().Name, name);
-
-			return assembly.GetManifestResourceStream(resourceName);
-		}
 	}
 }

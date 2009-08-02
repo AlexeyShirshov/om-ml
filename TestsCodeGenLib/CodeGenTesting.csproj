@@ -73,10 +73,6 @@
     <Compile Include="Resources.cs" />
     <Compile Include="TestCodeGen.cs" />
     <Compile Include="TestEntityBasedClass.cs" />
-    <Compile Include="TestOrmXmlGenerator.cs" />
-    <Compile Include="TestOrmXmlParse.cs">
-    </Compile>
-    <Compile Include="VSCodeGenAccessors.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="SchemaBased.xml">

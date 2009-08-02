@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using WXML.DatabaseConnector;
 
-namespace Worm.CodeGen.XmlGenerator
+namespace WXMLDatabase
 {
 	class Program
 	{

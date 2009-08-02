@@ -31,6 +31,7 @@ namespace WXML.Model
 	    private string _entityBaseTypeName;
 		private TypeDescription _entityBaseType;
 
+        private Dictionary<string, XmlDocument> _extensions = new Dictionary<string, XmlDocument>();
 	    #endregion Private Fields
 
         public WXMLModel()
@@ -52,6 +53,13 @@ namespace WXML.Model
         }
 
         #region Properties
+        public Dictionary<string, XmlDocument> Extensions
+        {
+            get
+            {
+                return _extensions;
+            }
+        }
 
         public bool GenerateSchemaOnly { get; set; }
 

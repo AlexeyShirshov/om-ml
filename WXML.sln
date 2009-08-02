@@ -38,13 +38,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqCodeGenTests", "LinqCodeGenTests\LinqCodeGenTests.csproj", "{15044052-49EE-43E0-9A77-04359C881BA4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WXML", "WXML", "{DB99EDB8-B342-4AE1-B78D-E106230A7E19}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLTests", "WXMLTests\WXMLTests.csproj", "{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 9
+		SccNumberOfProjects = 10
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs04.codeplex.com/
 		SccLocalPath0 = .
 		SccProjectUniqueName1 = DatabaseConnector\\WXMLDatabase.csproj
+		SccProjectTopLevelParentUniqueName1 = WXML.sln
 		SccProjectName1 = DatabaseConnector
 		SccLocalPath1 = DatabaseConnector
 		SccProjectUniqueName2 = TestsCodeGenLib\\CodeGenTesting.csproj
@@ -60,6 +65,7 @@ Global
 		SccProjectName4 = WormGenerator
 		SccLocalPath4 = WormGenerator
 		SccProjectUniqueName5 = WXMLModel\\WXMLModel.csproj
+		SccProjectTopLevelParentUniqueName5 = WXML.sln
 		SccProjectName5 = WXMLModel
 		SccLocalPath5 = WXMLModel
 		SccProjectUniqueName6 = WXMLToWorm\\WXMLToWorm.csproj
@@ -74,6 +80,10 @@ Global
 		SccProjectTopLevelParentUniqueName8 = WXML.sln
 		SccProjectName8 = LinqCodeGenTests
 		SccLocalPath8 = LinqCodeGenTests
+		SccProjectUniqueName9 = WXMLTests\\WXMLTests.csproj
+		SccProjectTopLevelParentUniqueName9 = WXML.sln
+		SccProjectName9 = WXMLTests
+		SccLocalPath9 = WXMLTests
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = WXML.vsmdi
@@ -166,6 +176,16 @@ Global
 		{15044052-49EE-43E0-9A77-04359C881BA4}.DebugNonUserInstance|Any CPU.Build.0 = Debug|Any CPU
 		{15044052-49EE-43E0-9A77-04359C881BA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15044052-49EE-43E0-9A77-04359C881BA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.Debug AddIn|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.Debug AddIn|Any CPU.Build.0 = Debug|Any CPU
+		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.Debug_Trace|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.Debug_Trace|Any CPU.Build.0 = Debug|Any CPU
+		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.DebugNonUserInstance|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.DebugNonUserInstance|Any CPU.Build.0 = Debug|Any CPU
+		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -177,5 +197,8 @@ Global
 		{FD0ADB48-33C6-4399-9943-6ACAB857CF53} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{38B63D82-9F09-495B-9D24-F838A3BB8BB0} = {C316B8E1-2755-4D7A-B913-6B6EECDFC643}
 		{15044052-49EE-43E0-9A77-04359C881BA4} = {C316B8E1-2755-4D7A-B913-6B6EECDFC643}
+		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
+		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
+		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
 	EndGlobalSection
 EndGlobal

@@ -47,103 +47,6 @@ internal class BaseAccessor {
 }
 [System.Diagnostics.DebuggerStepThrough()]
 [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TestTools.UnitTestGeneration", "1.0.0.0")]
-internal class WormCodeGenCore_OrmXmlGeneratorAccessor : BaseAccessor {
-    
-    protected static Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType m_privateType = new Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType("Worm.CodeGen.Core", "Worm.CodeGen.Core.OrmXmlGenerator");
-    
-    internal WormCodeGenCore_OrmXmlGeneratorAccessor(object target) : 
-            base(target, m_privateType) {
-    }
-    
-    internal global::System.Xml.XmlDocument _ormXmlDocument {
-        get {
-            global::System.Xml.XmlDocument ret = ((global::System.Xml.XmlDocument)(m_privateObject.GetField("_ormXmlDocument")));
-            return ret;
-        }
-        set {
-            m_privateObject.SetField("_ormXmlDocument", value);
-        }
-    }
-
-    internal global::WXML.Model.WXMLModel _ormObjectsDef
-    {
-        get {
-            global::WXML.Model.WXMLModel ret = ((global::WXML.Model.WXMLModel)(m_privateObject.GetField("_ormObjectsDef")));
-            return ret;
-        }
-        set {
-            m_privateObject.SetField("_ormObjectsDef", value);
-        }
-    }
-    
-    internal global::System.Xml.XmlNamespaceManager _nsMgr {
-        get {
-            global::System.Xml.XmlNamespaceManager ret = ((global::System.Xml.XmlNamespaceManager)(m_privateObject.GetField("_nsMgr")));
-            return ret;
-        }
-        set {
-            m_privateObject.SetField("_nsMgr", value);
-        }
-    }
-    
-    internal global::System.Xml.XmlNameTable _nametable {
-        get {
-            global::System.Xml.XmlNameTable ret = ((global::System.Xml.XmlNameTable)(m_privateObject.GetField("_nametable")));
-            return ret;
-        }
-        set {
-            m_privateObject.SetField("_nametable", value);
-        }
-    }
-    
-    internal static object CreatePrivate(global::WXML.Model.WXMLModel ormObjectsDef) {
-        object[] args = new object[] {
-                ormObjectsDef};
-        Microsoft.VisualStudio.TestTools.UnitTesting.PrivateObject priv_obj = new Microsoft.VisualStudio.TestTools.UnitTesting.PrivateObject("Worm.CodeGen.Core", "Worm.CodeGen.Core.OrmXmlGenerator", new System.Type[] {
-                    typeof(global::WXML.Model.WXMLModel)}, args);
-        return priv_obj.Target;
-    }
-    
-    internal static global::System.Xml.XmlDocument Generate(global::WXML.Model.WXMLModel schema) {
-        object[] args = new object[] {
-                schema};
-        global::System.Xml.XmlDocument ret = ((global::System.Xml.XmlDocument)(m_privateType.InvokeStatic("Generate", new System.Type[] {
-                    typeof(global::WXML.Model.WXMLModel)}, args)));
-        return ret;
-    }
-    
-    internal void CreateXmlDocument() {
-        object[] args = new object[0];
-        m_privateObject.Invoke("CreateXmlDocument", new System.Type[0], args);
-    }
-    
-    internal void FillRelations() {
-        object[] args = new object[0];
-        m_privateObject.Invoke("FillRelations", new System.Type[0], args);
-    }
-    
-    internal void FillEntities() {
-        object[] args = new object[0];
-        m_privateObject.Invoke("FillEntities", new System.Type[0], args);
-    }
-    
-    internal void FillTypes() {
-        object[] args = new object[0];
-        m_privateObject.Invoke("FillTypes", new System.Type[0], args);
-    }
-    
-    internal void FillTables() {
-        object[] args = new object[0];
-        m_privateObject.Invoke("FillTables", new System.Type[0], args);
-    }
-    
-    internal void FillFileDescriptions() {
-        object[] args = new object[0];
-        m_privateObject.Invoke("FillFileDescriptions", new System.Type[0], args);
-    }
-}
-[System.Diagnostics.DebuggerStepThrough()]
-[System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TestTools.UnitTestGeneration", "1.0.0.0")]
 internal class Worm_CodeGen_Core_OrmXmlParserAccessor : BaseAccessor {
 
     protected static Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType m_privateType = new Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType("WXML.Model", "WXML.Model.WXMLModelReader");
@@ -233,10 +136,10 @@ internal class Worm_CodeGen_Core_OrmXmlParserAccessor : BaseAccessor {
         }
     }
 
-    internal global::WXML.Model.WXMLModel OrmObjectsDef
+    internal global::WXML.Model.WXMLModel Model
     {
         get {
-            global::WXML.Model.WXMLModel ret = ((global::WXML.Model.WXMLModel)(m_privateObject.GetProperty("OrmObjectsDef")));
+            global::WXML.Model.WXMLModel ret = ((global::WXML.Model.WXMLModel)(m_privateObject.GetProperty("Model")));
             return ret;
         }
     }

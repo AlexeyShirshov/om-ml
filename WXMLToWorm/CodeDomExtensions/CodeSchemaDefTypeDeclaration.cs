@@ -355,12 +355,12 @@ namespace WXMLToWorm.CodeDomExtensions
                             ),
                             GetMapField2ColumObjectCreationExpression(action)
                         ));
-                        if (!string.IsNullOrEmpty(action.ColumnName))
+                        if (!string.IsNullOrEmpty(action.FieldAlias))
                             coll.Add(
                                 Emit.assignProperty(new CodeIndexerExpression(
                                         new CodeVariableReferenceExpression("idx"),
                                         new CodePrimitiveExpression(action.PropertyAlias)
-                                    ), "ColumnName", ()=>action.ColumnName)
+                                    ), "ColumnName", ()=>action.FieldAlias)
                                 );
                         return coll;
                     }

@@ -13,63 +13,67 @@
       <xs:documentation>Сущность</xs:documentation>
     </xs:annotation>
     <xs:sequence>
-      <xs:element name="SourceFragments" type="SourceFragmentRefCollection_t" minOccurs="0" maxOccurs="1">
-        <xs:annotation>
-          <xs:documentation>Список используемых таблиц</xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element name="Properties" type="PropertiesGroupedCollection_t" minOccurs="0" maxOccurs="1">
-        <xs:annotation>
-          <xs:documentation>Свойства сущности</xs:documentation>
-        </xs:annotation>
-        <!--<xs:key name="propPropertyId">
-					<xs:annotation>
-						<xs:documentation>Идентификатор</xs:documentation>
-					</xs:annotation>
-					<xs:selector xpath="NS:Property" />
-					<xs:field xpath="@id" />
-				</xs:key>-->
-        <xs:key name="propPropertyName">
+      <xs:sequence>
+        <xs:element name="SourceFragments" type="SourceFragmentRefCollection_t" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation>Свойства объекта сущности должны быть уникальны</xs:documentation>
+            <xs:documentation>Список используемых таблиц</xs:documentation>
           </xs:annotation>
-          <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
-          <xs:field xpath="@propertyName" />
-        </xs:key>
-        <!--<xs:unique name="propName">
+        </xs:element>
+        <xs:element name="Properties" type="PropertiesGroupedCollection_t" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation>Колонки сущности должны быть уникальны</xs:documentation>
+            <xs:documentation>Свойства сущности</xs:documentation>
           </xs:annotation>
-          <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
-          <xs:field xpath="@fieldName" />
-        </xs:unique>-->
-        <xs:keyref name="propTableRef" refer="SourceFragmentId">
+          <!--<xs:key name="propPropertyId">
+					  <xs:annotation>
+						  <xs:documentation>Идентификатор</xs:documentation>
+					  </xs:annotation>
+					  <xs:selector xpath="NS:Property" />
+					  <xs:field xpath="@id" />
+				  </xs:key>-->
+          <xs:key name="propPropertyName">
+            <xs:annotation>
+              <xs:documentation>Свойства объекта сущности должны быть уникальны</xs:documentation>
+            </xs:annotation>
+            <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
+            <xs:field xpath="@propertyName" />
+          </xs:key>
+          <!--<xs:unique name="propName">
+            <xs:annotation>
+              <xs:documentation>Колонки сущности должны быть уникальны</xs:documentation>
+            </xs:annotation>
+            <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
+            <xs:field xpath="@fieldName" />
+          </xs:unique>-->
+          <xs:keyref name="propTableRef" refer="SourceFragmentId">
+            <xs:annotation>
+              <xs:documentation>Ссылка на таблицы</xs:documentation>
+            </xs:annotation>
+            <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
+            <xs:field xpath="@table" />
+          </xs:keyref>
+          <xs:keyref name="propType" refer="TypeId">
+            <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
+            <xs:field xpath="@typeRef" />
+          </xs:keyref>
+          <xs:unique name="propertyAlias">
+            <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
+            <xs:field xpath="@propertyAlias" />
+          </xs:unique>
+        </xs:element>
+        <xs:element name="SuppressedProperties" type="SupperessedPropertiesCollection_t" minOccurs="0" maxOccurs="1">
           <xs:annotation>
-            <xs:documentation>Ссылка на таблицы</xs:documentation>
+            <xs:documentation>Suppressed properties list</xs:documentation>
           </xs:annotation>
-          <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
-          <xs:field xpath="@table" />
-        </xs:keyref>
-        <xs:keyref name="propType" refer="TypeId">
-          <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
-          <xs:field xpath="@typeRef" />
-        </xs:keyref>
-        <xs:unique name="propertyAlias">
-          <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
-          <xs:field xpath="@propertyAlias" />
-        </xs:unique>
-      </xs:element>
-      <xs:element name="SuppressedProperties" type="SupperessedPropertiesCollection_t" minOccurs="0" maxOccurs="1">
-        <xs:annotation>
-          <xs:documentation>Suppressed properties list</xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element name="Relations" type="EntitySimpleRelationsCollection_t" minOccurs="0" maxOccurs="1">
-        <xs:annotation>
-          <xs:documentation>One to Many relations</xs:documentation>
-        </xs:annotation>
-      </xs:element>
+        </xs:element>
+        <xs:element name="Relations" type="EntitySimpleRelationsCollection_t" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>One to Many relations</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
+      <xs:element name="extension" type="extension_t" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
+
     <xs:attribute name="id" type="xs:Name" use="required">
       <xs:annotation>
         <xs:documentation>Идентификатор сущности</xs:documentation>
@@ -193,7 +197,12 @@
       <xs:documentation>Коллекция сущностей</xs:documentation>
     </xs:annotation>
     <xs:sequence>
-      <xs:element name="Entity" type="Entity_t" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="Entity" type="Entity_t" minOccurs="0" maxOccurs="unbounded">
+        <xs:key name="entityExtensionName">
+          <xs:selector xpath="NS:extension" />
+          <xs:field xpath="@name" />
+        </xs:key>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="Property_t">
@@ -363,36 +372,36 @@
       <xs:documentation>Коллекция связей сущностей</xs:documentation>
     </xs:annotation>
     <xs:sequence>
-	  <xs:choice minOccurs="0" maxOccurs="unbounded">
-		<xs:element name="Relation" type="EntityRelation_t">
-		  <xs:keyref name="RelationTableRef" refer="SourceFragmentId">
-			<xs:selector xpath="." />
-			<xs:field xpath="@table" />
-		  </xs:keyref>
-		  <xs:keyref name="RelationEntityRef" refer="EntityId">
-			<xs:selector xpath="." />
-			<xs:field xpath="@underlyingEntity" />
-		  </xs:keyref>
-		  <xs:keyref name="EntityRelationTargetEntity" refer="EntityId">
-			<xs:selector xpath=".//." />
-			<xs:field xpath="@entity" />
-		  </xs:keyref>
-		</xs:element>
-		<xs:element name="SelfRelation" type="EntitySelfRelation_t">
-		  <xs:keyref name="SelftRelationTableRef" refer="SourceFragmentId">
-			<xs:selector xpath="." />
-			<xs:field xpath="@table" />
-		  </xs:keyref>
-		  <xs:keyref name="SelfRelationEntityRef" refer="EntityId">
-			<xs:selector xpath="." />
-			<xs:field xpath="@underlyingEntity" />
-		  </xs:keyref>
-		  <xs:keyref name="EntitySelfRelationTargetEntity" refer="EntityId">
-			<xs:selector xpath="." />
-			<xs:field xpath="@entity" />
-		  </xs:keyref>
-		</xs:element>
-	  </xs:choice>      
+	    <xs:choice minOccurs="0" maxOccurs="unbounded">
+		    <xs:element name="Relation" type="EntityRelation_t">
+		      <xs:keyref name="RelationTableRef" refer="SourceFragmentId">
+			      <xs:selector xpath="." />
+			      <xs:field xpath="@table" />
+		      </xs:keyref>
+		      <xs:keyref name="RelationEntityRef" refer="EntityId">
+			      <xs:selector xpath="." />
+			      <xs:field xpath="@underlyingEntity" />
+		      </xs:keyref>
+		      <xs:keyref name="EntityRelationTargetEntity" refer="EntityId">
+			      <xs:selector xpath=".//." />
+			      <xs:field xpath="@entity" />
+		      </xs:keyref>
+		    </xs:element>
+		    <xs:element name="SelfRelation" type="EntitySelfRelation_t">
+		      <xs:keyref name="SelftRelationTableRef" refer="SourceFragmentId">
+			      <xs:selector xpath="." />
+			      <xs:field xpath="@table" />
+		      </xs:keyref>
+		      <xs:keyref name="SelfRelationEntityRef" refer="EntityId">
+			      <xs:selector xpath="." />
+			      <xs:field xpath="@underlyingEntity" />
+		      </xs:keyref>
+		      <xs:keyref name="EntitySelfRelationTargetEntity" refer="EntityId">
+			      <xs:selector xpath="." />
+			      <xs:field xpath="@entity" />
+		      </xs:keyref>
+		    </xs:element>
+	    </xs:choice>      
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="Constants_t">
@@ -794,17 +803,28 @@
       </xs:annotation>
     </xs:attribute>
   </xs:complexType>
-    <xs:complexType name="OrmObjects_t">
+  <xs:complexType name="OrmObjects_t">
     <xs:annotation>
       <xs:documentation>Entites schmema</xs:documentation>
     </xs:annotation>
     <xs:all>
       <xs:element name="Entities" type="EntitiesCollection_t" minOccurs="0" maxOccurs="1" />
-			<xs:element name="SourceFragments" type="SourceFragmentsCollection_t" minOccurs="0" maxOccurs="1" />
-	  <xs:element name="EntityRelations" type="EntityRelationsCollection_t" minOccurs="0" maxOccurs="1" />
+      <xs:element name="SourceFragments" type="SourceFragmentsCollection_t" minOccurs="0" maxOccurs="1" />
+      <xs:element name="EntityRelations" type="EntityRelationsCollection_t" minOccurs="0" maxOccurs="1" />
       <xs:element name="Types" type="TypesCollection_t" maxOccurs="1" minOccurs="0" />
       <xs:element name="Includes" type="IncludesCollection_t" maxOccurs="1" minOccurs="0" />
       <xs:element name="Linq" type="LinqSettings_t" maxOccurs="1" minOccurs="0" />
+      <xs:element name="extensions" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="extension" type="extension_t" minOccurs="0" maxOccurs="unbounded" />
+          </xs:sequence>          
+        </xs:complexType>
+        <xs:key name="rootExtensionName">
+          <xs:selector xpath="NS:extension" />
+          <xs:field xpath="@name" />
+        </xs:key>
+      </xs:element>
     </xs:all>
     <xs:attribute name="defaultNamespace" type="xs:Name" use="optional">
       <xs:annotation>
@@ -839,5 +859,12 @@
     <xs:attribute name="generateSchemaOnly" default="false" use="optional" type="xs:boolean"></xs:attribute>
     <xs:attribute name="addVersionToSchemaName" default="false" use="optional" type="xs:boolean"></xs:attribute>
       <xs:attribute name="singleFile" default="false" use="optional" type="xs:boolean"/>
+  </xs:complexType>
+  <xs:complexType name="extension_t">
+    <xs:sequence>
+      <xs:any minOccurs="0" maxOccurs="unbounded" processContents="skip" />
+    </xs:sequence>
+    <xs:attribute name="name" use="required">      
+    </xs:attribute>
   </xs:complexType>
 </xs:schema>

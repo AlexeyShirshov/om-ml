@@ -47,15 +47,12 @@ namespace TestsCodeGenLib
                 Assert.AreEqual(defaultObj0, obj0);
                 Assert.AreNotEqual(defaultObj1, obj1);
             }
-
-
-
         }
 
         [TestMethod]
         public void TestCSCodeSimple()
         {
-            using (Stream stream = TestOrmXmlParse.GetSampleFileStream())
+            using (Stream stream = Resources.GetXmlDocumentStream("SchemaBased"))
             {
                 TestCSCodeInternal(stream);
             }
@@ -266,7 +263,7 @@ namespace TestsCodeGenLib
         [TestMethod]
         public void TestVBCodeSimple()
         {
-            using (Stream stream = TestOrmXmlParse.GetSampleFileStream())
+            using (Stream stream = Resources.GetXmlDocumentStream("SchemaBased"))
             {
                 TestVBCodeInternal(stream);
             }

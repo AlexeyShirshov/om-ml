@@ -155,7 +155,7 @@ namespace WXML.Model.Descriptors
 
         public PropertyGroup Group { get; set; }
 
-        public string ColumnName { get; set; }
+        public string FieldAlias { get; set; }
 
         public string PropertyName
         {

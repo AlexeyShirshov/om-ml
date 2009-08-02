@@ -100,6 +100,29 @@ namespace WXML.Model
             FillEntities();
 
             FillRelations();
+
+            FillExtensions();
+        }
+
+        private void FillExtensions()
+        {
+            var extensionsNode =
+                (XmlElement)_ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:extensions", WXMLModel.NS_PREFIX), _nsMgr);
+
+            if (extensionsNode == null)
+                return;
+
+            foreach (XmlElement extension in extensionsNode.ChildNodes)
+            {
+                FillExtension(Model.Extensions, extension);
+            }
+        }
+
+        private void FillExtension(Dictionary<string, XmlDocument> dictionary, XmlElement extension)
+        {
+            XmlDocument xdoc = new XmlDocument();
+            xdoc.LoadXml(extension.InnerXml);
+            dictionary.Add(extension.Attributes["name"].Value, xdoc);
         }
 
         private void FillLinqSettings()
@@ -142,7 +165,7 @@ namespace WXML.Model
                 tempDoc.AppendChild(importedNode);
                 import = LoadXmlDocument(tempDoc, true);
 
-                OrmObjectsDef.Includes.Add(import);
+                Model.Includes.Add(import);
             }
         }
 
@@ -204,7 +227,7 @@ namespace WXML.Model
 
                 if (!string.IsNullOrEmpty(baseEntityId))
                 {
-                    EntityDescription baseEntity = OrmObjectsDef.GetEntity(baseEntityId);
+                    EntityDescription baseEntity = Model.GetEntity(baseEntityId);
                     if (baseEntity == null)
                         throw new OrmXmlParserException(
                             string.Format("Base entity '{0}' for entity '{1}' not found.", baseEntityId,
@@ -214,6 +237,17 @@ namespace WXML.Model
                 FillProperties(entity);
                 FillSuppresedProperties(entity);
                 FillEntityRelations(entity);
+
+                var extensionsNode =
+                    entityNode.SelectNodes(string.Format("{0}:extension", WXMLModel.NS_PREFIX), _nsMgr);
+
+                if (extensionsNode == null)
+                    return;
+
+                foreach (XmlElement extension in extensionsNode)
+                {
+                    FillExtension(entity.Extensions, extension);
+                }
             }
         }
 
@@ -475,7 +509,7 @@ namespace WXML.Model
                 property.ObsoleteDescripton = propertyObsoleteDescription;
                 property.EnablePropertyChanged = enablePropertyChanged;
                 property.Group = group;
-                property.ColumnName = fieldAlias;
+                property.FieldAlias = fieldAlias;
 
                 property.DbTypeName = dbTypeNameAttribute;
                 if (!string.IsNullOrEmpty(dbTypeSizeAttribute))
@@ -787,7 +821,7 @@ namespace WXML.Model
             }
         }
 
-        internal protected WXMLModel OrmObjectsDef
+        internal protected WXMLModel Model
         {
             get { return _ormObjectsDef; }
         }

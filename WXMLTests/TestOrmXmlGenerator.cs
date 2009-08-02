@@ -3,7 +3,6 @@ using System.Text;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Xml;
-using Worm.CodeGen.Core;
 using System.IO;
 using WXML.Model;
 
@@ -19,11 +18,44 @@ namespace TestsCodeGenLib
         [TestMethod]
         public void TestGenerate()
         {
-            using (Stream stream = TestOrmXmlParse.GetSampleFileStream())
+            using (Stream stream = Resources.GetXmlDocumentStream("SchemaBased"))
             {
                 TestCodeGen(stream);
             }
         }
+
+        [TestMethod]
+        public void TestExtensionSave()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("suppressed"))
+            {
+                Assert.IsNotNull(stream);
+
+                WXMLModel model = WXMLModel.LoadFromXml(new XmlTextReader(stream));
+
+                Assert.IsNotNull(model);
+
+                XmlDocument xdoc = new XmlDocument();
+                xdoc.LoadXml("<greeting>hi!</greeting>");
+
+                model.Extensions["f"] = xdoc;
+
+                XmlDocument res = model.GetXmlDocument();
+
+                Assert.IsNotNull(res);
+
+                XmlNamespaceManager nsmgr = new XmlNamespaceManager(res.NameTable);
+                nsmgr.AddNamespace("x", WXMLModel.NS_URI);
+
+                XmlElement extension = res.SelectSingleNode("/x:WXMLModel/x:extensions/x:extension[@name='f']", nsmgr) as XmlElement;
+                Assert.IsNotNull(extension);
+                
+                Assert.AreEqual("greeting", extension.ChildNodes[0].Name);
+                Assert.AreEqual("hi!", extension.ChildNodes[0].InnerText);
+
+            }
+        }
+
         [TestMethod]
         [Ignore]
         public void TestIncludeCodeGen()
