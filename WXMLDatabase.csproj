@@ -7,8 +7,8 @@
     <ProjectGuid>{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Worm.CodeGen.XmlGenerator</RootNamespace>
-    <AssemblyName>Worm.CodeGen.XmlGenerator</AssemblyName>
+    <RootNamespace>WXMLDatabase</RootNamespace>
+    <AssemblyName>WXMLDatabase</AssemblyName>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
