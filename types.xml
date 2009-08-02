@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<oos:WXMLModel xmlns:oos="http://wise-orm.com/WXMLSchema.xsd">
+  <oos:Types>
+    <oos:Type id="tInt32">
+      <oos:ClrType name="System.Int32" />
+    </oos:Type>
+    <oos:Type id="tInt64">
+      <oos:ClrType name="System.Int64" />
+    </oos:Type>
+    <oos:Type id="tInt16nullable">
+      <oos:ClrType name="System.Nullable`1[[System.Int16, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
+    </oos:Type>
+    <oos:Type id="tInt64nullable">
+      <oos:ClrType name="System.Nullable`1[[System.Int64, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
+    </oos:Type>
+    <oos:Type id="tString">
+      <oos:ClrType name="System.String" />
+    </oos:Type>
+    <oos:Type id="tDateTime">
+      <oos:ClrType name="System.DateTime" />
+    </oos:Type>
+    <oos:Type id="tStringnullable">
+      <oos:ClrType name="System.String" />
+    </oos:Type>
+    <oos:Type id="tInt32nullable">
+      <oos:ClrType name="System.Nullable`1[[System.Int32, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
+    </oos:Type>
+    <oos:Type id="tDateTimenullable">
+      <oos:ClrType name="System.Nullable`1[[System.DateTime, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
+    </oos:Type>
+    <oos:Type id="tInt16">
+      <oos:ClrType name="System.Int16" />
+    </oos:Type>
+    <oos:Type id="tDecimal">
+      <oos:ClrType name="System.Decimal" />
+    </oos:Type>
+    <oos:Type id="tDouble">
+      <oos:ClrType name="System.Double" />
+    </oos:Type>
+    <oos:Type id="tSingle">
+      <oos:ClrType name="System.Single" />
+    </oos:Type>
+    <oos:Type id="tDecimalnullable">
+      <oos:ClrType name="System.Nullable`1[[System.Decimal, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
+    </oos:Type>
+    <oos:Type id="tDoublenullable">
+      <oos:ClrType name="System.Nullable`1[[System.Double, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
+    </oos:Type>
+    <oos:Type id="tBoolean">
+      <oos:ClrType name="System.Boolean" />
+    </oos:Type>
+    <oos:Type id="tBytes">
+      <oos:ClrType name="System.Byte[]" />
+    </oos:Type>
+    <oos:Type id="tByte">
+      <oos:ClrType name="System.Byte" />
+    </oos:Type>
+    <oos:Type id="tBytenullable">
+      <oos:ClrType name="System.Nullable`1[[System.Byte, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
+    </oos:Type>
+    <oos:Type id="tBooleannullable">
+      <oos:ClrType name="System.Nullable`1[[System.Boolean, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
+    </oos:Type>
+    <oos:Type id="tBytesnullable">
+      <oos:ClrType name="System.Byte[]" />
+    </oos:Type>
+    <oos:Type id="tXml">
+      <oos:ClrType name="System.Xml.XmlDocument" />
+    </oos:Type>
+    <oos:Type id="tGuidnullable">
+      <oos:ClrType name="System.Nullable`1[[System.Guid, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
+    </oos:Type>
+  </oos:Types>
+</oos:WXMLModel>
