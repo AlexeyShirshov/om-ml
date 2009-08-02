@@ -3,8 +3,8 @@
   <oos:Linq contextName="LinqCtx" filename="linq" enable="true" />
   
   <oos:Types>
-		<oos:Type id="tBase">
-			<oos:UserType  name="OrmCodeGenTests.TestOrmBase"/>
+		<oos:Type id="tString">
+			<oos:ClrType name="System.String"/>
 		</oos:Type>
 		<oos:Type id="tInt32">
 			<oos:ClrType name="System.Int32"/>
@@ -13,6 +13,7 @@
   
 	<oos:SourceFragments>
 		<oos:SourceFragment id="tblEntity1" name="entity1" selector="dbo" />
+    <oos:SourceFragment id="tblEntity2" name="entity2" selector="dbo" />
 	</oos:SourceFragments>
 	
   <oos:Entities>
@@ -23,6 +24,16 @@
 			<oos:Properties>
 				<oos:Property attributes="PrimaryKey" fieldName="id" propertyName="Identifier1" table="tblEntity1" typeRef="tInt32" dbTypeName="int" dbTypeNullable="false" />
 			</oos:Properties>
+    </oos:Entity>
+
+    <oos:Entity id="eEntity2" name="Entity2" namespace="xxx">
+      <oos:SourceFragments>
+        <oos:SourceFragment ref="tblEntity2"/>
+      </oos:SourceFragments>
+      <oos:Properties>
+        <oos:Property attributes="PrimaryKey" fieldName="id" propertyName="Identifier1" table="tblEntity2" typeRef="tInt32" dbTypeName="int" dbTypeNullable="false" />
+        <oos:Property fieldName="name" propertyName="Name" table="tblEntity2" typeRef="tString" dbTypeName="varchar" dbTypeNullable="false" dbTypeSize="100" />
+      </oos:Properties>
     </oos:Entity>
 	</oos:Entities>
 </oos:WXMLModel>
