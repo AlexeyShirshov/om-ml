@@ -191,6 +191,10 @@ namespace LinqCodeGenerator
             if (p.DbTypeSize.HasValue)
                 size = "(" + p.DbTypeSize.Value.ToString() + ")";
 
+            bool insertDefault = false;
+            if (p.HasAttribute(Field2DbRelations.InsertDefault))
+                insertDefault = true;
+
             System.Data.Linq.Mapping.AutoSync async = System.Data.Linq.Mapping.AutoSync.Default;
 
             if (p.HasAttribute(Field2DbRelations.SyncInsert) && p.HasAttribute(Field2DbRelations.SyncUpdate))
@@ -201,12 +205,12 @@ namespace LinqCodeGenerator
                 async = System.Data.Linq.Mapping.AutoSync.OnUpdate;
 
             if (p.HasAttribute(Field2DbRelations.PK))
-            {                
-                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.FieldName, DbType = p.DbTypeName + size + nullable, IsPrimaryKey = true, AutoSync = async }, attr);
+            {
+                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.FieldName, DbType = p.DbTypeName + size + nullable, IsPrimaryKey = true, AutoSync = async, IsDbGenerated = insertDefault}, attr);
             }
             else
             {
-                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.FieldName, DbType = p.DbTypeName + size + nullable, AutoSync = async }, attr);
+                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.FieldName, DbType = p.DbTypeName + size + nullable, AutoSync = async, IsDbGenerated = insertDefault }, attr);
             }
 
             return attr;
