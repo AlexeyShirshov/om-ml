@@ -162,7 +162,7 @@ namespace LinqCodeGenerator
 
             cls.AddMethod(MemberAttributes.Family, () => "SendPropertyChanging",
                 Emit.@if(() => !CodeDom.Call<bool>("ReferenceEquals")(CodeDom.@this.Property(evntName), null),
-                    Emit.stmt(() => CodeDom.@this.Raise("PropertyChanging")(CodeDom.@this, CodeDom.Field(CodeDom.@this, "emptyChangingEventArgs")))
+                    Emit.stmt(() => CodeDom.@this.Raise("PropertyChanging")(CodeDom.@this, CodeDom.VarRef("emptyChangingEventArgs")))
                 )
             );
 
