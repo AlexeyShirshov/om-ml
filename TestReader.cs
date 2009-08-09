@@ -154,8 +154,7 @@ namespace WXMLTests
         [Description("Проверка получения свойств")]
         public void TestFillSuppressedProperties()
         {
-            Worm_CodeGen_Core_OrmXmlParserAccessor parser;
-            parser = null;
+            Worm_CodeGen_Core_OrmXmlParserAccessor parser = null;
             using (XmlReader rdr = XmlReader.Create(Resources.GetXmlDocumentStream("suppressed")))
             {
                 object privateParser = Worm_CodeGen_Core_OrmXmlParserAccessor.CreatePrivate(rdr);
@@ -168,18 +167,16 @@ namespace WXMLTests
             parser.FillImports();
             parser.FillTypes();
 
+            WXMLModel ormObjectDef = parser.Model;
 
-            WXMLModel ormObjectDef;
-            ormObjectDef = parser.Model;
-
-            EntityDescription entity;
-            entity = ormObjectDef.GetEntity("e11");
+            EntityDescription entity = ormObjectDef.GetEntity("e11");
 
             parser.FillEntities();
 
             Assert.AreEqual<int>(1, entity.SuppressedProperties.Count, "SuppressedProperties.Count");
 
-            PropertyDescription prop = entity.SuppressedProperties[0];
+            PropertyDescription prop = entity.GetCompleteProperties().Single(item=>item.PropertyAlias==entity.SuppressedProperties[0]);
+
             Assert.AreEqual<string>("Prop1", prop.Name, "SuppressedPropertyName");
             Assert.IsTrue(prop.IsSuppressed, "SuppressedPropery.IsSuppressed");
 
@@ -259,24 +256,22 @@ namespace WXMLTests
             parser.FindEntities();
 
 
-            WXMLModel ormObjectDef;
-            ormObjectDef = parser.Model;
+            WXMLModel ormObjectDef = parser.Model;
 
             EntityDescription entity = ormObjectDef.Entities
                 .Single(match => match.Identifier == "eArtist" && match.Name == "Artist");
 
-            Assert.AreEqual<int>(2, entity.SourceFragments.Count);
-            Assert.IsTrue(entity.SourceFragments.Exists(match => match.Identifier.Equals("tblArtists")
+            Assert.AreEqual<int>(2, entity.GetSourceFragments().Count());
+            Assert.IsTrue(entity.GetSourceFragments().Any(match => match.Identifier.Equals("tblArtists")
                                                                  && match.Name.Equals("artists")));
-            Assert.IsTrue(entity.SourceFragments.Exists(match => match.Identifier.Equals("tblSiteAccess")
+            Assert.IsTrue(entity.GetSourceFragments().Any(match => match.Identifier.Equals("tblSiteAccess")
                                                                  && match.Name.Equals("sites_access")));
         }
 
         [TestMethod]
         public void TestFillTypes()
         {
-            Worm_CodeGen_Core_OrmXmlParserAccessor parser;
-            parser = null;
+            Worm_CodeGen_Core_OrmXmlParserAccessor parser = null;
             using (XmlReader rdr = XmlReader.Create(GetSampleFileStream()))
             {
                 object privateParser = Worm_CodeGen_Core_OrmXmlParserAccessor.CreatePrivate(rdr);
@@ -289,8 +284,7 @@ namespace WXMLTests
             parser.FillImports();
             parser.FillTypes();
 
-            WXMLModel ormObjectDef;
-            ormObjectDef = parser.Model;
+            WXMLModel ormObjectDef = parser.Model;
             Assert.AreEqual<int>(11, ormObjectDef.Types.Count);
         }
 
@@ -298,8 +292,7 @@ namespace WXMLTests
         [Description("Проверка поиска списка сущностей")]
         public void TestFindEntities()
         {
-            Worm_CodeGen_Core_OrmXmlParserAccessor parser;
-            parser = null;
+            Worm_CodeGen_Core_OrmXmlParserAccessor parser = null;
             using (XmlReader rdr = XmlReader.Create(GetSampleFileStream()))
             {
                 object privateParser = Worm_CodeGen_Core_OrmXmlParserAccessor.CreatePrivate(rdr);
@@ -309,8 +302,7 @@ namespace WXMLTests
             parser.FillSourceFragments();
             parser.FindEntities();
 
-            WXMLModel ormObjectDef;
-            ormObjectDef = parser.Model;
+            WXMLModel ormObjectDef = parser.Model;
 
             Assert.AreEqual<int>(5, ormObjectDef.Entities.Count());
             Assert.AreEqual<int>(4, ormObjectDef.ActiveEntities.Count());
@@ -324,8 +316,7 @@ namespace WXMLTests
         [Description("Проверка загрузки списка таблиц из файла")]
         public void TestFillTables()
         {
-            Worm_CodeGen_Core_OrmXmlParserAccessor parser;
-            parser = null;
+            Worm_CodeGen_Core_OrmXmlParserAccessor parser = null;
             using (XmlReader rdr = XmlReader.Create(GetSampleFileStream()))
             {
                 object privateParser = Worm_CodeGen_Core_OrmXmlParserAccessor.CreatePrivate(rdr);
@@ -353,8 +344,7 @@ namespace WXMLTests
         [Description("Проверка загрузки описателей схемы")]
         public void TestFillFileDescription()
         {
-            Worm_CodeGen_Core_OrmXmlParserAccessor parser;
-            parser = null;
+            Worm_CodeGen_Core_OrmXmlParserAccessor parser = null;
             using (XmlReader rdr = XmlReader.Create(GetSampleFileStream()))
             {
                 object privateParser = Worm_CodeGen_Core_OrmXmlParserAccessor.CreatePrivate(rdr);
@@ -364,8 +354,7 @@ namespace WXMLTests
 
             parser.FillFileDescriptions();
 
-            WXMLModel ormObjectDef;
-            ormObjectDef = parser.Model;
+            WXMLModel ormObjectDef = parser.Model;
 
             Assert.AreEqual<string>("XMedia.Framework.Media.Objects", ormObjectDef.Namespace);
             Assert.AreEqual<string>("1", ormObjectDef.SchemaVersion);
@@ -375,8 +364,7 @@ namespace WXMLTests
         [Description("Проверка загрузки xml документа с валидацией")]
         public void TestReadXml()
         {
-            Worm_CodeGen_Core_OrmXmlParserAccessor parser;
-            parser = null;
+            Worm_CodeGen_Core_OrmXmlParserAccessor parser = null;
             using (XmlReader rdr = XmlReader.Create(GetSampleFileStream()))
             {
                 object privateParser = Worm_CodeGen_Core_OrmXmlParserAccessor.CreatePrivate(rdr, null);
@@ -405,6 +393,8 @@ namespace WXMLTests
                 Assert.IsNotNull(model.Extensions["x"]);
 
                 XmlDocument xdoc = model.Extensions["x"];
+
+                Assert.IsNotNull(xdoc);
 
                 Assert.AreEqual("greeting", xdoc.DocumentElement.Name);
                 Assert.AreEqual("hi!", xdoc.DocumentElement.InnerText);
