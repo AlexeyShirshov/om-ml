@@ -9,7 +9,7 @@ namespace WXML.Model
 {
     internal class WXMLModelWriter
     {
-        private readonly OrmXmlDocumentSet _ormXmlDocumentSet;
+        private readonly WXMLDocumentSet _wxmlDocumentSet;
         private XmlDocument _ormXmlDocumentMain;
         private readonly WXMLModel _ormObjectsDef;
 
@@ -24,18 +24,17 @@ namespace WXML.Model
             _nametable = new NameTable();
             _nsMgr = new XmlNamespaceManager(_nametable);
             _nsMgr.AddNamespace(WXMLModel.NS_PREFIX, WXMLModel.NS_URI);
-            _ormXmlDocumentSet = new OrmXmlDocumentSet();
+            _wxmlDocumentSet = new WXMLDocumentSet();
             _settings = settings;
         }
 
-        internal static OrmXmlDocumentSet Generate(WXMLModel schema, WXMLModelWriterSettings settings)
+        internal static WXMLDocumentSet Generate(WXMLModel schema, WXMLModelWriterSettings settings)
         {
-            WXMLModelWriter generator;
-            generator = new WXMLModelWriter(schema, settings);
+            WXMLModelWriter generator = new WXMLModelWriter(schema, settings);
 
             generator.GenerateXmlDocumentInternal();
 
-            return generator._ormXmlDocumentSet;
+            return generator._wxmlDocumentSet;
         }
 
         public WXMLModel Model
@@ -121,10 +120,10 @@ namespace WXML.Model
             {
                 WXMLModelWriterSettings settings = (WXMLModelWriterSettings)_settings.Clone();
                     //settings.DefaultMainFileName = _settings.DefaultIncludeFileName + _ormObjectsDef.Includes.IndexOf(objectsDef);
-                    OrmXmlDocumentSet set;
+                    WXMLDocumentSet set;
                     set = Generate(objectsDef, _settings);
-                    _ormXmlDocumentSet.AddRange(set);
-                    foreach (OrmXmlDocument ormXmlDocument in set)
+                    _wxmlDocumentSet.AddRange(set);
+                    foreach (WXMLDocument ormXmlDocument in set)
                     {
                         if ((_settings.IncludeBehaviour & IncludeGenerationBehaviour.Inline) ==
                             IncludeGenerationBehaviour.Inline)
@@ -157,8 +156,8 @@ namespace WXML.Model
             XmlElement root = CreateElement("WXMLModel");
             _ormXmlDocumentMain.AppendChild(root);
             string filename = GetFilename(_ormObjectsDef, _settings);
-            OrmXmlDocument doc = new OrmXmlDocument(filename, _ormXmlDocumentMain);
-            _ormXmlDocumentSet.Add(doc);
+            WXMLDocument doc = new WXMLDocument(filename, _ormXmlDocumentMain);
+            _wxmlDocumentSet.Add(doc);
           
         }
 
@@ -325,7 +324,7 @@ namespace WXML.Model
                 entityElement.SetAttribute("name", entity.Name);
                 if (!string.IsNullOrEmpty(entity.Description))
                     entityElement.SetAttribute("description", entity.Description);
-                if (entity.Namespace != entity.OrmObjectsDef.Namespace)
+                if (entity.Namespace != entity.Model.Namespace)
                     entityElement.SetAttribute("namespace", entity.Namespace);
 				if(entity.Behaviour != EntityBehaviuor.Default)
 					entityElement.SetAttribute("behaviour", entity.Behaviour.ToString());
@@ -343,7 +342,7 @@ namespace WXML.Model
 				
 
                 XmlNode tablesNode = CreateElement("SourceFragments");
-                foreach (SourceFragmentRefDescription table in entity.SourceFragments)
+                foreach (SourceFragmentRefDescription table in entity.GetSourceFragments())
                 {
 					XmlElement tableElement = CreateElement("SourceFragment");
                     tableElement.SetAttribute("ref", table.Identifier);
@@ -442,16 +441,17 @@ namespace WXML.Model
         {
             foreach (PropertyDescription property in properties)
             {
-                XmlElement propertyElement =
-                    CreateElement("Property");
+                XmlElement propertyElement = CreateElement("Property");
                 propertyElement.SetAttribute("propertyName", property.Name);
                 if(property.Attributes != null && property.Attributes.Length > 0)
                 {
                     propertyElement.SetAttribute("attributes", string.Join(" ", property.Attributes));
                 }
-                propertyElement.SetAttribute("table", property.SourceFragment.Identifier);
+                if (property.SourceFragment != null)
+                    propertyElement.SetAttribute("table", property.SourceFragment.Identifier);
                 propertyElement.SetAttribute("fieldName", property.FieldName);
-                propertyElement.SetAttribute("typeRef", property.PropertyType.Identifier);
+                if (property.PropertyType != null)
+                    propertyElement.SetAttribute("typeRef", property.PropertyType.Identifier);
                 if (!string.IsNullOrEmpty(property.Description))
                     propertyElement.SetAttribute("description", property.Description);
                 if (property.FieldAccessLevel != AccessLevel.Private)
@@ -539,11 +539,16 @@ namespace WXML.Model
 
         private void FillFileDescriptions()
         {
-            _ormXmlDocumentMain.DocumentElement.SetAttribute("defaultNamespace", _ormObjectsDef.Namespace);
-            _ormXmlDocumentMain.DocumentElement.SetAttribute("schemaVersion", _ormObjectsDef.SchemaVersion);
-			if (!string.IsNullOrEmpty(_ormObjectsDef.EntityBaseTypeName))
+            if (!string.IsNullOrEmpty(_ormObjectsDef.Namespace))
+                _ormXmlDocumentMain.DocumentElement.SetAttribute("defaultNamespace", _ormObjectsDef.Namespace);
+
+            if (!string.IsNullOrEmpty(_ormObjectsDef.SchemaVersion))
+                _ormXmlDocumentMain.DocumentElement.SetAttribute("schemaVersion", _ormObjectsDef.SchemaVersion);
+			
+            if (!string.IsNullOrEmpty(_ormObjectsDef.EntityBaseTypeName))
 				_ormXmlDocumentMain.DocumentElement.SetAttribute("entityBaseType", _ormObjectsDef.EntityBaseTypeName);
-			if (_ormObjectsDef.EnableCommonPropertyChangedFire)
+			
+            if (_ormObjectsDef.EnableCommonPropertyChangedFire)
 				_ormXmlDocumentMain.DocumentElement.SetAttribute("enableCommonPropertyChangedFire",
 				                                                 XmlConvert.ToString(_ormObjectsDef.EnableCommonPropertyChangedFire));
             if (!_ormObjectsDef.GenerateEntityName)
@@ -571,12 +576,12 @@ namespace WXML.Model
         }
     }
 
-    public class OrmXmlDocument
+    public class WXMLDocument
     {
         private XmlDocument m_document;
         private string m_fileName;
 
-        public OrmXmlDocument(string filename, XmlDocument document)
+        public WXMLDocument(string filename, XmlDocument document)
         {
             if (string.IsNullOrEmpty(filename))
                 throw new ArgumentNullException("filename");
@@ -599,7 +604,7 @@ namespace WXML.Model
         }
     }
 
-    public class OrmXmlDocumentSet : List<OrmXmlDocument>
+    public class WXMLDocumentSet : List<WXMLDocument>
     {
     }
 }

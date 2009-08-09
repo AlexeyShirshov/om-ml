@@ -302,21 +302,18 @@ namespace WXML.Model
             if (entity == null)
                 throw new ArgumentNullException("entity");
 
-            XmlNode entityNode;
-            entityNode = _ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX, entity.Identifier), _nsMgr);
+            XmlNode entityNode = _ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX, entity.Identifier), _nsMgr);
 
-            XmlNodeList propertiesList;
-            propertiesList = entityNode.SelectNodes(string.Format("{0}:SuppressedProperties/{0}:Property", WXMLModel.NS_PREFIX), _nsMgr);
+            XmlNodeList propertiesList = entityNode.SelectNodes(string.Format("{0}:SuppressedProperties/{0}:Property", WXMLModel.NS_PREFIX), _nsMgr);
 
             foreach (XmlNode propertyNode in propertiesList)
             {
-                string name;
                 XmlElement propertyElement = (XmlElement) propertyNode;
-                name = propertyElement.GetAttribute("name");
+                string name = propertyElement.GetAttribute("name");
 
-                PropertyDescription property = new PropertyDescription(name);
+                //PropertyDescription property = new PropertyDescription(name);
 
-                entity.SuppressedProperties.Add(property);
+                entity.SuppressedProperties.Add(name);
             }
         }
 
@@ -439,36 +436,33 @@ namespace WXML.Model
         {
             foreach (XmlNode propertyNode in propertiesList)
             {
-                string name, description, typeId, fieldname, sAttributes, tableId, fieldAccessLevelName, propertyAccessLevelName, propertyAlias, propertyDisabled, propertyObsolete, propertyObsoleteDescription, enablePropertyChangedAttribute, dbTypeNameAttribute, dbTypeSizeAttribute, dbTypeNullableAttribute, defferedLoadGroup, fieldAlias;
-                string[] attributes;
-                SourceFragmentDescription table;
                 AccessLevel fieldAccessLevel, propertyAccessLevel;
                 bool disabled = false, enablePropertyChanged = false;
                 ObsoleteType obsolete;
 
                 XmlElement propertyElement = (XmlElement) propertyNode;
-                description = propertyElement.GetAttribute("description");
-                name = propertyElement.GetAttribute("propertyName");
-                fieldname = propertyElement.GetAttribute("fieldName");
-                typeId = propertyElement.GetAttribute("typeRef");
-                sAttributes = propertyElement.GetAttribute("attributes");
-                tableId = propertyElement.GetAttribute("table");
-                fieldAccessLevelName = propertyElement.GetAttribute("classfieldAccessLevel");
-                propertyAccessLevelName = propertyElement.GetAttribute("propertyAccessLevel");
-                propertyAlias = propertyElement.GetAttribute("propertyAlias");
-                propertyDisabled = propertyElement.GetAttribute("disabled");
-                propertyObsolete = propertyElement.GetAttribute("obsolete");
-                propertyObsoleteDescription = propertyElement.GetAttribute("obsoleteDescription");
-                enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
-                fieldAlias = propertyElement.GetAttribute("fieldAlias");
+                string description = propertyElement.GetAttribute("description");
+                string name = propertyElement.GetAttribute("propertyName");
+                string fieldname = propertyElement.GetAttribute("fieldName");
+                string typeId = propertyElement.GetAttribute("typeRef");
+                string sAttributes = propertyElement.GetAttribute("attributes");
+                string tableId = propertyElement.GetAttribute("table");
+                string fieldAccessLevelName = propertyElement.GetAttribute("classfieldAccessLevel");
+                string propertyAccessLevelName = propertyElement.GetAttribute("propertyAccessLevel");
+                string propertyAlias = propertyElement.GetAttribute("propertyAlias");
+                string propertyDisabled = propertyElement.GetAttribute("disabled");
+                string propertyObsolete = propertyElement.GetAttribute("obsolete");
+                string propertyObsoleteDescription = propertyElement.GetAttribute("obsoleteDescription");
+                string enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
+                string fieldAlias = propertyElement.GetAttribute("fieldAlias");
 
-                dbTypeNameAttribute = propertyElement.GetAttribute("dbTypeName");
-                dbTypeSizeAttribute = propertyElement.GetAttribute("dbTypeSize");
-                dbTypeNullableAttribute = propertyElement.GetAttribute("dbTypeNullable");
+                string dbTypeNameAttribute = propertyElement.GetAttribute("dbTypeName");
+                string dbTypeSizeAttribute = propertyElement.GetAttribute("dbTypeSize");
+                string dbTypeNullableAttribute = propertyElement.GetAttribute("dbTypeNullable");
 
-            	defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
+            	string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
 
-                attributes = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                string[] attributes = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                 if (!string.IsNullOrEmpty(propertyAccessLevelName))
                     propertyAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), propertyAccessLevelName);
                 else
@@ -479,15 +473,15 @@ namespace WXML.Model
                 else
                     fieldAccessLevel = AccessLevel.Private;
 
-                table = entity.GetSourceFragments(tableId);
+                SourceFragmentDescription table = entity.GetSourceFragment(tableId);
 
                 if (!String.IsNullOrEmpty(propertyDisabled))
                     disabled = XmlConvert.ToBoolean(propertyDisabled);
 
-                if (table == null)
-                    throw new OrmXmlParserException(
-                        string.Format("SourceFragment '{0}' for property '{1}' of entity '{2}' not found.", tableId, name,
-                                      entity.Identifier));
+                //if (table == null)
+                //    throw new OrmXmlParserException(
+                //        string.Format("SourceFragment '{0}' for property '{1}' of entity '{2}' not found.", tableId, name,
+                //                      entity.Identifier));
 
                 TypeDescription typeDesc = _ormObjectsDef.GetType(typeId, true);
                 
@@ -503,15 +497,17 @@ namespace WXML.Model
                 if (!string.IsNullOrEmpty(enablePropertyChangedAttribute))
                     enablePropertyChanged = XmlConvert.ToBoolean(enablePropertyChangedAttribute);
 
-                PropertyDescription property = new PropertyDescription(entity ,name, propertyAlias, attributes, description, typeDesc, fieldname, table, fieldAccessLevel, propertyAccessLevel);
-                property.Disabled = disabled;
-                property.Obsolete = obsolete;
-                property.ObsoleteDescripton = propertyObsoleteDescription;
-                property.EnablePropertyChanged = enablePropertyChanged;
-                property.Group = group;
-                property.FieldAlias = fieldAlias;
+                PropertyDescription property = new PropertyDescription(entity, name, propertyAlias, attributes, description, typeDesc, fieldname, table, fieldAccessLevel, propertyAccessLevel)
+                {
+                    Disabled = disabled,
+                    Obsolete = obsolete,
+                    ObsoleteDescripton = propertyObsoleteDescription,
+                    EnablePropertyChanged = enablePropertyChanged,
+                    Group = group,
+                    FieldAlias = fieldAlias,
+                    DbTypeName = dbTypeNameAttribute
+                };
 
-                property.DbTypeName = dbTypeNameAttribute;
                 if (!string.IsNullOrEmpty(dbTypeSizeAttribute))
                     property.DbTypeSize = XmlConvert.ToInt32(dbTypeSizeAttribute);
                 if (!string.IsNullOrEmpty(dbTypeNullableAttribute))
@@ -524,11 +520,10 @@ namespace WXML.Model
 
         internal protected void FillRelations()
         {
-            XmlNodeList relationNodes;
-			#region Relations
-			relationNodes = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:EntityRelations/{0}:Relation", WXMLModel.NS_PREFIX), _nsMgr);
+			XmlNodeList relationNodes = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:EntityRelations/{0}:Relation", WXMLModel.NS_PREFIX), _nsMgr);
 
-			foreach (XmlNode relationNode in relationNodes)
+            #region Relations
+            foreach (XmlNode relationNode in relationNodes)
 			{
 				XmlNode leftTargetNode = relationNode.SelectSingleNode(string.Format("{0}:Left", WXMLModel.NS_PREFIX), _nsMgr);
 				XmlNode rightTargetNode = relationNode.SelectSingleNode(string.Format("{0}:Right", WXMLModel.NS_PREFIX), _nsMgr);
@@ -708,7 +703,7 @@ namespace WXML.Model
             if (entity == null)
                 throw new ArgumentNullException("entity");
 
-            entity.SourceFragments.Clear();
+            entity.ClearSourceFragments();
 
             entityNode = _ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX, entity.Identifier), _nsMgr);
 
@@ -718,7 +713,7 @@ namespace WXML.Model
             {
                 XmlElement tableElement = (XmlElement)tableNode;
                 string tableId = tableElement.GetAttribute("ref");
-                var table = entity.OrmObjectsDef.GetSourceFragment(tableId);
+                var table = entity.Model.GetSourceFragment(tableId);
                 if (table == null)
                     throw new OrmXmlParserException(String.Format("Table {0} not found.", tableId));
 
@@ -727,7 +722,7 @@ namespace WXML.Model
                 string anchorId = tableElement.GetAttribute("anchorTableRef");
                 if (!string.IsNullOrEmpty(anchorId))
                 {
-                    tableRef.AnchorTable = entity.OrmObjectsDef.GetSourceFragment(anchorId);
+                    tableRef.AnchorTable = entity.Model.GetSourceFragment(anchorId);
                     string jt = tableElement.GetAttribute("joinType");
                     if (string.IsNullOrEmpty(jt))
                         jt = "inner";
@@ -742,7 +737,7 @@ namespace WXML.Model
                     }
                 }
 
-                entity.SourceFragments.Add(tableRef);
+                entity.AddSourceFragment(tableRef);
             }
 
             XmlNode tablesNode = entityNode.SelectSingleNode(string.Format("{0}:SourceFragments", WXMLModel.NS_PREFIX), _nsMgr);

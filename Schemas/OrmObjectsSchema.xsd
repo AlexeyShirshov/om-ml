@@ -37,13 +37,6 @@
             <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
             <xs:field xpath="@propertyName" />
           </xs:key>
-          <!--<xs:unique name="propName">
-            <xs:annotation>
-              <xs:documentation>Колонки сущности должны быть уникальны</xs:documentation>
-            </xs:annotation>
-            <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
-            <xs:field xpath="@fieldName" />
-          </xs:unique>-->
           <xs:keyref name="propTableRef" refer="SourceFragmentId">
             <xs:annotation>
               <xs:documentation>Ссылка на таблицы</xs:documentation>
@@ -55,7 +48,7 @@
             <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
             <xs:field xpath="@typeRef" />
           </xs:keyref>
-          <xs:unique name="propertyAlias">
+          <xs:unique name="propPropertyAlias">
             <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
             <xs:field xpath="@propertyAlias" />
           </xs:unique>
@@ -64,6 +57,10 @@
           <xs:annotation>
             <xs:documentation>Suppressed properties list</xs:documentation>
           </xs:annotation>
+          <!--<xs:keyref name="propPropertyAliasRef" refer="propPropertyAlias">
+            <xs:selector xpath="NS:Property" />
+            <xs:field xpath="@name" />
+          </xs:keyref>-->
         </xs:element>
         <xs:element name="Relations" type="EntitySimpleRelationsCollection_t" minOccurs="0" maxOccurs="1">
           <xs:annotation>
@@ -145,7 +142,7 @@
     </xs:annotation>
     <xs:attribute name="name" type="Name_t">
       <xs:annotation>
-        <xs:documentation>Property name</xs:documentation>
+        <xs:documentation>Property alias</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:complexType>
@@ -234,7 +231,7 @@
         <xs:documentation>Описание свойства</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="typeRef" type="xs:Name" use="required">
+    <xs:attribute name="typeRef" type="xs:Name" use="optional">
       <xs:annotation>
         <xs:documentation>Тип свойства (возможна ссылка на сущность)</xs:documentation>
       </xs:annotation>
@@ -254,12 +251,12 @@
         <xs:documentation>Тип поля БД является nullable</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="fieldName" type="xs:string" use="required">
+    <xs:attribute name="fieldName" type="xs:string" use="optional">
       <xs:annotation>
         <xs:documentation>Наименование колонки из БД</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="table" type="xs:Name" use="required">
+    <xs:attribute name="table" type="xs:Name" use="optional">
       <xs:annotation>
         <xs:documentation>Ссылка на таблицу БД</xs:documentation>
       </xs:annotation>
