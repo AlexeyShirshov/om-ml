@@ -68,13 +68,13 @@ namespace TestsCodeGenLib
 
         private static void TestCodeGen(Stream stream)
         {
-            OrmXmlDocumentSet ormXmlDocumentSet = null;
+            WXMLDocumentSet wxmlDocumentSet = null;
             XmlDocument xmlDocument = null;
             using (XmlReader rdr = XmlReader.Create(stream))
             {
 
                 WXMLModel schemaDef = WXMLModel.LoadFromXml(rdr, new TestXmlUrlResolver());
-                ormXmlDocumentSet = schemaDef.GetOrmXmlDocumentSet(new WXML.Model.WXMLModelWriterSettings());
+                wxmlDocumentSet = schemaDef.GetWXMLDocumentSet(new WXML.Model.WXMLModelWriterSettings());
 
             }
 
@@ -82,7 +82,7 @@ namespace TestsCodeGenLib
             XmlDocument doc = new XmlDocument();
             
             doc.Load(stream);
-            xmlDocument = ormXmlDocumentSet[0].Document;
+            xmlDocument = wxmlDocumentSet[0].Document;
             xmlDocument.RemoveChild(xmlDocument.DocumentElement.PreviousSibling);
 
             Assert.AreEqual<string>(doc.OuterXml, xmlDocument.OuterXml);

@@ -23,12 +23,12 @@ namespace TestsCodeGenLib
         //[TestMethod]
         //public void TestEntityBasedClassWithClass()
         //{
-        //    OrmObjectsDef odef;
+        //    Model odef;
         //    using (Stream stream = GetSampleFileStream("EntityBasedClassFiles.EntityBasedClassSample.class.xml"))
         //    {
         //        using (XmlReader reader = XmlReader.Create(stream))
         //        {
-        //            odef = OrmObjectsDef.LoadFromXml(reader);
+        //            odef = Model.LoadFromXml(reader);
         //        }
         //    }
         //    OrmCodeDomGeneratorSettings settings = new OrmCodeDomGeneratorSettings();

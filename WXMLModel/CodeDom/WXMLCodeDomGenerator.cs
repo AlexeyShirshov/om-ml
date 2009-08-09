@@ -82,7 +82,7 @@ namespace WXML.CodeDom
                             new CodeVariableReferenceExpression("fieldName"))
                         );
 
-                	var fieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(propertyDesc.PropertyName);
+                	var fieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(propertyDesc.Name);
 
                     //setValueStatement.TrueStatements.Add(
                     //    new CodeVariableDeclarationStatement(typeof(IConvertible), "vConv",
@@ -170,7 +170,7 @@ namespace WXML.CodeDom
 
                 public void EnumPervUpdateSetValueMethod(PropertyDescription propertyDesc, CodeMemberMethod setvalueMethod)
                 {
-                	var fieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(propertyDesc.PropertyName);
+                	var fieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(propertyDesc.Name);
                     if (propertyDesc.PropertyType.IsEnum)
                     {
                         var setValueStatement = new CodeConditionStatement(

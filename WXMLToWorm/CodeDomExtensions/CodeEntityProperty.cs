@@ -20,12 +20,12 @@ namespace WXMLToWorm.CodeDomExtensions
             Type = property.PropertyType.ToCodeType(_settings);
 			HasGet = true;
 			HasSet = true;
-			Name = property.PropertyName;
+			Name = property.Name;
             Attributes = WXMLCodeDomGenerator.GetMemberAttribute(property.PropertyAccessLevel);
 			if (property.Group != null && property.Group.Hide)
 				Attributes = MemberAttributes.Family;
 
-			var fieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(property.PropertyName);
+			var fieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(property.Name);
 			if (!property.FromBase)
 			{
 				CodeMethodInvokeExpression getUsingExpression = new CodeMethodInvokeExpression(
@@ -53,7 +53,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 else
                     GetStatements.AddRange(getInUsingStatements);
 
-				if (property.Entity.OrmObjectsDef.EnableReadOnlyPropertiesSetter ||
+				if (property.Entity.Model.EnableReadOnlyPropertiesSetter ||
 				    !property.HasAttribute(WXML.Model.Field2DbRelations.ReadOnly) || property.HasAttribute(WXML.Model.Field2DbRelations.PK))
 				{
 					CodeExpression setUsingExpression = new CodeMethodInvokeExpression(
@@ -133,7 +133,7 @@ namespace WXMLToWorm.CodeDomExtensions
 					)
 				)
 				);
-				if (property.Entity.OrmObjectsDef.EnableReadOnlyPropertiesSetter ||
+				if (property.Entity.Model.EnableReadOnlyPropertiesSetter ||
 				    !property.HasAttribute(WXML.Model.Field2DbRelations.ReadOnly) || property.HasAttribute(WXML.Model.Field2DbRelations.PK))
 				{
 					SetStatements.Add(

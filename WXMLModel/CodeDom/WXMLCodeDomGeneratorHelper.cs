@@ -40,7 +40,7 @@ namespace WXML.CodeDom
 
         public static CodeExpression GetPropertyReferenceExpression(WXMLCodeDomGeneratorSettings settings, PropertyDescription propertyDesc)
         {
-            return new CodePropertyReferenceExpression(GetEntityClassReferenceExpression(settings, propertyDesc.Entity), propertyDesc.PropertyName);
+            return new CodePropertyReferenceExpression(GetEntityClassReferenceExpression(settings, propertyDesc.Entity), propertyDesc.Name);
         }
 
         const string REGION_PROPERTIES = "Properties";

@@ -84,16 +84,16 @@ namespace WXML.CodeDom
             WXMLCodeDomGeneratorSettings settings = GetSettings();
             string en = entity.Name;
             
-            if (entity.OrmObjectsDef.ActiveEntities.Count(e => e.Name == en && e.Identifier != entity.Identifier) > 0)
+            if (entity.Model.ActiveEntities.Count(e => e.Name == en && e.Identifier != entity.Identifier) > 0)
             {
-                if (string.IsNullOrEmpty(entity.SourceFragments[0].Selector))
+                if (string.IsNullOrEmpty(entity.GetSourceFragments().First().Selector))
                 {
-                    int idx = entity.OrmObjectsDef.ActiveEntities
+                    int idx = entity.Model.ActiveEntities
                         .Count(e => e.Name == en && e.Identifier.CompareTo(entity.Identifier) > 0);
                     en = en + idx;
                 }
                 else
-                    en = entity.SourceFragments[0].Selector + en;
+                    en = entity.GetSourceFragments().First().Selector + en;
             }
             
 			string className =
@@ -125,7 +125,7 @@ namespace WXML.CodeDom
                 GetEntityClassName(entity) + 
                 // entity
                 settings.EntitySchemaDefClassNameSuffix + 
-                (entity.OrmObjectsDef.AddVersionToSchemaName ? entity.OrmObjectsDef.SchemaVersion : String.Empty);
+                (entity.Model.AddVersionToSchemaName ? entity.Model.SchemaVersion : String.Empty);
         }
 
         public string GetEntitySchemaDefClassQualifiedName(EntityDescription entity)

@@ -34,7 +34,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
         protected virtual void OnPopulateMembers(object sender, System.EventArgs e)
         {
-            if (!m_entity.OrmObjectsDef.GenerateSchemaOnly)
+            if (!m_entity.Model.GenerateSchemaOnly)
             {
                 OnPopulatePropertiesAccessors();
                 if (m_entity.HasSinglePk)

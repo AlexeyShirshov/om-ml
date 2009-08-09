@@ -99,7 +99,7 @@ namespace LinqCodeGenerator
                 .Inherits(typeof(System.ComponentModel.INotifyPropertyChanging))
                 .Inherits(typeof(System.ComponentModel.INotifyPropertyChanged));
 
-            SourceFragmentDescription tbl = e.SourceFragments[0];
+            SourceFragmentDescription tbl = e.GetSourceFragments().First();
 
             var c = Define.Attribute(typeof(System.Data.Linq.Mapping.TableAttribute));
             cls.AddAttribute(c);
@@ -114,7 +114,7 @@ namespace LinqCodeGenerator
             {
                 cls.AddField(p.PropertyType.ToCodeType(_settings),
                     WXMLCodeDomGenerator.GetMemberAttribute(p.FieldAccessLevel), 
-                    new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.PropertyName));
+                    new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name));
             }
 
             //add relations
@@ -126,20 +126,20 @@ namespace LinqCodeGenerator
 
             foreach (PropertyDescription p in e.ActiveProperties)
             {
-                var fieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.PropertyName);
+                var fieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name);
 
                 var prop = cls.AddProperty(p.PropertyType.ToCodeType(_settings),
-                    WXMLCodeDomGenerator.GetMemberAttribute(p.PropertyAccessLevel), p.PropertyName,
+                    WXMLCodeDomGenerator.GetMemberAttribute(p.PropertyAccessLevel), p.Name,
                     CodeDom.CombineStmts(
                         Emit.@return(()=>CodeDom.@this.Field(fieldName))
                     ),
                     //set
                         Emit.@if(() => CodeDom.Call<bool>(CodeDom.@this.Field(fieldName), "Equals")(CodeDom.VarRef("value")),
-                            Emit.stmt(()=>CodeDom.@this.Call("On"+p.PropertyName+"Changing")(CodeDom.VarRef("value"))),
+                            Emit.stmt(()=>CodeDom.@this.Call("On"+p.Name+"Changing")(CodeDom.VarRef("value"))),
                             Emit.stmt(()=>CodeDom.@this.Call("SendPropertyChanging")),
                             Emit.assignField(fieldName, () => CodeDom.VarRef("value")),
-                            Emit.stmt(()=>CodeDom.@this.Call("SendPropertyChanged")(p.PropertyName)),
-                            Emit.stmt(()=>CodeDom.@this.Call("On"+p.PropertyName+"Changed"))
+                            Emit.stmt(()=>CodeDom.@this.Call("SendPropertyChanged")(p.Name)),
+                            Emit.stmt(()=>CodeDom.@this.Call("On"+p.Name+"Changed"))
                     )
                 );
 
@@ -223,8 +223,8 @@ namespace LinqCodeGenerator
             cls.AddMethod(MemberAttributes.Private, () => "OnCreated");
             foreach (PropertyDescription p in e.ActiveProperties)
             {
-                cls.AddMethod(MemberAttributes.Private, (DynType value) => "On" + p.PropertyName + "Changing" + value.SetType(p.PropertyType.ToCodeType(Settings)));
-                cls.AddMethod(MemberAttributes.Private, () => "On" + p.PropertyName + "Changed");
+                cls.AddMethod(MemberAttributes.Private, (DynType value) => "On" + p.Name + "Changing" + value.SetType(p.PropertyType.ToCodeType(Settings)));
+                cls.AddMethod(MemberAttributes.Private, () => "On" + p.Name + "Changed");
             }
         }
 

@@ -312,7 +312,7 @@ namespace WXML.DatabaseConnector
                     List<PropertyDescription> col2remove = new List<PropertyDescription>();
                     foreach (PropertyDescription pd in ed.Properties)
                     {
-                        string[] ss = ed.SourceFragments[0].Name.Split('.');
+                        string[] ss = ed.GetSourceFragments().First().Name.Split('.');
                         DatabaseColumn c = new DatabaseColumn(ss[0].Trim(new char[] { '[', ']' }), ss[1].Trim(new char[] { '[', ']' }),
                             pd.FieldName.Trim(new char[] { '[', ']' }), false, null, false, 1);
                         if (!columns.ContainsKey(c))
@@ -351,7 +351,7 @@ namespace WXML.DatabaseConnector
                             if (entityProps.Count > 1 || cnt > 0)
                             {
                                 accName = WXMLCodeDomGeneratorNameHelper.GetMultipleForm(oe.Name + idx.ToString());
-                                prop = pd.PropertyName;
+                                prop = pd.Name;
 
                                 //foreach (var erd in from k in col
                                 //                    where string.IsNullOrEmpty(k.PropertyAlias)
@@ -635,7 +635,7 @@ namespace WXML.DatabaseConnector
             EntityDescription e, out bool created, bool escape, Action<DatabaseColumn> notFound, 
             List<Pair<string>> defferedCols, relation1to1 rb)
         {
-            WXMLModel odef = e.OrmObjectsDef;
+            WXMLModel odef = e.Model;
             created = false;
             PropertyDescription pe = null;
 
@@ -705,7 +705,7 @@ namespace WXML.DatabaseConnector
                     {
                         attrs = new string[] { "ReadOnly", "SyncInsert" };
                         string propName = pt2.Entity.Name;
-                        int cnt = e.Properties.Count(p => !p.Disabled && p.PropertyName == propName);
+                        int cnt = e.Properties.Count(p => !p.Disabled && p.Name == propName);
                         if (cnt > 0)
                             propName = propName + cnt.ToString();
 
@@ -810,10 +810,10 @@ namespace WXML.DatabaseConnector
                         PropertyDescription pd = AppendColumns(columns, ed, ss[0], ss[1], p.Second, escape, notFound, defferedCols, rb);
                         var t = new SourceFragmentRefDescription(GetSourceFragment(odef, ss[0], ss[1], escape));
                         dic[GetEntityName(t.Selector, t.Name)] = ed;
-                        if (!ed.SourceFragments.Contains(t))
+                        if (!ed.GetSourceFragments().Contains(t))
                         {
-                            ed.SourceFragments.Add(t);
-                            t.AnchorTable = ed.SourceFragments[0];
+                            ed.AddSourceFragment(t);
+                            t.AnchorTable = ed.GetSourceFragments().First();
                             t.JoinType = SourceFragmentRefDescription.JoinTypeEnum.outer;
                             t.Conditions.Add(new SourceFragmentRefDescription.Condition(
                                 ed.PkProperty.FieldName, columnName));
@@ -1124,7 +1124,7 @@ namespace WXML.DatabaseConnector
             {
                 e = new EntityDescription(ename, Capitalize(tableName), "", null, odef);
                 var t = new SourceFragmentRefDescription(GetSourceFragment(odef, schema, tableName, escape));
-                e.SourceFragments.Add(t);
+                e.AddSourceFragment(t);
                 odef.AddEntity(e);
                 created = true;
             }

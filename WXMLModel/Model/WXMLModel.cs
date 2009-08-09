@@ -293,55 +293,107 @@ namespace WXML.Model
             return type;
         }
 
-        //private OrmObjectsDef GetSearchScope(string name, out string localName)
-        //{
-        //    return GetSearchScope(name, out localName, false);
-        //}
+        #region Merge
+        public void Merge(WXMLModel mergeWith)
+        {
+            MergeTypes(mergeWith);
+            MergeEntities(mergeWith);
+        }
 
-        //internal OrmObjectsDef GetSearchScope(string name, out string localName, bool throwNotFondException)
-        //{
-        //    Match nameMatch = GetNsNameMatch(name);
-        //    OrmObjectsDef searchScope = this;
-        //    if(nameMatch.Success)
-        //    {
-                
-        //        if(nameMatch.Groups["prefix"].Success)
-        //        {
-        //            string prefix = nameMatch.Groups["prefix"].Value;
-        //            ImportDescription import = Includes[prefix];
-        //            if(import == null)
-        //                if(throwNotFondException)
-        //                    throw new KeyNotFoundException(string.Format("Import with prefix '{0}' not found.", prefix));
-        //                else
-        //                {
-        //                    localName = null;
-        //                    return null;
-        //                }
-        //            searchScope = import.Content;
-                    
-        //        }
-        //        localName = nameMatch.Groups["name"].Value;
-        //    }
-        //    else
-        //    {
-        //        localName = name;
-        //    }
-        //    return searchScope;
-        //}
+	    private void MergeTypes(WXMLModel model)
+	    {
+	        foreach (TypeDescription newType in model.Types)
+	        {
+	            string newTypeIdentifier = newType.Identifier;
+	            TypeDescription type = Types.SingleOrDefault(item => item.Identifier == newTypeIdentifier);
+                if (type != null)
+                {
+                    if (type.ToString() != newType.ToString())
+                        throw new NotSupportedException(string.Format("Type with identifier {0} already exists.", newTypeIdentifier));
+                }
+                else
+                    Types.Add(newType);
+	        }
+	    }
 
-        //internal static Match GetNsNameMatch(string name)
-        //{
-        //    Regex regex = new Regex(@"^(?:(?'prefix'[\w]{1,}):){0,1}(?'name'[\w\d-_.]+){1}$");
-        //    return regex.Match(name);
-        //}
+	    private void MergeEntities(WXMLModel mergeWith)
+	    {
+	        foreach (EntityDescription newEntity in mergeWith.Entities)
+	        {
+	            string newEntityIdentifier = newEntity.Identifier;
 
+	            EntityDescription entity = Entities.SingleOrDefault(item => item.Identifier == newEntityIdentifier);
+	            if (entity != null)
+	            {
+	                foreach (PropertyDescription newProperty in newEntity.Properties)
+	                {
+	                    string newPropertyName = newProperty.PropertyAlias;
+
+	                    PropertyDescription property =
+	                        entity.Properties.SingleOrDefault(item => item.PropertyAlias == newPropertyName);
+
+	                    if (property!=null)
+	                    {
+	                        property.DbTypeName = MergeString(property, newProperty, (item) => item.DbTypeName);
+                            property.DefferedLoadGroup = MergeString(property, newProperty, (item) => item.DefferedLoadGroup);
+                            property.Description = MergeString(property, newProperty, (item) => item.Description);
+                            property.FieldAlias = MergeString(property, newProperty, (item) => item.FieldAlias);
+                            property.FieldName = MergeString(property, newProperty, (item) => item.FieldName);
+                            property.Name = MergeString(property, newProperty, (item) => item.Name);
+                            property.ObsoleteDescripton = MergeString(property, newProperty, (item) => item.ObsoleteDescripton);
+
+                            List<string> newAttributes = new List<string>();
+                            
+                            if (property.Attributes != null)
+                                newAttributes.AddRange(property.Attributes);
+                            if (newProperty.Attributes != null)
+                                newAttributes.AddRange(newProperty.Attributes.Where(item=>!newAttributes.Contains(item)));
+
+	                        property.Attributes = newAttributes.ToArray();
+
+	                        property.DbTypeNullable = newProperty.DbTypeNullable ?? property.DbTypeNullable;
+                            property.DbTypeSize = newProperty.DbTypeSize ?? property.DbTypeSize;
+                            property.Group = newProperty.Group ?? property.Group;
+                            property.PropertyType = newProperty.PropertyType ?? property.PropertyType;
+                            property.SourceFragment = newProperty.SourceFragment ?? property.SourceFragment;
+
+	                        property.Disabled = newProperty.Disabled;
+	                        property.EnablePropertyChanged = newProperty.EnablePropertyChanged;
+	                        //property.IsSuppressed = newProperty.IsSuppressed;
+	                        property.FromBase = newProperty.FromBase;
+
+                            if (newProperty.FieldAccessLevel != default(AccessLevel))
+                                property.FieldAccessLevel = newProperty.FieldAccessLevel;
+                            
+                            if (newProperty.PropertyAccessLevel != default(AccessLevel))
+                                property.PropertyAccessLevel = newProperty.PropertyAccessLevel;
+
+                            if (newProperty.Obsolete != default(ObsoleteType))
+                                property.Obsolete = newProperty.Obsolete;
+
+                        }
+	                    else
+	                        entity.AddProperty(newProperty);
+	                }
+	            }
+	            else
+	                AddEntity(newEntity);
+	        }
+	    }
+
+        private static string MergeString(PropertyDescription existingProperty, PropertyDescription newProperty,
+            Func<PropertyDescription, string> accessor)
+        {
+            return string.IsNullOrEmpty(accessor(newProperty))
+              ? accessor(existingProperty)
+              : accessor(newProperty);
+        }
+        
+	    #endregion
+        
         public RelationDescriptionBase GetSimilarRelation(RelationDescriptionBase relation)
         {
-            return _relations.Find(delegate(RelationDescriptionBase match)
-                                      {
-                                          return
-                                              relation.Similar(match);
-                                      });
+            return _relations.Find(relation.Similar);
         }
 
         public bool HasSimilarRelationM2M(RelationDescription relation)
@@ -351,6 +403,14 @@ namespace WXML.Model
                 (match.Left.Entity.Identifier == relation.Left.Entity.Identifier && match.Right.Entity.Identifier == relation.Right.Entity.Identifier) ||
                 (match.Left.Entity.Identifier == relation.Right.Entity.Identifier && match.Right.Entity.Identifier == relation.Left.Entity.Identifier))
             );
+        }
+
+        public static WXMLModel LoadFromXml(string fileName)
+        {
+            using (XmlTextReader reader = new XmlTextReader(fileName))
+            {
+                return LoadFromXml(reader, null);
+            }
         }
 
         public static WXMLModel LoadFromXml(XmlReader reader)
@@ -365,7 +425,7 @@ namespace WXML.Model
             return odef;
         }
 
-        public OrmXmlDocumentSet GetOrmXmlDocumentSet(WXMLModelWriterSettings settings)
+        public WXMLDocumentSet GetWXMLDocumentSet(WXMLModelWriterSettings settings)
         {
             CreateSystemComments();
 
@@ -383,7 +443,7 @@ namespace WXML.Model
         public XmlDocument GetXmlDocument()
         {
             WXMLModelWriterSettings settings = new WXMLModelWriterSettings();
-            OrmXmlDocumentSet set = GetOrmXmlDocumentSet(settings);
+            WXMLDocumentSet set = GetWXMLDocumentSet(settings);
             return set[0].Document;
         }
 
@@ -457,10 +517,7 @@ namespace WXML.Model
                 return false;
             }
 
-
-
-
-            #region IEnumerable<OrmObjectsDef> Members
+            #region IEnumerable<Model> Members
 
             public IEnumerator<WXMLModel> GetEnumerator()
             {
@@ -477,6 +534,40 @@ namespace WXML.Model
             }
 
             #endregion
+        }
+    }
+
+    public static class Ext
+    {
+        public static int IndexOf<T>(this IEnumerable<T> source, T element) where T : class
+        {
+            if (source == null)
+                return -1;
+            if (element == null)
+                return -1;
+            int i = 0;
+            foreach (T item in source)
+            {
+                if (item.Equals(element))
+                    return i;
+                i++;
+            }
+            return -1;
+        }
+
+        public static int IndexOf<T>(this IEnumerable<T> source, Func<T,bool> predicate) where T : class
+        {
+            if (source == null)
+                return -1;
+
+            int i = 0;
+            foreach (T item in source)
+            {
+                if (predicate(item))
+                    return i;
+                i++;
+            }
+            return -1;
         }
     }
 }

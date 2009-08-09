@@ -13,7 +13,7 @@ namespace WXMLToWorm.CodeDomExtensions
 		public CodeEntityPropertyField(WXMLCodeDomGeneratorSettings settings, PropertyDescription property)
 		{
             Type = property.PropertyType.ToCodeType(settings);
-			Name = new WXMLCodeDomGeneratorNameHelper(settings).GetPrivateMemberName(property.PropertyName);
+			Name = new WXMLCodeDomGeneratorNameHelper(settings).GetPrivateMemberName(property.Name);
             Attributes = WXMLCodeDomGenerator.GetMemberAttribute(property.FieldAccessLevel);
 		}
 	}

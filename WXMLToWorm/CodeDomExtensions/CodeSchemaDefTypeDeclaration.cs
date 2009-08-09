@@ -54,10 +54,10 @@ namespace WXMLToWorm.CodeDomExtensions
 
         private void OnPopulateMultitableInterface()
         {
-            if (m_entityClass.Entity.CompleteEntity.SourceFragments.Count < 2)
+            if (m_entityClass.Entity.CompleteEntity.GetSourceFragments().Count() < 2)
                 return;
 
-            if (m_entityClass.Entity.BaseEntity != null && m_entityClass.Entity.InheritsBaseTables && m_entityClass.Entity.SourceFragments.Count == 0)
+            if (m_entityClass.Entity.BaseEntity != null && m_entityClass.Entity.InheritsBaseTables && m_entityClass.Entity.GetSourceFragments().Count() == 0)
                 return;
 
             BaseTypes.Add(new CodeTypeReference(typeof(IMultiTableObjectSchema)));
@@ -126,7 +126,7 @@ namespace WXMLToWorm.CodeDomExtensions
                             ),
                         new CodeArrayCreateExpression(
                             new CodeTypeReference(typeof(SourceFragment[])),
-                            m_entityClass.Entity.CompleteEntity.SourceFragments.ConvertAll<CodeExpression>(
+                            m_entityClass.Entity.CompleteEntity.GetSourceFragments().Select(
                                 action =>
                                 {
                                     var result = new CodeObjectCreateExpression(
@@ -151,7 +151,7 @@ namespace WXMLToWorm.CodeDomExtensions
                     )
                 );
 
-            if (!IsPartial || m_entityClass.Entity.SourceFragments.Exists(sf => sf.AnchorTable != null))
+            if (!IsPartial || m_entityClass.Entity.GetSourceFragments().Any(sf => sf.AnchorTable != null))
             {
                 CodeMemberMethod jmethod = Define.Method(MemberAttributes.Public, typeof(Worm.Criteria.Joins.QueryJoin),
                     (SourceFragment left, SourceFragment right) => "GetJoins");
@@ -159,10 +159,10 @@ namespace WXMLToWorm.CodeDomExtensions
                 CodeConditionStatement cond = null;
 
                 foreach (SourceFragmentRefDescription tbl in
-                    m_entityClass.Entity.SourceFragments.Where(sf => sf.AnchorTable != null))
+                    m_entityClass.Entity.GetSourceFragments().Where(sf => sf.AnchorTable != null))
                 {
-                    int tblIdx = m_entityClass.Entity.SourceFragments.IndexOf(tbl);
-                    int sfrIdx = m_entityClass.Entity.SourceFragments.FindIndex((sfr)=>sfr.Identifier == tbl.AnchorTable.Identifier);
+                    int tblIdx = m_entityClass.Entity.GetSourceFragments().IndexOf(tbl);
+                    int sfrIdx = m_entityClass.Entity.GetSourceFragments().IndexOf((sfr)=>sfr.Identifier == tbl.AnchorTable.Identifier);
                     if (cond == null)
                     {
                         CodeConditionStatement cond2 = Emit.@if((SourceFragment left, SourceFragment right) =>
@@ -220,7 +220,7 @@ namespace WXMLToWorm.CodeDomExtensions
                         )
                     )
                 );
-                if (m_entityClass.Entity.BaseEntity != null && m_entityClass.Entity.BaseEntity.CompleteEntity.SourceFragments.Count == 1)
+                if (m_entityClass.Entity.BaseEntity != null && m_entityClass.Entity.BaseEntity.CompleteEntity.GetSourceFragments().Count() == 1)
                     prop.Attributes |= MemberAttributes.Override;
                 else
                     prop.ImplementationTypes.Add(typeof(IEntitySchema));
@@ -460,7 +460,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
         private void OnPopulateTableMember()
         {
-            if (m_entityClass.Entity.SourceFragments.Count == 1 && m_entityClass.Entity.BaseEntity == null)
+            if (m_entityClass.Entity.GetSourceFragments().Count() == 1 && m_entityClass.Entity.BaseEntity == null)
             {
 
                 // private SourceFragment m_table;
@@ -488,7 +488,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 lockField.InitExpression = new CodeObjectCreateExpression(lockField.Type);
 
 
-                var table = m_entityClass.Entity.SourceFragments[0];
+                var table = m_entityClass.Entity.GetSourceFragments().First();
 
                 CodeMemberProperty prop = new CodeMemberProperty();
                 Members.Add(prop);
