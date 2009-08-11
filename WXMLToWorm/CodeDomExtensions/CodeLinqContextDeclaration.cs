@@ -80,20 +80,20 @@ namespace WXMLToWorm.CodeDomExtensions
             }
         }
 
-        public List<EntityDescription> Entities
+        public List<EntityDefinition> Entities
         {
             get { return m_entities; }
         }
 
-        private readonly List<EntityDescription> m_entities = new List<EntityDescription>();
+        private readonly List<EntityDefinition> m_entities = new List<EntityDefinition>();
     }
 
     public class CodeContextEntityWraperMember : CodeMemberProperty
     {
-        private readonly EntityDescription m_entity;
+        private readonly EntityDefinition m_entity;
         private WXMLCodeDomGeneratorSettings _settings;
 
-        public CodeContextEntityWraperMember(WXMLCodeDomGeneratorSettings settings, EntityDescription entity)
+        public CodeContextEntityWraperMember(WXMLCodeDomGeneratorSettings settings, EntityDefinition entity)
         {
             _settings = settings;
             m_entity = entity;
@@ -119,7 +119,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 );
         }
 
-        public EntityDescription Entity
+        public EntityDefinition Entity
         {
             get
             {

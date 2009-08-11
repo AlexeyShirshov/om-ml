@@ -176,7 +176,7 @@ namespace WXML.Model
 
             foreach (XmlNode typeNode in typeNodes)
             {
-                TypeDescription type;
+                TypeDefinition type;
                 string id;
                 XmlElement typeElement = (XmlElement)typeNode;
                 id = typeElement.GetAttribute("id");
@@ -187,11 +187,11 @@ namespace WXML.Model
                 {
                     string entityId;
                     entityId = typeDefElement.GetAttribute("ref");
-                    EntityDescription entity = _ormObjectsDef.GetEntity(entityId);
+                    EntityDefinition entity = _ormObjectsDef.GetEntity(entityId);
                     if (entity == null)
                         throw new KeyNotFoundException(
                             string.Format("Underlying entity '{1}' in type '{0}' not found.", id, entityId));
-                    type = new TypeDescription(id, entity);
+                    type = new TypeDefinition(id, entity);
                 }
                 else
                 {
@@ -202,11 +202,11 @@ namespace WXML.Model
                         XmlAttribute hintAttribute = typeDefNode.Attributes["hint"];
                         if (hintAttribute != null)
                             hint = (UserTypeHintFlags) Enum.Parse(typeof (UserTypeHintFlags), hintAttribute.Value.Replace(" ", ", "));
-                        type = new TypeDescription(id, name, hint);
+                        type = new TypeDefinition(id, name, hint);
                     }
                     else
                     {
-                        type = new TypeDescription(id, name, false);
+                        type = new TypeDefinition(id, name, false);
                     }
                 }
                 _ormObjectsDef.Types.Add(type);
@@ -215,7 +215,7 @@ namespace WXML.Model
 
         internal protected void FillEntities()
         {
-            foreach (EntityDescription entity in _ormObjectsDef.Entities)
+            foreach (EntityDefinition entity in _ormObjectsDef.Entities)
             {
                 XmlNode entityNode =
                     _ormXmlDocument.DocumentElement.SelectSingleNode(
@@ -227,7 +227,7 @@ namespace WXML.Model
 
                 if (!string.IsNullOrEmpty(baseEntityId))
                 {
-                    EntityDescription baseEntity = Model.GetEntity(baseEntityId);
+                    EntityDefinition baseEntity = Model.GetEntity(baseEntityId);
                     if (baseEntity == null)
                         throw new OrmXmlParserException(
                             string.Format("Base entity '{0}' for entity '{1}' not found.", baseEntityId,
@@ -251,7 +251,7 @@ namespace WXML.Model
             }
         }
 
-        private void FillEntityRelations(EntityDescription entity)
+        private void FillEntityRelations(EntityDefinition entity)
         {
             if (entity == null)
                 throw new ArgumentNullException("entity");
@@ -283,7 +283,7 @@ namespace WXML.Model
 
                 string accessorDescription = relationNode.GetAttribute("accessorDescription");
 
-                EntityRelationDescription relation = new EntityRelationDescription
+                EntityRelationDefinition relation = new EntityRelationDefinition
                                                          {
                                                              SourceEntity = entity,
                                                              Entity = relationEntity,
@@ -297,7 +297,7 @@ namespace WXML.Model
             }
         }
 
-        private void FillSuppresedProperties(EntityDescription entity)
+        private void FillSuppresedProperties(EntityDefinition entity)
         {
             if (entity == null)
                 throw new ArgumentNullException("entity");
@@ -357,7 +357,7 @@ namespace WXML.Model
             XmlNodeList entitiesList;
             entitiesList = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:Entities/{0}:Entity", WXMLModel.NS_PREFIX), _nsMgr);
 
-            EntityDescription entity;
+            EntityDefinition entity;
 
             _ormObjectsDef.ClearEntities();
 
@@ -389,7 +389,7 @@ namespace WXML.Model
                     behaviour = (EntityBehaviuor) Enum.Parse(typeof (EntityBehaviuor), behaviourName);
 
 
-                entity = new EntityDescription(id, name, nameSpace, description, _ormObjectsDef);
+                entity = new EntityDefinition(id, name, nameSpace, description, _ormObjectsDef);
 
 				entity.Behaviour = behaviour;
             	entity.UseGenerics = useGenerics;
@@ -403,7 +403,7 @@ namespace WXML.Model
             }
         }
 
-        internal protected void FillProperties(EntityDescription entity)
+        internal protected void FillProperties(EntityDefinition entity)
         {
             if (entity == null)
                 throw new ArgumentNullException("entity");
@@ -432,7 +432,7 @@ namespace WXML.Model
             }
         }
 
-        private void FillEntityProperties(EntityDescription entity, XmlNodeList propertiesList, PropertyGroup group)
+        private void FillEntityProperties(EntityDefinition entity, XmlNodeList propertiesList, PropertyGroup group)
         {
             foreach (XmlNode propertyNode in propertiesList)
             {
@@ -462,7 +462,11 @@ namespace WXML.Model
 
             	string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
 
-                string[] attributes = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                //string[] attributes = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                Field2DbRelations attributes = Field2DbRelations.None;
+                if (!string.IsNullOrEmpty(sAttributes))
+                    attributes = (Field2DbRelations)Enum.Parse(typeof(Field2DbRelations), sAttributes);
+
                 if (!string.IsNullOrEmpty(propertyAccessLevelName))
                     propertyAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), propertyAccessLevelName);
                 else
@@ -473,7 +477,7 @@ namespace WXML.Model
                 else
                     fieldAccessLevel = AccessLevel.Private;
 
-                SourceFragmentDescription table = entity.GetSourceFragment(tableId);
+                SourceFragmentDefinition table = entity.GetSourceFragment(tableId);
 
                 if (!String.IsNullOrEmpty(propertyDisabled))
                     disabled = XmlConvert.ToBoolean(propertyDisabled);
@@ -483,7 +487,7 @@ namespace WXML.Model
                 //        string.Format("SourceFragment '{0}' for property '{1}' of entity '{2}' not found.", tableId, name,
                 //                      entity.Identifier));
 
-                TypeDescription typeDesc = _ormObjectsDef.GetType(typeId, true);
+                TypeDefinition typeDesc = _ormObjectsDef.GetType(typeId, true);
                 
                 if(!string.IsNullOrEmpty(propertyObsolete))
                 {
@@ -497,7 +501,7 @@ namespace WXML.Model
                 if (!string.IsNullOrEmpty(enablePropertyChangedAttribute))
                     enablePropertyChanged = XmlConvert.ToBoolean(enablePropertyChangedAttribute);
 
-                PropertyDescription property = new PropertyDescription(entity, name, propertyAlias, attributes, description, typeDesc, fieldname, table, fieldAccessLevel, propertyAccessLevel)
+                PropertyDefinition property = new PropertyDefinition(entity, name, propertyAlias, attributes, description, typeDesc, fieldname, table, fieldAccessLevel, propertyAccessLevel)
                 {
                     Disabled = disabled,
                     Obsolete = obsolete,
@@ -553,12 +557,12 @@ namespace WXML.Model
                 string leftAccessorDescription = leftTargetElement.GetAttribute("accessorDescription");
                 string rightAccessorDescription = rightTargetElement.GetAttribute("accessorDescription");
 
-				TypeDescription leftAccessedEntityType = _ormObjectsDef.GetType(leftAccessedEntityTypeId, true);
-				TypeDescription rightAccessedEntityType = _ormObjectsDef.GetType(rightAccessedEntityTypeId, true);
+				TypeDefinition leftAccessedEntityType = _ormObjectsDef.GetType(leftAccessedEntityTypeId, true);
+				TypeDefinition rightAccessedEntityType = _ormObjectsDef.GetType(rightAccessedEntityTypeId, true);
 
-				SourceFragmentDescription relationTable = _ormObjectsDef.GetSourceFragment(relationTableId);
+				SourceFragmentDefinition relationTable = _ormObjectsDef.GetSourceFragment(relationTableId);
 
-				EntityDescription underlyingEntity;
+				EntityDefinition underlyingEntity;
 				if (string.IsNullOrEmpty(underlyingEntityId))
 					underlyingEntity = null;
 				else
@@ -571,9 +575,9 @@ namespace WXML.Model
 					disabled = XmlConvert.ToBoolean(disabledValue);
 
 
-				EntityDescription leftLinkTargetEntity = _ormObjectsDef.GetEntity(leftLinkTargetEntityId);
+				EntityDefinition leftLinkTargetEntity = _ormObjectsDef.GetEntity(leftLinkTargetEntityId);
 
-				EntityDescription rightLinkTargetEntity = _ormObjectsDef.GetEntity(rightLinkTargetEntityId);
+				EntityDefinition rightLinkTargetEntity = _ormObjectsDef.GetEntity(rightLinkTargetEntityId);
 
                 LinkTarget leftLinkTarget = new LinkTarget(leftLinkTargetEntity, leftFieldName, leftCascadeDelete, leftAccessorName) 
                 { 
@@ -587,7 +591,7 @@ namespace WXML.Model
                     AccessedEntityType = rightAccessedEntityType
                 };
 
-				RelationDescription relation = new RelationDescription(leftLinkTarget, rightLinkTarget, relationTable, underlyingEntity, disabled);
+				RelationDefinition relation = new RelationDefinition(leftLinkTarget, rightLinkTarget, relationTable, underlyingEntity, disabled);
 				_ormObjectsDef.Relations.Add(relation);
 
 			    XmlNodeList constantsNodeList =
@@ -643,12 +647,12 @@ namespace WXML.Model
                 string directAccessorDescription = directTargetElement.GetAttribute("accessorDescription");
                 string reverseAccessorDescription = reverseTargetElement.GetAttribute("accessorDescription");
                 
-                TypeDescription directAccessedEntityType = _ormObjectsDef.GetType(directAccessedEntityTypeId, true);
-				TypeDescription reverseAccessedEntityType = _ormObjectsDef.GetType(reverseAccessedEntityTypeId, true);
+                TypeDefinition directAccessedEntityType = _ormObjectsDef.GetType(directAccessedEntityTypeId, true);
+				TypeDefinition reverseAccessedEntityType = _ormObjectsDef.GetType(reverseAccessedEntityTypeId, true);
 
 				var relationTable = _ormObjectsDef.GetSourceFragment(relationTableId);
 
-				EntityDescription underlyingEntity;
+				EntityDefinition underlyingEntity;
 				if (string.IsNullOrEmpty(underlyingEntityId))
 					underlyingEntity = null;
 				else
@@ -660,7 +664,7 @@ namespace WXML.Model
 				else
 					disabled = XmlConvert.ToBoolean(disabledValue);
 
-				EntityDescription entity = _ormObjectsDef.GetEntity(entityId);
+				EntityDefinition entity = _ormObjectsDef.GetEntity(entityId);
 
                 SelfRelationTarget directTarget = new SelfRelationTarget(directFieldName, directCascadeDelete, directAccessorName)
                 {
@@ -691,11 +695,11 @@ namespace WXML.Model
 				string name = tableElement.GetAttribute("name");
 				string selector = tableElement.GetAttribute("selector");
 
-				_ormObjectsDef.SourceFragments.Add(new SourceFragmentDescription(id, name, selector));
+				_ormObjectsDef.SourceFragments.Add(new SourceFragmentDefinition(id, name, selector));
 			}
 		}
 
-        internal protected void FillEntityTables(EntityDescription entity)
+        internal protected void FillEntityTables(EntityDefinition entity)
         {
             XmlNodeList tableNodes;
             XmlNode entityNode;
@@ -717,7 +721,7 @@ namespace WXML.Model
                 if (table == null)
                     throw new OrmXmlParserException(String.Format("Table {0} not found.", tableId));
 
-                var tableRef = new SourceFragmentRefDescription(table);
+                var tableRef = new SourceFragmentRefDefinition(table);
 
                 string anchorId = tableElement.GetAttribute("anchorTableRef");
                 if (!string.IsNullOrEmpty(anchorId))
@@ -726,11 +730,11 @@ namespace WXML.Model
                     string jt = tableElement.GetAttribute("joinType");
                     if (string.IsNullOrEmpty(jt))
                         jt = "inner";
-                    tableRef.JoinType = (SourceFragmentRefDescription.JoinTypeEnum)Enum.Parse(typeof(SourceFragmentRefDescription.JoinTypeEnum), jt);
+                    tableRef.JoinType = (SourceFragmentRefDefinition.JoinTypeEnum)Enum.Parse(typeof(SourceFragmentRefDefinition.JoinTypeEnum), jt);
                     var joinNodes = tableElement.SelectNodes(string.Format("{0}:join", WXMLModel.NS_PREFIX), _nsMgr);
                     foreach (XmlElement joinNode in joinNodes)
                     {
-                        tableRef.Conditions.Add(new SourceFragmentRefDescription.Condition(
+                        tableRef.Conditions.Add(new SourceFragmentRefDefinition.Condition(
                             joinNode.GetAttribute("refColumn"),
                             joinNode.GetAttribute("anchorColumn")
                         ));

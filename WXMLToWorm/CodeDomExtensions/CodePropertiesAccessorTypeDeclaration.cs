@@ -11,7 +11,7 @@ namespace WXMLToWorm.CodeDomExtensions
     {
         private WXMLCodeDomGeneratorSettings _settings;
  
-        public CodePropertiesAccessorTypeDeclaration(WXMLCodeDomGeneratorSettings settings, EntityDescription entity, PropertyGroup group)
+        public CodePropertiesAccessorTypeDeclaration(WXMLCodeDomGeneratorSettings settings, EntityDefinition entity, PropertyGroup group)
         {
             Entity = entity;
             Group = group;
@@ -72,7 +72,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
         public PropertyGroup Group { get; private set; }
 
-        public EntityDescription Entity { get; private set; }
+        public EntityDefinition Entity { get; private set; }
 
         public string FullName
         {

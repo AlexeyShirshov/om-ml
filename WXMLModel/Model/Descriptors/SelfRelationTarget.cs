@@ -6,7 +6,7 @@ namespace WXML.Model.Descriptors
 		private string _fieldName;
 		private bool _cascadeDelete;
 		private string _accessorName;
-		private TypeDescription _accessedEntityType;
+		private TypeDefinition _accessedEntityType;
 
         public SelfRelationTarget(string fieldName, bool cascadeDelete)
             : this(fieldName, cascadeDelete, null)
@@ -40,7 +40,7 @@ namespace WXML.Model.Descriptors
 			set { _accessorName = value; }
 		}
 
-		public TypeDescription AccessedEntityType
+		public TypeDefinition AccessedEntityType
 		{
 			get { return _accessedEntityType; }
 			set 

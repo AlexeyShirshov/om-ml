@@ -13,7 +13,7 @@ namespace WXMLToWorm.CodeDomExtensions
 	public class CodeEntitySetValueMethod : CodeMemberMethod
 	{
         //WXMLCodeDomGeneratorSettings _settings
-		public CodeEntitySetValueMethod(WXMLCodeDomGeneratorSettings settings, EntityDescription entity)
+		public CodeEntitySetValueMethod(WXMLCodeDomGeneratorSettings settings, EntityDefinition entity)
 		{
 			Name = "SetValueOptimized";
 			// тип возвращаемого значения

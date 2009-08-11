@@ -8,37 +8,37 @@ namespace WXML.CodeDom
 {
     public static class WXMLCodeDomGeneratorHelper
     {
-        public static CodeExpression GetFieldNameReferenceExpression(WXMLCodeDomGeneratorSettings settings, PropertyDescription propertyDesc)
+        public static CodeExpression GetFieldNameReferenceExpression(WXMLCodeDomGeneratorSettings settings, PropertyDefinition propertyDesc)
         {
             string className = new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(propertyDesc.Entity, true) + ".Properties";
             return new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(className),
                                              propertyDesc.PropertyAlias);
         }
 
-        public static CodeExpression GetEntityNameReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDescription entityDescription)
+        public static CodeExpression GetEntityNameReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDefinition entityDescription)
         {
             string className = new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(entityDescription, true) + ".Descriptor";
             return new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(className), "EntityName");
         }
 
-        public static CodeExpression GetEntityClassReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDescription entityDesc)
+        public static CodeExpression GetEntityClassReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDefinition entityDesc)
         {
             string className = new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(entityDesc, true);
             return new CodeTypeReferenceExpression(className);
         }
 
-        public static CodeTypeReference GetEntityClassTypeReference(WXMLCodeDomGeneratorSettings settings, EntityDescription entityDesc)
+        public static CodeTypeReference GetEntityClassTypeReference(WXMLCodeDomGeneratorSettings settings, EntityDefinition entityDesc)
         {
             string className = new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(entityDesc);
             return new CodeTypeReference(className);
         }
 
-        public static CodeTypeOfExpression GetEntityClassTypeReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDescription entityDesc)
+        public static CodeTypeOfExpression GetEntityClassTypeReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDefinition entityDesc)
         {
             return new CodeTypeOfExpression(GetEntityClassTypeReference(settings, entityDesc));
         }
 
-        public static CodeExpression GetPropertyReferenceExpression(WXMLCodeDomGeneratorSettings settings, PropertyDescription propertyDesc)
+        public static CodeExpression GetPropertyReferenceExpression(WXMLCodeDomGeneratorSettings settings, PropertyDefinition propertyDesc)
         {
             return new CodePropertyReferenceExpression(GetEntityClassReferenceExpression(settings, propertyDesc.Entity), propertyDesc.Name);
         }

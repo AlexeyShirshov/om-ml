@@ -47,12 +47,12 @@ namespace WXMLToWorm
         }
         protected internal class EntityPropertyCreatedEventArgs : EventArgs
         {
-            private readonly PropertyDescription m_propertyDescription;
+            private readonly PropertyDefinition m_propertyDescription;
             private readonly CodeMemberField m_fieldMember;
             private readonly CodeMemberProperty m_propertyMember;
             private readonly CodeEntityTypeDeclaration m_entityTypeDeclaration;
 
-            public EntityPropertyCreatedEventArgs(PropertyDescription propertyDescription, CodeEntityTypeDeclaration entityTypeDeclaration, CodeMemberField fieldMember, CodeMemberProperty propertyMember)
+            public EntityPropertyCreatedEventArgs(PropertyDefinition propertyDescription, CodeEntityTypeDeclaration entityTypeDeclaration, CodeMemberField fieldMember, CodeMemberProperty propertyMember)
             {
                 m_entityTypeDeclaration = entityTypeDeclaration;
                 m_propertyMember = propertyMember;
@@ -60,7 +60,7 @@ namespace WXMLToWorm
                 m_propertyDescription = propertyDescription;
             }
 
-            public PropertyDescription PropertyDescription
+            public PropertyDefinition PropertyDescription
             {
                 get { return m_propertyDescription; }
             }
@@ -189,7 +189,7 @@ namespace WXMLToWorm
         public Dictionary<string, CodeCompileFileUnit> GetFullDom(LinqToCodedom.CodeDomGenerator.Language language)
         {
             var result = new Dictionary<string, CodeCompileFileUnit>(_ormObjectsDefinition.ActiveEntities.Count());
-            foreach (EntityDescription entity in _ormObjectsDefinition.ActiveEntities)
+            foreach (EntityDefinition entity in _ormObjectsDefinition.ActiveEntities)
             {
                 foreach (var pair in GetEntityCompileUnits(entity.Identifier, language))
                 {
@@ -277,7 +277,7 @@ namespace WXMLToWorm
             return result;
         }
 
-        public CodeEntityTypeDeclaration GetEntityDeclaration(EntityDescription entity)
+        public CodeEntityTypeDeclaration GetEntityDeclaration(EntityDefinition entity)
         {
             foreach (CodeCompileFileUnit fu in GetEntityCompileUnits(entity.Identifier, CodeDomGenerator.Language.CSharp))
             {
@@ -300,7 +300,7 @@ namespace WXMLToWorm
                 if (String.IsNullOrEmpty(entityId))
                     throw new ArgumentNullException("entityId");
 
-                EntityDescription entity = _ormObjectsDefinition.GetEntity(entityId);
+                EntityDefinition entity = _ormObjectsDefinition.GetEntity(entityId);
 
 
                 if (entity == null)
@@ -800,14 +800,14 @@ namespace WXMLToWorm
 
                     #region сущность реализует связь
 
-                    RelationDescriptionBase relation = _ormObjectsDefinition.ActiveRelations
+                    RelationDefinitionBase relation = _ormObjectsDefinition.ActiveRelations
                         .Find(match => match.UnderlyingEntity == entity);
 
                     if (relation != null)
                     {
                         SelfRelationDescription sd = relation as SelfRelationDescription;
                         if (sd == null)
-                            ImplementIRelation((RelationDescription)relation, entity, entityClass.SchemaDef);
+                            ImplementIRelation((RelationDefinition)relation, entity, entityClass.SchemaDef);
                         else
                             ImplementIRelation(sd, entity, entityClass.SchemaDef);
                     }
@@ -954,9 +954,9 @@ namespace WXMLToWorm
 
         private void CopyPropertiesMethodGeneration(CodeEntityTypeDeclaration entityClass)
         {
-            EntityDescription entity = entityClass.Entity;
+            EntityDefinition entity = entityClass.Entity;
 
-            EntityDescription superbaseEntity;
+            EntityDefinition superbaseEntity;
             for (superbaseEntity = entity;
                  superbaseEntity.BaseEntity != null;
                  superbaseEntity = superbaseEntity.BaseEntity)
@@ -999,7 +999,7 @@ namespace WXMLToWorm
         class ssss
         {
             public CodeMemberMethod copyMethod;
-            public EntityDescription entity;
+            public EntityDefinition entity;
             public WXMLCodeDomGeneratorSettings Settings;
 
             public void jkjk(object sender, EntityPropertyCreatedEventArgs e)
@@ -1070,7 +1070,7 @@ namespace WXMLToWorm
 
         private void UpdateSetPKMethod(CodeEntityTypeDeclaration entityClass, bool composite)
         {
-            EntityDescription entity = entityClass.Entity;
+            EntityDefinition entity = entityClass.Entity;
             if (entity.PkProperties.Count() == 0)
                 return;
 
@@ -1104,7 +1104,7 @@ namespace WXMLToWorm
                     //    new CodeArgumentReferenceExpression("pks"),
                     Emit.@foreach("pk", ()=>CodeDom.VarRef<PKDesc[]>("pks"),
                         entity.PkProperties.
-                        Select((PropertyDescription pd_) =>
+                        Select((PropertyDefinition pd_) =>
                             {
                                 //var typeReference = new CodeTypeReference(pd_.PropertyType.IsEntityType ? OrmCodeGenNameHelper.GetEntityClassName(pd_.PropertyType.Entity, true) : pd_.PropertyType.TypeName);
                                 CodeTypeReference typeReference = pd_.PropertyType.ToCodeType(Settings);
@@ -1152,7 +1152,7 @@ namespace WXMLToWorm
 
         private void UpdateGetPKValuesMethod(CodeEntityTypeDeclaration entityClass)
         {
-            EntityDescription entity = entityClass.Entity;
+            EntityDefinition entity = entityClass.Entity;
             if (entity.PkProperties.Count() == 0)
                 return;
 
@@ -1197,7 +1197,7 @@ namespace WXMLToWorm
                     "newPks",
                     new CodeArrayCreateExpression(
                         new CodeTypeReference(tr, 1),
-                        entity.PkProperties.Select<PropertyDescription,CodeExpression>(pd_ => new CodeObjectCreateExpression(tr, new CodePrimitiveExpression(pd_.PropertyAlias),
+                        entity.PkProperties.Select<PropertyDefinition,CodeExpression>(pd_ => new CodeObjectCreateExpression(tr, new CodePrimitiveExpression(pd_.PropertyAlias),
                                                               new CodeFieldReferenceExpression(
                                                                   new CodeThisReferenceExpression(),
                                                                   new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName
@@ -1214,7 +1214,7 @@ namespace WXMLToWorm
 
         private void UpdateGetKeyMethodCompositePK(CodeEntityTypeDeclaration entityClass)
         {
-            EntityDescription entity = entityClass.Entity;
+            EntityDefinition entity = entityClass.Entity;
 
             if (entity.PkProperties.Count() == 0)
                 return;
@@ -1230,7 +1230,7 @@ namespace WXMLToWorm
 
             CodeExpression lf = new CodeMethodInvokeExpression(new CodeBaseReferenceExpression(), meth.Name);
 
-            foreach (PropertyDescription pd in entity.Properties)
+            foreach (PropertyDefinition pd in entity.Properties)
             {
                 if (pd.HasAttribute(WXML.Model.Field2DbRelations.PK))
                 {
@@ -1257,7 +1257,7 @@ namespace WXMLToWorm
                                    HasSet = true,
                                    Attributes = MemberAttributes.Public | MemberAttributes.Override
                                };
-            PropertyDescription pkProperty = entityClass.Entity.PkProperty;
+            PropertyDefinition pkProperty = entityClass.Entity.PkProperty;
             property.GetStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(),
                                                                            new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(pkProperty.Name))));
             //Convert.ChangeType(object, type);
@@ -1279,7 +1279,7 @@ namespace WXMLToWorm
 
         private void CreateSetPKMethod(CodeEntityTypeDeclaration entityClass, bool composite)
         {
-            EntityDescription entity = entityClass.Entity;
+            EntityDefinition entity = entityClass.Entity;
             CodeMemberMethod meth = new CodeMemberMethod();
             meth.Name = "SetPK";
 
@@ -1306,7 +1306,7 @@ namespace WXMLToWorm
                     Emit.@foreach("pk", () => CodeDom.VarRef<PKDesc[]>("pks"),
                         entity.PkProperties.
                         Select(
-                            delegate(PropertyDescription pd_)
+                            delegate(PropertyDefinition pd_)
                             {
                                 //var typeReference = new CodeTypeReference(pd_.PropertyType.IsEntityType ? OrmCodeGenNameHelper.GetEntityClassName(pd_.PropertyType.Entity, true) : pd_.PropertyType.TypeName);
                                 CodeTypeReference typeReference = pd_.PropertyType.ToCodeType(Settings);
@@ -1354,7 +1354,7 @@ namespace WXMLToWorm
 
         private void CreateGetPKValuesMethod(CodeEntityTypeDeclaration entityClass)
         {
-            EntityDescription entity = entityClass.Entity;
+            EntityDefinition entity = entityClass.Entity;
             CodeMemberMethod meth = new CodeMemberMethod();
             meth.Name = "GetPKValues";
             CodeTypeReference tr = new CodeTypeReference(typeof(PKDesc));
@@ -1370,7 +1370,7 @@ namespace WXMLToWorm
                 new CodeMethodReturnStatement(new CodeArrayCreateExpression(meth.ReturnType,
                     entity.Properties.Where(
                         pd_ => pd_.HasAttribute(WXML.Model.Field2DbRelations.PK)).
-                    Select<PropertyDescription,CodeExpression>(
+                    Select<PropertyDefinition,CodeExpression>(
                         pd_ => new CodeObjectCreateExpression(tr, new CodePrimitiveExpression(pd_.PropertyAlias),
                                                               new CodeFieldReferenceExpression(
                                                                   new CodeThisReferenceExpression(),
@@ -1383,7 +1383,7 @@ namespace WXMLToWorm
 
         private void CreateGetKeyMethodCompositePK(CodeEntityTypeDeclaration entityClass)
         {
-            EntityDescription entity = entityClass.Entity;
+            EntityDefinition entity = entityClass.Entity;
 
             CodeMemberMethod meth = new CodeMemberMethod();
             meth.Name = "GetCacheKey";
@@ -1396,7 +1396,7 @@ namespace WXMLToWorm
 
             CodeExpression lf = null;
 
-            foreach (PropertyDescription pd in entity.Properties)
+            foreach (PropertyDefinition pd in entity.Properties)
             {
                 if (pd.HasAttribute(WXML.Model.Field2DbRelations.PK))
                 {
@@ -1414,7 +1414,7 @@ namespace WXMLToWorm
 
         void OnPropertyChangedImplementationRequired(object sender, EntityPropertyCreatedEventArgs e)
         {
-            PropertyDescription propDesc = e.PropertyDescription;
+            PropertyDefinition propDesc = e.PropertyDescription;
             if (propDesc == null)
                 return;
 
@@ -1523,7 +1523,7 @@ namespace WXMLToWorm
 
         protected virtual void OnPropertyDocumentationRequiered(object sender, EntityPropertyCreatedEventArgs e)
         {
-            PropertyDescription propertyDesc = e.PropertyDescription;
+            PropertyDefinition propertyDesc = e.PropertyDescription;
             if (propertyDesc != null)
             {
                 CodeMemberProperty property = e.PropertyMember;
@@ -1602,12 +1602,12 @@ namespace WXMLToWorm
         }
 
         #region M2M methods
-        private void CreateM2MMethodsSet(EntityDescription entity, CodeTypeDeclaration entityClass)
+        private void CreateM2MMethodsSet(EntityDefinition entity, CodeTypeDeclaration entityClass)
         {
-            foreach (RelationDescriptionBase relation in entity.GetAllRelations(false))
+            foreach (RelationDefinitionBase relation in entity.GetAllRelations(false))
             {
                 LinkTarget link = null;
-                RelationDescription rd = relation as RelationDescription;
+                RelationDefinition rd = relation as RelationDefinition;
                 if (rd != null)
                     link = rd.Left.Entity == entity ? rd.Right : rd.Left;
                 if (!relation.HasAccessors || (link != null && !link.Entity.HasSinglePk))
@@ -1619,16 +1619,16 @@ namespace WXMLToWorm
             }
         }
 
-        private delegate CodeMemberMethod CreateM2MMethodDelegate(string accessorName, EntityDescription relatedEntity, TypeDescription relatedEntityType, bool? direct);
+        private delegate CodeMemberMethod CreateM2MMethodDelegate(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct);
 
-        private void CreateM2MGenMethods(CreateM2MMethodDelegate del, EntityDescription entity, RelationDescriptionBase relation, CodeTypeDeclaration entityClass)
+        private void CreateM2MGenMethods(CreateM2MMethodDelegate del, EntityDefinition entity, RelationDefinitionBase relation, CodeTypeDeclaration entityClass)
         {
-            RelationDescription rel = relation as RelationDescription;
+            RelationDefinition rel = relation as RelationDefinition;
             if (rel != null)
             {
                 LinkTarget link = rel.Left.Entity == entity ? rel.Right : rel.Left;
                 string accessorName = link.AccessorName;
-                EntityDescription relatedEntity = link.Entity;
+                EntityDefinition relatedEntity = link.Entity;
                 if (!string.IsNullOrEmpty(accessorName))
                     entityClass.Members.Add(del(accessorName, relatedEntity, link.AccessedEntityType, null));
             }
@@ -1644,7 +1644,7 @@ namespace WXMLToWorm
             }
         }
 
-        private CodeMemberMethod CreateM2MAddMethod(string accessorName, EntityDescription relatedEntity, TypeDescription relatedEntityType, bool? direct)
+        private CodeMemberMethod CreateM2MAddMethod(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct)
         {
             CodeMemberMethod method = new CodeMemberMethod();
             method.Name = "Add" + accessorName;
@@ -1685,7 +1685,7 @@ namespace WXMLToWorm
             return method;
         }
 
-        private CodeMemberMethod CreateM2MRemoveMethod(string accessorName, EntityDescription relatedEntity, TypeDescription relatedEntityType, bool? direct)
+        private CodeMemberMethod CreateM2MRemoveMethod(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct)
         {
             CodeMemberMethod method = new CodeMemberMethod();
             method.Name = "Remove" + accessorName;
@@ -1726,7 +1726,7 @@ namespace WXMLToWorm
             return method;
         }
 
-        private CodeMemberMethod CreateM2MGetMethod(string accessorName, EntityDescription relatedEntity, TypeDescription relatedEntityType, bool? direct)
+        private CodeMemberMethod CreateM2MGetMethod(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct)
         {
             CodeMemberMethod method = new CodeMemberMethod();
             method.Name = "Get" + WXMLCodeDomGeneratorNameHelper.GetMultipleForm(accessorName);
@@ -1769,7 +1769,7 @@ namespace WXMLToWorm
             return method;
         }
 
-        private CodeMemberMethod CreateM2MMergeMethod(string accessorName, EntityDescription relatedEntity, TypeDescription relatedEntityType, bool? direct)
+        private CodeMemberMethod CreateM2MMergeMethod(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct)
         {
             CodeMemberMethod method = new CodeMemberMethod();
             method.Name = "Merge" + WXMLCodeDomGeneratorNameHelper.GetMultipleForm(accessorName);
@@ -1822,7 +1822,7 @@ namespace WXMLToWorm
         }
         #endregion
 
-        private void ImplementIRelation(RelationDescription relation, EntityDescription entity, 
+        private void ImplementIRelation(RelationDefinition relation, EntityDefinition entity, 
             CodeTypeDeclaration entitySchemaDefClass)
         {
             var leftProp = entity.ActiveProperties.Find(match => match.FieldName == relation.Left.FieldName);
@@ -1900,7 +1900,7 @@ namespace WXMLToWorm
             }
         }
 
-        private void ImplementIRelation(SelfRelationDescription relation, EntityDescription entity, CodeTypeDeclaration entitySchemaDefClass)
+        private void ImplementIRelation(SelfRelationDescription relation, EntityDefinition entity, CodeTypeDeclaration entitySchemaDefClass)
         {
             entitySchemaDefClass.BaseTypes.Add(new CodeTypeReference(typeof(IRelation)));
             #region Pair<string, Type> GetFirstType()
@@ -2028,7 +2028,7 @@ namespace WXMLToWorm
             return method;
         }
 
-        private static void CreateChangeValueTypeMethod(EntityDescription entity, CodeTypeDeclaration entitySchemaDefClass)
+        private static void CreateChangeValueTypeMethod(EntityDefinition entity, CodeTypeDeclaration entitySchemaDefClass)
         {
             CodeMemberMethod method;
             if (entity.Behaviour != EntityBehaviuor.PartialObjects && entity.BaseEntity == null)
@@ -2131,12 +2131,12 @@ namespace WXMLToWorm
             }
         }
 
-        private void CreateProperties(EntityDescription entity, CodeEntityTypeDeclaration entityClass,
+        private void CreateProperties(EntityDefinition entity, CodeEntityTypeDeclaration entityClass,
             CodeMemberMethod setvalueMethod, CodeMemberMethod getvalueMethod,
             CodeTypeDeclaration propertiesClass, CodeTypeDeclaration fieldsClass,
             CodeTypeDeclaration propertyAliasClass, CodeTypeDeclaration instancedPropertyAliasClass)
         {
-            foreach (PropertyDescription propertyDesc in
+            foreach (PropertyDefinition propertyDesc in
                 from k in entity.CompleteEntity.ActiveProperties
                 select k)
             {
@@ -2238,13 +2238,13 @@ namespace WXMLToWorm
             }
         }
 
-        private void FilterPropertyName(PropertyDescription propertyDesc)
+        private void FilterPropertyName(PropertyDefinition propertyDesc)
         {
             if (propertyDesc.Name == "Identifier")
                 throw new ArgumentException("Used reserved property name 'Identifier'");
         }
 
-        public static void RaisePropertyCreated(PropertyDescription propertyDesc, CodeEntityTypeDeclaration entityClass, CodeMemberProperty property, CodeMemberField field)
+        public static void RaisePropertyCreated(PropertyDefinition propertyDesc, CodeEntityTypeDeclaration entityClass, CodeMemberProperty property, CodeMemberField field)
         {
             EventHandler<EntityPropertyCreatedEventArgs> h = s_ctrl.EventDelegates[EntityGeneratorController.PropertyCreatedKey] as EventHandler<EntityPropertyCreatedEventArgs>;
             if (h != null)
@@ -2253,7 +2253,7 @@ namespace WXMLToWorm
             }
         }
 
-        private void CheckPropertyObsoleteAttribute(CodeMemberProperty property, PropertyDescription propertyDesc)
+        private void CheckPropertyObsoleteAttribute(CodeMemberProperty property, PropertyDefinition propertyDesc)
         {
             if (propertyDesc.Obsolete != ObsoleteType.None)
             {
@@ -2269,7 +2269,7 @@ namespace WXMLToWorm
             }
         }
 
-        private CodeMemberProperty CreateUpdatedProperty(CodeEntityTypeDeclaration entityClass, PropertyDescription propertyDesc)
+        private CodeMemberProperty CreateUpdatedProperty(CodeEntityTypeDeclaration entityClass, PropertyDefinition propertyDesc)
         {
             //propertyType = new CodeTypeReference(propertyDesc.PropertyType.IsEntityType ? OrmCodeGenNameHelper.GetEntityClassName(propertyDesc.PropertyType.Entity, true) : propertyDesc.PropertyType.TypeName);
             CodeTypeReference propertyType = propertyDesc.PropertyType.ToCodeType(Settings);
@@ -2319,7 +2319,7 @@ namespace WXMLToWorm
         }
 
         private CodeMemberProperty CreateProperty(CodeEntityTypeDeclaration entityClass,
-            PropertyDescription propertyDesc, EntityDescription entity,
+            PropertyDefinition propertyDesc, EntityDefinition entity,
             CodeMemberMethod setvalueMethod, CodeMemberMethod getvalueMethod)
         {
             //fieldType = new CodeTypeReference(propertyDesc.PropertyType.IsEntityType ? OrmCodeGenNameHelper.GetEntityClassName(propertyDesc.PropertyType.Entity, true) : propertyDesc.PropertyType.TypeName);
@@ -2429,7 +2429,7 @@ namespace WXMLToWorm
             return property;
         }
 
-        private void UpdateGetValueMethod(PropertyDescription propertyDesc, CodeMemberMethod getvalueMethod)
+        private void UpdateGetValueMethod(PropertyDefinition propertyDesc, CodeMemberMethod getvalueMethod)
         {
             getvalueMethod.Statements.Insert(getvalueMethod.Statements.Count - 1,
                 new CodeConditionStatement(
@@ -2444,7 +2444,7 @@ namespace WXMLToWorm
                 )
             );
         }
-        private void CreatePropertyColumnAttribute(CodeMemberProperty property, PropertyDescription propertyDesc)
+        private void CreatePropertyColumnAttribute(CodeMemberProperty property, PropertyDefinition propertyDesc)
         {
             CodeAttributeDeclaration declaration = new CodeAttributeDeclaration(new CodeTypeReference(typeof(EntityPropertyAttribute)));
 
@@ -2531,7 +2531,7 @@ namespace WXMLToWorm
             return setvalueMethod;
         }
 
-        private void CreateTablesLinkEnum(EntityDescription entity, CodeTypeDeclaration entitySchemaDefClass)
+        private void CreateTablesLinkEnum(EntityDefinition entity, CodeTypeDeclaration entitySchemaDefClass)
         {
             if (!entity.InheritsBaseTables || entity.GetSourceFragments().Count() > 0)
             {

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WXML.Model.Descriptors
 {
-	public class SourceFragmentRefDescription : SourceFragmentDescription
+	public class SourceFragmentRefDefinition : SourceFragmentDefinition
 	{
         public class Condition
         {
@@ -24,7 +24,7 @@ namespace WXML.Model.Descriptors
             outer
         }
 
-        public SourceFragmentDescription AnchorTable { get; set; }
+        public SourceFragmentDefinition AnchorTable { get; set; }
         public JoinTypeEnum JoinType { get; set; }
         
         public List<Condition> _c = new List<Condition>();
@@ -36,16 +36,16 @@ namespace WXML.Model.Descriptors
             }
         }
 
-		public SourceFragmentRefDescription(string id, string name) : base(id, name, null)
+		public SourceFragmentRefDefinition(string id, string name) : base(id, name, null)
 		{
 		}
 
-        public SourceFragmentRefDescription(string id, string name, string selector)
+        public SourceFragmentRefDefinition(string id, string name, string selector)
             : base(id, name, selector)
 		{
 		}
 
-        public SourceFragmentRefDescription(SourceFragmentDescription sf)
+        public SourceFragmentRefDefinition(SourceFragmentDefinition sf)
             : base(sf.Identifier, sf.Name, sf.Selector)
         {
         }

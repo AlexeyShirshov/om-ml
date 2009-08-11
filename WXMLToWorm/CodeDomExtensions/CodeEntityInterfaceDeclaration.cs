@@ -88,11 +88,11 @@ namespace WXMLToWorm.CodeDomExtensions
 			}
 		}
 
-		public EntityDescription Entity
+		public EntityDefinition Entity
 		{
 			get
 			{
-				EntityDescription entity = null;
+				EntityDefinition entity = null;
 				if (EntityTypeDeclaration != null)
 					entity = EntityTypeDeclaration.Entity;
 				return entity;

@@ -5,40 +5,40 @@ using System.Xml;
 
 namespace WXML.Model.Descriptors
 {
-    public class EntityDescription
+    public class EntityDefinition
     {
         #region Private Fields
         private readonly string _id;
         private readonly string _name;
         private readonly string _description;
-        private readonly List<SourceFragmentRefDescription> _sourceFragments;
-        private readonly List<PropertyDescription> _properties;
+        private readonly List<SourceFragmentRefDefinition> _sourceFragments;
+        private readonly List<PropertyDefinition> _properties;
         private readonly List<string> _suppressedProperties;
         private readonly WXMLModel _model;
-        private EntityDescription _baseEntity;
+        private EntityDefinition _baseEntity;
         private Dictionary<string, object> _items = new Dictionary<string,object>();
         private Dictionary<string, XmlDocument> _extensions = new Dictionary<string, XmlDocument>();
 
         #endregion Private Fields
 
-        public EntityDescription(string id, string name, string nameSpace, string description, WXMLModel ormObjectsDef)
+        public EntityDefinition(string id, string name, string nameSpace, string description, WXMLModel ormObjectsDef)
             : this(id, name, nameSpace, description, ormObjectsDef, null)
         {
         }
 
-        public EntityDescription(string id, string name, string nameSpace, string description, WXMLModel ormObjectsDef, EntityDescription baseEntity)
+        public EntityDefinition(string id, string name, string nameSpace, string description, WXMLModel ormObjectsDef, EntityDefinition baseEntity)
             : this(id, name, nameSpace, description, ormObjectsDef, baseEntity, EntityBehaviuor.ForcePartial)
         {
 
         }
 
-        public EntityDescription(string id, string name, string nameSpace, string description, WXMLModel ormObjectsDef, EntityDescription baseEntity, EntityBehaviuor behaviour)
+        public EntityDefinition(string id, string name, string nameSpace, string description, WXMLModel ormObjectsDef, EntityDefinition baseEntity, EntityBehaviuor behaviour)
         {
             _id = id;
             _name = name;
             _description = description;
-            _sourceFragments = new List<SourceFragmentRefDescription>();
-            _properties = new List<PropertyDescription>();
+            _sourceFragments = new List<SourceFragmentRefDefinition>();
+            _properties = new List<PropertyDefinition>();
             _suppressedProperties = new List<string>();
             _model = ormObjectsDef;
             RawNamespace = nameSpace;
@@ -71,22 +71,22 @@ namespace WXML.Model.Descriptors
             get { return _description; }
         }
 
-        public IEnumerable<SourceFragmentRefDescription> GetSourceFragments()
+        public IEnumerable<SourceFragmentRefDefinition> GetSourceFragments()
         {
             if (InheritsBaseTables && _baseEntity != null)
                 return _sourceFragments.Union(_baseEntity.GetSourceFragments(),
-                  new EqualityComparer<SourceFragmentRefDescription, string>(
+                  new EqualityComparer<SourceFragmentRefDefinition, string>(
                       (item) => item.Identifier)
                 );
             else
                 return _sourceFragments;
         }
 
-        public IEnumerable<PropertyDescription> GetCompleteProperties()
+        public IEnumerable<PropertyDefinition> GetCompleteProperties()
         {
             if (InheritsBaseTables && _baseEntity != null)
                 return Properties.Union(_baseEntity.Properties.Select(item=>item.Clone(this)),
-                    new EqualityComparer<PropertyDescription, string>((item) => item.PropertyAlias)
+                    new EqualityComparer<PropertyDefinition, string>((item) => item.PropertyAlias)
                 );
             else
                 return Properties; 
@@ -111,13 +111,13 @@ namespace WXML.Model.Descriptors
                 return _accessor(obj).GetHashCode();
             }
         }
-        public void AddSourceFragment(SourceFragmentRefDescription sf)
+        public void AddSourceFragment(SourceFragmentRefDefinition sf)
         {
             CheckSourceFragment(sf);
             _sourceFragments.Add(sf);
         }
 
-        private void CheckSourceFragment(SourceFragmentDescription sf)
+        private void CheckSourceFragment(SourceFragmentDefinition sf)
         {
             if (!Model.SourceFragments.Any(item => item.Identifier == sf.Identifier))
                 throw new ArgumentException(
@@ -128,7 +128,7 @@ namespace WXML.Model.Descriptors
                     string.Format("SourceFragment {0} already in SourceFragments collection", sf.Identifier));
         }
 
-        public void InsertSourceFragments(int pos, SourceFragmentRefDescription sf)
+        public void InsertSourceFragments(int pos, SourceFragmentRefDefinition sf)
         {
             CheckSourceFragment(sf);
             _sourceFragments.Insert(pos, sf);
@@ -139,12 +139,12 @@ namespace WXML.Model.Descriptors
             _sourceFragments.Clear();
         }
 
-        public IEnumerable<PropertyDescription> Properties
+        public IEnumerable<PropertyDefinition> Properties
         {
             get { return _properties; }
         }
 
-        public List<PropertyDescription> ActiveProperties
+        public List<PropertyDefinition> ActiveProperties
         {
             get { return _properties.FindAll(p=>!p.Disabled); }
         }
@@ -204,12 +204,12 @@ namespace WXML.Model.Descriptors
                 !propertyDescription.Disabled && propertyDescription.HasAttribute(Field2DbRelations.PK));
         }
 
-        public PropertyDescription GetProperty(string propertyId)
+        public PropertyDefinition GetProperty(string propertyId)
         {
             return GetProperty(propertyId, false);
         }
 
-        public bool IsAssignableFrom(EntityDescription ed)
+        public bool IsAssignableFrom(EntityDefinition ed)
         {
             if (ed == this)
                 return true;
@@ -218,21 +218,21 @@ namespace WXML.Model.Descriptors
             return IsAssignableFrom(ed.BaseEntity);
         }
 
-        public PropertyDescription GetProperty(string propertyName, bool throwNotFoundException)
+        public PropertyDefinition GetProperty(string propertyName, bool throwNotFoundException)
         {
-            PropertyDescription result = Properties.SingleOrDefault(match => match.Name == propertyName);
+            PropertyDefinition result = Properties.SingleOrDefault(match => match.Name == propertyName);
             if (result == null && throwNotFoundException)
                 throw new KeyNotFoundException(
                     string.Format("Property with name '{0}' in entity '{1}' not found.", propertyName, Identifier));
             return result;
         }
 
-        public SourceFragmentDescription GetSourceFragment(string sourceFragmentId)
+        public SourceFragmentDefinition GetSourceFragment(string sourceFragmentId)
         {
             return GetSourceFragment(sourceFragmentId, false);
         }
 
-        public SourceFragmentDescription GetSourceFragment(string tableId, bool throwNotFoundException)
+        public SourceFragmentDefinition GetSourceFragment(string tableId, bool throwNotFoundException)
         {
             //System.Text.RegularExpressions.Match nameMatch = Worm.CodeGen.Core.Model.GetNsNameMatch(tableId);
             //string localTableId = tableId;
@@ -248,12 +248,12 @@ namespace WXML.Model.Descriptors
             return table;
         }
 
-        public List<RelationDescription> GetRelations(bool withDisabled)
+        public List<RelationDefinition> GetRelations(bool withDisabled)
         {
-            List<RelationDescription> l = new List<RelationDescription>();
-            foreach (RelationDescriptionBase rel in _model.Relations)
+            List<RelationDefinition> l = new List<RelationDefinition>();
+            foreach (RelationDefinitionBase rel in _model.Relations)
             {
-                RelationDescription match = rel as RelationDescription;
+                RelationDefinition match = rel as RelationDefinition;
                 if (match != null && (match.IsEntityTakePart(this)) &&
                         (!match.Disabled || withDisabled))
                 {
@@ -278,7 +278,7 @@ namespace WXML.Model.Descriptors
         }
 
         private static void FillUniqueRelations<T>(IEnumerable<T> baseEntityRealation, IDictionary<string, int> relationUniques)
-            where T : RelationDescriptionBase
+            where T : RelationDefinitionBase
         {
             foreach (var relationDescription in baseEntityRealation)
             {
@@ -290,7 +290,7 @@ namespace WXML.Model.Descriptors
 	                                                });
                 if (relationDescription.UnderlyingEntity != null)
                 {
-                    EntityDescription superBaseEntity = relationDescription.UnderlyingEntity.SuperBaseEntity;
+                    EntityDefinition superBaseEntity = relationDescription.UnderlyingEntity.SuperBaseEntity;
                     key += "$" + (superBaseEntity == null ? relationDescription.UnderlyingEntity.Name : superBaseEntity.Name);
                 }
 
@@ -305,7 +305,7 @@ namespace WXML.Model.Descriptors
         public List<SelfRelationDescription> GetSelfRelations(bool withDisabled)
         {
             List<SelfRelationDescription> l = new List<SelfRelationDescription>();
-            foreach (RelationDescriptionBase rel in _model.Relations)
+            foreach (RelationDefinitionBase rel in _model.Relations)
             {
                 SelfRelationDescription match = rel as SelfRelationDescription;
                 if (match != null && (match.IsEntityTakePart(this)) &&
@@ -329,11 +329,11 @@ namespace WXML.Model.Descriptors
             return l;
         }
 
-        public List<RelationDescriptionBase> GetAllRelations(bool withDisabled)
+        public List<RelationDefinitionBase> GetAllRelations(bool withDisabled)
         {
-            List<RelationDescriptionBase> l = new List<RelationDescriptionBase>();
+            List<RelationDefinitionBase> l = new List<RelationDefinitionBase>();
 
-            foreach (RelationDescriptionBase relation in _model.Relations)
+            foreach (RelationDefinitionBase relation in _model.Relations)
             {
                 if (relation.IsEntityTakePart(this) && (!relation.Disabled || withDisabled))
                 {
@@ -351,17 +351,17 @@ namespace WXML.Model.Descriptors
 
         public string RawNamespace { get; private set; }
 
-        public EntityDescription BaseEntity
+        public EntityDefinition BaseEntity
         {
             get { return _baseEntity; }
             set { _baseEntity = value; }
         }
 
-        public EntityDescription SuperBaseEntity
+        public EntityDefinition SuperBaseEntity
         {
             get
             {
-                EntityDescription superbaseEntity;
+                EntityDefinition superbaseEntity;
                 for (superbaseEntity = this;
                      superbaseEntity.BaseEntity != null;
                      superbaseEntity = superbaseEntity.BaseEntity)
@@ -374,9 +374,9 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        private readonly List<EntityRelationDescription> _relations = new List<EntityRelationDescription>();
+        private readonly List<EntityRelationDefinition> _relations = new List<EntityRelationDefinition>();
 
-        public ICollection<EntityRelationDescription> EntityRelations
+        public ICollection<EntityRelationDefinition> EntityRelations
         {
             get
             {
@@ -384,7 +384,7 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public List<EntityRelationDescription> GetEntityRelations(bool withDisabled)
+        public List<EntityRelationDefinition> GetEntityRelations(bool withDisabled)
         {
             return _relations.FindAll(r => !r.Disabled);
         }
@@ -400,10 +400,10 @@ namespace WXML.Model.Descriptors
         //    }
         //}
 
-        private static EntityDescription MergeEntities(EntityDescription oldOne, EntityDescription newOne)
+        private static EntityDefinition MergeEntities(EntityDefinition oldOne, EntityDefinition newOne)
         {
-            EntityDescription resultOne =
-                new EntityDescription(newOne.Identifier, newOne.Name, newOne.Namespace, newOne.Description ?? (oldOne==null?null:oldOne.Description),
+            EntityDefinition resultOne =
+                new EntityDefinition(newOne.Identifier, newOne.Name, newOne.Namespace, newOne.Description ?? (oldOne==null?null:oldOne.Description),
                                       newOne.Model);
             if (oldOne != null)
             {
@@ -426,10 +426,10 @@ namespace WXML.Model.Descriptors
                 resultOne.AddSourceFragment(newTable);
             }
             // добавляем новые проперти
-            foreach (PropertyDescription newProperty in newOne.Properties)
+            foreach (PropertyDefinition newProperty in newOne.Properties)
             {
-                PropertyDescription prop = newProperty.Clone();
-                PropertyDescription newProperty1 = newProperty;
+                PropertyDefinition prop = newProperty.Clone();
+                PropertyDefinition newProperty1 = newProperty;
                 //if (newOne.SuppressedProperties.Exists(match => match.Name == newProperty1.Name))
                 //    prop.IsSuppressed = true;
                 resultOne.AddProperty(prop);
@@ -459,35 +459,35 @@ namespace WXML.Model.Descriptors
                 }
 
                 // добавляем старые проперти, если нужно
-                foreach (PropertyDescription oldProperty in oldOne.Properties)
+                foreach (PropertyDefinition oldProperty in oldOne.Properties)
                 {
-                    PropertyDescription newProperty = resultOne.GetProperty(oldProperty.Name);
+                    PropertyDefinition newProperty = resultOne.GetProperty(oldProperty.Name);
                     if (newProperty == null || newProperty.Disabled)
                     {
-                        SourceFragmentDescription newTable = null;
+                        SourceFragmentDefinition newTable = null;
                         if (oldProperty.SourceFragment != null)
                             newTable = resultOne.GetSourceFragment(oldProperty.SourceFragment.Identifier);
-                        TypeDescription newType = oldProperty.PropertyType;
-                        PropertyDescription oldProperty1 = oldProperty;
+                        TypeDefinition newType = oldProperty.PropertyType;
+                        PropertyDefinition oldProperty1 = oldProperty;
                         //bool isSuppressed =
                         //    resultOne.SuppressedProperties.Exists(match => match.Name == oldProperty1.Name);
                         bool isRefreshed = false;
                         const bool fromBase = true;
                         if (newType.IsEntityType)
                         {
-                            TypeDescription newType1 = newType;
-                            EntityDescription newEntity =
+                            TypeDefinition newType1 = newType;
+                            EntityDefinition newEntity =
                                 resultOne.Model.ActiveEntities.SingleOrDefault(
                                     matchEntity =>
                                     matchEntity.BaseEntity != null && matchEntity.BaseEntity.Identifier == newType1.Entity.Identifier);
                             if (newEntity != null)
                             {
-                                newType = new TypeDescription(newType.Identifier, newEntity);
+                                newType = new TypeDefinition(newType.Identifier, newEntity);
                                 isRefreshed = true;
                             }
                         }
                         resultOne.InsertProperty(resultOne.Properties.Count() - newOne.Properties.Count(),
-                            new PropertyDescription(resultOne, oldProperty.Name, oldProperty.PropertyAlias,
+                            new PropertyDefinition(resultOne, oldProperty.Name, oldProperty.PropertyAlias,
                                 oldProperty.Attributes,
                                 oldProperty.Description,
                                 newType,
@@ -499,11 +499,11 @@ namespace WXML.Model.Descriptors
             return resultOne;
         }
 
-        public EntityDescription CompleteEntity
+        public EntityDefinition CompleteEntity
         {
             get
             {
-                EntityDescription baseEntity = _baseEntity == null ? null : _baseEntity.CompleteEntity;
+                EntityDefinition baseEntity = _baseEntity == null ? null : _baseEntity.CompleteEntity;
                 return MergeEntities(baseEntity, this);
             }
         }
@@ -533,7 +533,7 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public PropertyDescription PkProperty
+        public PropertyDefinition PkProperty
         {
             get
             {
@@ -549,7 +549,7 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public IEnumerable<PropertyDescription> PkProperties
+        public IEnumerable<PropertyDefinition> PkProperties
         {
             get
             {
@@ -573,18 +573,18 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public Dictionary<string, List<PropertyDescription>> GetDefferedLoadProperties()
+        public Dictionary<string, List<PropertyDefinition>> GetDefferedLoadProperties()
         {
-            Dictionary<string, List<PropertyDescription>> groups = new Dictionary<string, List<PropertyDescription>>();
+            Dictionary<string, List<PropertyDefinition>> groups = new Dictionary<string, List<PropertyDefinition>>();
 
             foreach (var property in Properties)
             {
                 if (property.Disabled || string.IsNullOrEmpty(property.DefferedLoadGroup))
                     continue;
 
-                List<PropertyDescription> lst;
+                List<PropertyDefinition> lst;
                 if (!groups.TryGetValue(property.DefferedLoadGroup, out lst))
-                    groups[property.DefferedLoadGroup] = lst = new List<PropertyDescription>();
+                    groups[property.DefferedLoadGroup] = lst = new List<PropertyDefinition>();
 
                 lst.Add(property);
             }
@@ -614,11 +614,11 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public List<PropertyDescription> GetPropertiesFromBase()
+        public List<PropertyDefinition> GetPropertiesFromBase()
         {
             var be = BaseEntity;
 
-            List<PropertyDescription> baseProperties = new List<PropertyDescription>();
+            List<PropertyDefinition> baseProperties = new List<PropertyDefinition>();
 
             while (be != null)
             {
@@ -629,7 +629,7 @@ namespace WXML.Model.Descriptors
             return baseProperties;
         }
 
-        public void AddProperty(PropertyDescription pe)
+        public void AddProperty(PropertyDefinition pe)
         {
             pe.Entity = this;
             
@@ -638,7 +638,7 @@ namespace WXML.Model.Descriptors
             _properties.Add(pe);
         }
 
-        private void CheckProperty(PropertyDescription pe)
+        private void CheckProperty(PropertyDefinition pe)
         {
             if (Properties.Any(item=>item.PropertyAlias==pe.PropertyAlias))
                 throw new ArgumentException(string.Format("Property with alias {0} already exists", pe.PropertyAlias));
@@ -650,13 +650,13 @@ namespace WXML.Model.Descriptors
                 throw new ArgumentException(string.Format("Property {0} has SourceFragment {1} which is not found in Model.SourceFragments collection", pe.PropertyAlias, pe.SourceFragment.Identifier));
         }
 
-        public void RemoveProperty(PropertyDescription pe)
+        public void RemoveProperty(PropertyDefinition pe)
         {
             pe.Entity = null;
             _properties.Remove(pe);
         }
 
-        public void InsertProperty(int pos, PropertyDescription pe)
+        public void InsertProperty(int pos, PropertyDefinition pe)
         {
             pe.Entity = this;
             CheckProperty(pe);

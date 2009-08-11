@@ -14,7 +14,7 @@ namespace WXMLToWorm.CodeDomExtensions
 	{
         private WXMLCodeDomGeneratorSettings _settings;
 
-		public CodeEntityProperty(WXMLCodeDomGeneratorSettings settings, PropertyDescription property)
+		public CodeEntityProperty(WXMLCodeDomGeneratorSettings settings, PropertyDefinition property)
 		{
             _settings = settings;
             Type = property.PropertyType.ToCodeType(_settings);

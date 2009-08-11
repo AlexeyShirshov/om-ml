@@ -158,7 +158,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
                 CodeConditionStatement cond = null;
 
-                foreach (SourceFragmentRefDescription tbl in
+                foreach (SourceFragmentRefDefinition tbl in
                     m_entityClass.Entity.GetSourceFragments().Where(sf => sf.AnchorTable != null))
                 {
                     int tblIdx = m_entityClass.Entity.GetSourceFragments().IndexOf(tbl);
@@ -345,7 +345,7 @@ namespace WXMLToWorm.CodeDomExtensions
 			                                         	};
             condTrueStatements.AddRange(m_entityClass.Entity.Properties
                 .Where(action => !action.Disabled)
-                .SelectMany<PropertyDescription, CodeStatement>(action =>
+                .SelectMany<PropertyDefinition, CodeStatement>(action =>
                     {
                         List<CodeStatement> coll = new List<CodeStatement>();
                         coll.Add(new CodeAssignStatement(
@@ -403,7 +403,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 );
         }
 
-        private CodeObjectCreateExpression GetMapField2ColumObjectCreationExpression(PropertyDescription action)
+        private CodeObjectCreateExpression GetMapField2ColumObjectCreationExpression(PropertyDefinition action)
         {
             CodeObjectCreateExpression expression = new CodeObjectCreateExpression(
                 new CodeTypeReference(
@@ -432,12 +432,14 @@ namespace WXMLToWorm.CodeDomExtensions
             }
 
             //if (action.PropertyAlias == "ID")
-            if (action.Attributes != null && action.Attributes.Length > 0)
-                expression.Parameters.Add(GetPropAttributesEnumValues(action.Attributes));
-            else
-                expression.Parameters.Add(
-                    new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(Worm.Entities.Meta.Field2DbRelations)),
-                                                     Worm.Entities.Meta.Field2DbRelations.None.ToString()));
+            //if (action.Attributes != null && action.Attributes.Length > 0)
+            //    expression.Parameters.Add(GetPropAttributesEnumValues(action.Attributes));
+            //else
+            //    expression.Parameters.Add(
+            //        new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(Worm.Entities.Meta.Field2DbRelations)),
+            //                                         Worm.Entities.Meta.Field2DbRelations.None.ToString()));
+            expression.Parameters.Add(GetPropAttributesEnumValues(action.Attributes));
+
             if (!string.IsNullOrEmpty(action.DbTypeName))
             {
                 expression.Parameters.Add(new CodePrimitiveExpression(action.DbTypeName));
@@ -449,13 +451,18 @@ namespace WXMLToWorm.CodeDomExtensions
             return expression;
         }
 
-        private static CodeExpression GetPropAttributesEnumValues(IEnumerable<string> attrs)
+        //private static CodeExpression GetPropAttributesEnumValues(IEnumerable<string> attrs)
+        //{
+        //    var attrsList = new List<string>(attrs);
+        //    CodeExpression first = new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(Worm.Entities.Meta.Field2DbRelations)), attrsList.Count == 0 ? Worm.Entities.Meta.Field2DbRelations.None.ToString() : attrsList[0]);
+        //    if (attrsList.Count > 1)
+        //        return new CodeBinaryOperatorExpression(first, CodeBinaryOperatorType.BitwiseOr, GetPropAttributesEnumValues(attrsList.GetRange(1, attrsList.Count - 1).ToArray()));
+        //    return first;
+        //}
+
+        private static CodeExpression GetPropAttributesEnumValues(WXML.Model.Field2DbRelations attrs)
         {
-            var attrsList = new List<string>(attrs);
-            CodeExpression first = new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(Worm.Entities.Meta.Field2DbRelations)), attrsList.Count == 0 ? Worm.Entities.Meta.Field2DbRelations.None.ToString() : attrsList[0]);
-            if (attrsList.Count > 1)
-                return new CodeBinaryOperatorExpression(first, CodeBinaryOperatorType.BitwiseOr, GetPropAttributesEnumValues(attrsList.GetRange(1, attrsList.Count - 1).ToArray()));
-            return first;
+            return CodeDom.GetExpression(()=>CodeDom.Field(new CodeTypeReference(typeof(Worm.Entities.Meta.Field2DbRelations)), attrs.ToString()));
         }
 
         private void OnPopulateTableMember()
@@ -526,7 +533,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
             CodeMemberMethod method;
             // список релейшенов относящихся к данной сущности
-            List<RelationDescription> usedM2MRelation = m_entityClass.Entity.GetRelations(false);
+            List<RelationDefinition> usedM2MRelation = m_entityClass.Entity.GetRelations(false);
 
             List<SelfRelationDescription> usedM2MSelfRelation;
             usedM2MSelfRelation = m_entityClass.Entity.GetSelfRelations(false);
@@ -579,7 +586,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 CodeArrayCreateExpression m2mArrayCreationExpression = new CodeArrayCreateExpression(
                     new CodeTypeReference(typeof(M2MRelationDesc[]))
                     );
-                foreach (RelationDescription relationDescription in usedM2MRelation)
+                foreach (RelationDefinition relationDescription in usedM2MRelation)
                 {
                     m2mArrayCreationExpression.Initializers.AddRange(
                         GetM2MRelationCreationExpressions(relationDescription, m_entityClass.Entity));
@@ -684,11 +691,11 @@ namespace WXMLToWorm.CodeDomExtensions
         }
 
 
-        private CodeExpression[] GetM2MRelationCreationExpressions(RelationDescription relationDescription, EntityDescription entity)
+        private CodeExpression[] GetM2MRelationCreationExpressions(RelationDefinition relationDescription, EntityDefinition entity)
         {
             if (relationDescription.Left.Entity != relationDescription.Right.Entity)
             {
-                EntityDescription relatedEntity = entity == relationDescription.Left.Entity
+                EntityDefinition relatedEntity = entity == relationDescription.Left.Entity
                     ? relationDescription.Right.Entity : relationDescription.Left.Entity;
                 string fieldName = entity == relationDescription.Left.Entity ? relationDescription.Right.FieldName : relationDescription.Left.FieldName;
                 bool cascadeDelete = entity == relationDescription.Left.Entity ? relationDescription.Right.CascadeDelete : relationDescription.Left.CascadeDelete;
@@ -698,7 +705,7 @@ namespace WXMLToWorm.CodeDomExtensions
             throw new ArgumentException("To realize m2m relation on self use SelfRelation instead.");
         }
 
-        private CodeExpression[] GetM2MRelationCreationExpressions(SelfRelationDescription relationDescription, EntityDescription entity)
+        private CodeExpression[] GetM2MRelationCreationExpressions(SelfRelationDescription relationDescription, EntityDefinition entity)
         {
 
             return new CodeExpression[]
@@ -712,7 +719,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
         }
 
-        private CodeExpression GetM2MRelationCreationExpression(EntityDescription relatedEntity, SourceFragmentDescription relationTable, EntityDescription underlyingEntity, string fieldName, bool cascadeDelete, bool? direct, IList<RelationConstantDescriptor> relationConstants)
+        private CodeExpression GetM2MRelationCreationExpression(EntityDefinition relatedEntity, SourceFragmentDefinition relationTable, EntityDefinition underlyingEntity, string fieldName, bool cascadeDelete, bool? direct, IList<RelationConstantDescriptor> relationConstants)
         {
             //if (underlyingEntity != null && direct.HasValue)
             //    throw new NotImplementedException("M2M relation on self cannot have underlying entity.");

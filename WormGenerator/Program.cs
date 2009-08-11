@@ -263,7 +263,7 @@ namespace WormCodeGenerator
             List<string> errorList = new List<string>();
             int totalEntities = 0;
             int totalFiles = 0;
-            foreach (EntityDescription entity in ormObjectsDef.Entities)
+            foreach (EntityDefinition entity in ormObjectsDef.Entities)
             {
                 //bool skip = false;
                 //if (processEntities.Length != 0)

@@ -15,7 +15,7 @@ namespace WXMLToWorm.CodeDomExtensions
     /// </summary>
     public class CodeEntityTypeDeclaration : CodeTypeDeclaration
     {
-        private EntityDescription m_entity;
+        private EntityDefinition m_entity;
         private CodeEntityInterfaceDeclaration m_entityInterface;
         private readonly CodeTypeReference m_typeReference;
         private CodeSchemaDefTypeDeclaration m_schema;
@@ -477,7 +477,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
         }
 
-        public CodeEntityTypeDeclaration(WXMLCodeDomGeneratorSettings settings, EntityDescription entity, bool useType)
+        public CodeEntityTypeDeclaration(WXMLCodeDomGeneratorSettings settings, EntityDefinition entity, bool useType)
             : this(settings,useType)
         {
             Entity = entity;
@@ -515,7 +515,7 @@ namespace WXMLToWorm.CodeDomExtensions
             }
         }
 
-        public EntityDescription Entity
+        public EntityDefinition Entity
         {
             get { return m_entity; }
             set

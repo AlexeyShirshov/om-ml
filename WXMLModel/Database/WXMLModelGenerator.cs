@@ -183,7 +183,8 @@ namespace WXML.DatabaseConnector
                                 }
                                 catch (ArgumentException)
                                 {
-                                    string[] attr;
+                                    //string[] attr;
+                                    Field2DbRelations attr;
                                     if (IsPrimaryKey(c, out attr) && columns[c].IsFK && c.PKCount == 1)
                                     {
                                         if (rb == relation1to1.Unify)
@@ -268,7 +269,7 @@ namespace WXML.DatabaseConnector
                 //File.Create(file);
             }
 
-            List<Pair<DatabaseColumn, PropertyDescription>> notFound = new List<Pair<DatabaseColumn, PropertyDescription>>();
+            List<Pair<DatabaseColumn, PropertyDefinition>> notFound = new List<Pair<DatabaseColumn, PropertyDefinition>>();
 
             foreach (DatabaseColumn c in columns.Keys)
             {
@@ -277,9 +278,9 @@ namespace WXML.DatabaseConnector
                     continue;
 
                 bool ent, col;
-                EntityDescription e = GetEntity(odef, c.Schema, c.Table, out ent, escape);
-                Pair<DatabaseColumn, PropertyDescription> p = null;
-                PropertyDescription pd = AppendColumn(columns, c, e, out col, escape, (clm)=>p = new Pair<DatabaseColumn,PropertyDescription>(clm, null), defferedCols, rb);
+                EntityDefinition e = GetEntity(odef, c.Schema, c.Table, out ent, escape);
+                Pair<DatabaseColumn, PropertyDefinition> p = null;
+                PropertyDefinition pd = AppendColumn(columns, c, e, out col, escape, (clm)=>p = new Pair<DatabaseColumn,PropertyDefinition>(clm, null), defferedCols, rb);
                 if (p != null)
                 {
                     p.Second = pd;
@@ -301,16 +302,16 @@ namespace WXML.DatabaseConnector
                 }
             }
 
-            Dictionary<string, EntityDescription> dic = Process1to1Relations(columns, defferedCols, odef, escape, notFound, rb);
+            Dictionary<string, EntityDefinition> dic = Process1to1Relations(columns, defferedCols, odef, escape, notFound, rb);
 
             ProcessM2M(columns, odef, escape, dic);
 
             if (dropColumns)
             {
-                foreach (EntityDescription ed in odef.Entities)
+                foreach (EntityDefinition ed in odef.Entities)
                 {
-                    List<PropertyDescription> col2remove = new List<PropertyDescription>();
-                    foreach (PropertyDescription pd in ed.Properties)
+                    List<PropertyDefinition> col2remove = new List<PropertyDefinition>();
+                    foreach (PropertyDefinition pd in ed.Properties)
                     {
                         string[] ss = ed.GetSourceFragments().First().Name.Split('.');
                         DatabaseColumn c = new DatabaseColumn(ss[0].Trim(new char[] { '[', ']' }), ss[1].Trim(new char[] { '[', ']' }),
@@ -320,7 +321,7 @@ namespace WXML.DatabaseConnector
                             col2remove.Add(pd);
                         }
                     }
-                    foreach (PropertyDescription pd in col2remove)
+                    foreach (PropertyDefinition pd in col2remove)
                     {
                         ed.RemoveProperty(pd);
                         Console.WriteLine("Remove: {0}.{1}", ed.Name, pd.Name);
@@ -328,22 +329,22 @@ namespace WXML.DatabaseConnector
                 }
             }
 
-            foreach (EntityDescription e in odef.Entities)
+            foreach (EntityDefinition e in odef.Entities)
             {
                 //if (e.HasSinglePk)
                 {
-                    foreach (EntityDescription oe in
+                    foreach (EntityDefinition oe in
                         from k in odef.ActiveEntities
                         where k != e &&
                             e.EntityRelations.Count(er => !er.Disabled && er.Entity.Identifier == k.Identifier) == 0
                         select k)
                     {
-                        List<PropertyDescription> entityProps = oe.ActiveProperties
+                        List<PropertyDefinition> entityProps = oe.ActiveProperties
                             .FindAll(l => l.PropertyType.IsEntityType && l.PropertyType.Entity.Identifier == e.Identifier);
                         int idx = 1;
-                        foreach (PropertyDescription pd in entityProps)
+                        foreach (PropertyDefinition pd in entityProps)
                         {
-                            int cnt = odef.ActiveRelations.OfType<RelationDescription>().Count(r =>
+                            int cnt = odef.ActiveRelations.OfType<RelationDefinition>().Count(r =>
                                 (r.Left.Entity.Identifier == oe.Identifier && r.Right.Entity.Identifier == e.Identifier) ||
                                 (r.Left.Entity.Identifier == e.Identifier && r.Right.Entity.Identifier == oe.Identifier));
 
@@ -363,7 +364,7 @@ namespace WXML.DatabaseConnector
                                 //}
                             }
 
-                            e.EntityRelations.Add(new EntityRelationDescription()
+                            e.EntityRelations.Add(new EntityRelationDefinition()
                             {
                                 Entity = oe,
                                 SourceEntity = e,
@@ -384,7 +385,7 @@ namespace WXML.DatabaseConnector
         }
 
         protected void ProcessM2M(Dictionary<DatabaseColumn, DatabaseColumn> columns, WXMLModel odef, bool escape,
-            Dictionary<string, EntityDescription> dic)
+            Dictionary<string, EntityDefinition> dic)
         {
             List<Pair<string>> tables = new List<Pair<string>>();
 
@@ -413,7 +414,7 @@ namespace WXML.DatabaseConnector
             foreach (Pair<string> p in tables)
             {
                 string underlying = GetEntityName(p.First, p.Second);
-                EntityDescription ued = odef.GetEntity(underlying);
+                EntityDefinition ued = odef.GetEntity(underlying);
                 using (DbConnection conn = GetDBConn(_server, _m, _db, _i, _user, _psw))
                 {
                     using (DbCommand cmd = conn.CreateCommand())
@@ -465,7 +466,7 @@ namespace WXML.DatabaseConnector
                                         reader.GetString(reader.GetOrdinal("column_name")), deleteCascade);
                                 if (c)
                                 {
-                                    EntityDescription e = lt.Entity;
+                                    EntityDefinition e = lt.Entity;
                                     odef.RemoveEntity(e);
                                     lt.Entity = dic[e.Identifier];
                                 }
@@ -532,15 +533,15 @@ namespace WXML.DatabaseConnector
                         }
                         else
                         {
-                            RelationDescription newRel = new RelationDescription(targets[0], targets[1], GetSourceFragment(odef, p.First, p.Second, escape), ued);
-                            if (!odef.Relations.OfType<RelationDescription>().Any(m => m.Equals(newRel)))
+                            RelationDefinition newRel = new RelationDefinition(targets[0], targets[1], GetSourceFragment(odef, p.First, p.Second, escape), ued);
+                            if (!odef.Relations.OfType<RelationDefinition>().Any(m => m.Equals(newRel)))
                             {
                                 if (odef.HasSimilarRelationM2M(newRel))
                                 {
                                     if (string.IsNullOrEmpty(newRel.Left.AccessorName) ||
                                         string.IsNullOrEmpty(newRel.Right.AccessorName))
                                     {
-                                        var lst = from r in odef.Relations.OfType<RelationDescription>()
+                                        var lst = from r in odef.Relations.OfType<RelationDefinition>()
                                                   where
                                                     !ReferenceEquals(r.Left, newRel.Left) &&
                                                     !ReferenceEquals(r.Right, newRel.Right) &&
@@ -554,7 +555,7 @@ namespace WXML.DatabaseConnector
 
                                         if (lst.Count() > 0)
                                         {
-                                            foreach (RelationDescription r in lst)
+                                            foreach (RelationDefinition r in lst)
                                             {
                                                 if (string.IsNullOrEmpty(r.Left.AccessorName))
                                                     r.Left.AccessorName = r.SourceFragment.Name.TrimEnd(']').TrimStart('[') + r.Right.Entity.Name;
@@ -582,36 +583,36 @@ namespace WXML.DatabaseConnector
                 NormalizeRelationAccessors(odef, rdb, rdb.Left, rdb.Entity);
             }
 
-            foreach (RelationDescription rdb in odef.ActiveRelations.OfType<RelationDescription>())
+            foreach (RelationDefinition rdb in odef.ActiveRelations.OfType<RelationDefinition>())
             {
                 NormalizeRelationAccessors(odef, rdb, rdb.Right, rdb.Right.Entity);
                 NormalizeRelationAccessors(odef, rdb, rdb.Left, rdb.Left.Entity);
             }
         }
 
-        private static void NormalizeRelationAccessors(WXMLModel odef, RelationDescriptionBase rdb,
-            SelfRelationTarget rdbRight, EntityDescription rdbEntity)
+        private static void NormalizeRelationAccessors(WXMLModel odef, RelationDefinitionBase rdb,
+            SelfRelationTarget rdbRight, EntityDefinition rdbEntity)
         {
             var q1 =
                 from r in odef.ActiveRelations.OfType<SelfRelationDescription>()
                 where r != rdb && r.Entity.Identifier == rdbEntity.Identifier &&
                     (r.Left.AccessorName == rdbRight.AccessorName || r.Right.AccessorName == rdbRight.AccessorName)
-                select r as RelationDescriptionBase;
+                select r as RelationDefinitionBase;
 
             var q2 =
-                from r in odef.ActiveRelations.OfType<RelationDescription>()
+                from r in odef.ActiveRelations.OfType<RelationDefinition>()
                 where r != rdb &&
                     (r.Right.Entity.Identifier == rdbEntity.Identifier &&
                         r.Left.AccessorName == rdbRight.AccessorName) ||
                     (r.Left.Entity.Identifier == rdbEntity.Identifier &&
                         r.Right.AccessorName == rdbRight.AccessorName)
-                select r as RelationDescriptionBase;
+                select r as RelationDefinitionBase;
 
             int i = 0;
-            foreach (RelationDescriptionBase r in q1.Union(q2))
+            foreach (RelationDefinitionBase r in q1.Union(q2))
             {
                 i++;
-                RelationDescription rd = r as RelationDescription;
+                RelationDefinition rd = r as RelationDefinition;
                 SelfRelationDescription srd = r as SelfRelationDescription;
 
                 if (srd != null)
@@ -631,17 +632,17 @@ namespace WXML.DatabaseConnector
             }
         }
 
-        protected PropertyDescription AppendColumn(Dictionary<DatabaseColumn, DatabaseColumn> columns, DatabaseColumn c,
-            EntityDescription e, out bool created, bool escape, Action<DatabaseColumn> notFound, 
+        protected PropertyDefinition AppendColumn(Dictionary<DatabaseColumn, DatabaseColumn> columns, DatabaseColumn c,
+            EntityDefinition e, out bool created, bool escape, Action<DatabaseColumn> notFound, 
             List<Pair<string>> defferedCols, relation1to1 rb)
         {
             WXMLModel odef = e.Model;
             created = false;
-            PropertyDescription pe = null;
+            PropertyDefinition pe = null;
 
             try
             {
-                pe = e.Properties.SingleOrDefault((PropertyDescription pd) =>
+                pe = e.Properties.SingleOrDefault((PropertyDefinition pd) =>
                 {
                     if (pd.FieldName == c.ColumnName || pd.FieldName.TrimEnd(']').TrimStart('[') == c.ColumnName)
                         return true;
@@ -651,7 +652,7 @@ namespace WXML.DatabaseConnector
             }
             catch (InvalidOperationException)
             {
-                pe = e.Properties.SingleOrDefault((PropertyDescription pd) =>
+                pe = e.Properties.SingleOrDefault((PropertyDefinition pd) =>
                 {
                     if ((pd.FieldName == c.ColumnName || pd.FieldName.TrimEnd(']').TrimStart('[') == c.ColumnName)
                         && !pd.PropertyType.IsEntityType)
@@ -664,13 +665,14 @@ namespace WXML.DatabaseConnector
 
             if (pe == null)
             {
-                string[] attrs = null;
+                //string[] attrs = null;
+                Field2DbRelations attrs;
                 bool pk = IsPrimaryKey(c, out attrs);
                 string name = Trim(Capitalize(c.ColumnName));
                 //if (pk && c.PKCount == 1)
                 //    name = "ID";
 
-                TypeDescription pt = null;
+                TypeDefinition pt = null;
                 if (pk)
                 {
                     pt = GetClrType(c.DbType, c.IsNullable, odef);
@@ -680,9 +682,9 @@ namespace WXML.DatabaseConnector
                     pt = GetType(c, columns, odef, escape, notFound, defferedCols);
                 }
 
-                SourceFragmentDescription sfd = GetSourceFragment(odef, c.Schema, c.Table, escape);
+                SourceFragmentDefinition sfd = GetSourceFragment(odef, c.Schema, c.Table, escape);
 
-                pe = new PropertyDescription(name,
+                pe = new PropertyDefinition(name,
                      null, attrs, null, pt, c.ColumnName,
                      sfd, AccessLevel.Private, AccessLevel.Public)
                      {
@@ -703,13 +705,13 @@ namespace WXML.DatabaseConnector
                     }
                     else if (!pt2.Entity.IsAssignableFrom(e))
                     {
-                        attrs = new string[] { "ReadOnly", "SyncInsert" };
+                        attrs = Field2DbRelations.ReadOnly | Field2DbRelations.SyncInsert; //new string[] { "ReadOnly", "SyncInsert" };
                         string propName = pt2.Entity.Name;
                         int cnt = e.Properties.Count(p => !p.Disabled && p.Name == propName);
                         if (cnt > 0)
                             propName = propName + cnt.ToString();
 
-                        pe = new PropertyDescription(propName,
+                        pe = new PropertyDefinition(propName,
                             null, attrs, null, pt2, c.ColumnName,
                             sfd, AccessLevel.Private, AccessLevel.Public)
                         {
@@ -723,10 +725,11 @@ namespace WXML.DatabaseConnector
             }
             else
             {
-                string[] attrs = null;
+                //string[] attrs = null;
+                Field2DbRelations attrs;
                 bool pk = IsPrimaryKey(c, out attrs);
 
-                pe.Attributes = Merge(pe.Attributes, attrs);
+                pe.Attributes = attrs; //Merge(pe.Attributes, attrs);
 
                 if (!pe.PropertyType.IsUserType && !pk)
                     pe.PropertyType = GetType(c, columns, odef, escape, null, defferedCols);
@@ -738,24 +741,24 @@ namespace WXML.DatabaseConnector
             return pe;
         }
 
-        private static string[] Merge(string[] oldstrings, string[] newstrings)
-        {
-            List<string> l = new List<string>(oldstrings);
-            foreach (string s in newstrings)
-            {
-                if (s == "PK")
-                    l.Remove("PrimaryKey");
-                if (s == "PrimaryKey")
-                    l.Remove("PK");
+        //private static string[] Merge(string[] oldstrings, string[] newstrings)
+        //{
+        //    List<string> l = new List<string>(oldstrings);
+        //    foreach (string s in newstrings)
+        //    {
+        //        if (s == "PK")
+        //            l.Remove("PrimaryKey");
+        //        if (s == "PrimaryKey")
+        //            l.Remove("PK");
 
-                if (!l.Contains(s))
-                {
-                    l.Add(s);
-                }
+        //        if (!l.Contains(s))
+        //        {
+        //            l.Add(s);
+        //        }
 
-            }
-            return l.ToArray();
-        }
+        //    }
+        //    return l.ToArray();
+        //}
 
         private string Trim(string columnName)
         {
@@ -785,18 +788,18 @@ namespace WXML.DatabaseConnector
                 return columnName;
         }
 
-        protected Dictionary<string, EntityDescription> Process1to1Relations(Dictionary<DatabaseColumn, DatabaseColumn> columns,
+        protected Dictionary<string, EntityDefinition> Process1to1Relations(Dictionary<DatabaseColumn, DatabaseColumn> columns,
             List<Pair<string>> defferedCols, WXMLModel odef, bool escape,
-            List<Pair<DatabaseColumn, PropertyDescription>> notFound, relation1to1 rb)
+            List<Pair<DatabaseColumn, PropertyDefinition>> notFound, relation1to1 rb)
         {
             List<Pair<string>> defferedCols2 = new List<Pair<string>>();
-            Dictionary<string, EntityDescription> dic = new Dictionary<string, EntityDescription>();
+            Dictionary<string, EntityDefinition> dic = new Dictionary<string, EntityDefinition>();
             do
             {
                 foreach (Pair<string> p in defferedCols)
                 {
                     string columnName = null;
-                    TypeDescription td = GetRelatedType(p.Second, columns, odef, escape, defferedCols, ref columnName);
+                    TypeDefinition td = GetRelatedType(p.Second, columns, odef, escape, defferedCols, ref columnName);
                     if (td == null)
                     {
                         defferedCols2.Add(p);
@@ -805,21 +808,21 @@ namespace WXML.DatabaseConnector
 
                     if (td.Entity != null)
                     {
-                        EntityDescription ed = td.Entity;
+                        EntityDefinition ed = td.Entity;
                         string[] ss = p.First.Split('.');
-                        PropertyDescription pd = AppendColumns(columns, ed, ss[0], ss[1], p.Second, escape, notFound, defferedCols, rb);
-                        var t = new SourceFragmentRefDescription(GetSourceFragment(odef, ss[0], ss[1], escape));
+                        PropertyDefinition pd = AppendColumns(columns, ed, ss[0], ss[1], p.Second, escape, notFound, defferedCols, rb);
+                        var t = new SourceFragmentRefDefinition(GetSourceFragment(odef, ss[0], ss[1], escape));
                         dic[GetEntityName(t.Selector, t.Name)] = ed;
                         if (!ed.GetSourceFragments().Contains(t))
                         {
                             ed.AddSourceFragment(t);
                             t.AnchorTable = ed.GetSourceFragments().First();
-                            t.JoinType = SourceFragmentRefDescription.JoinTypeEnum.outer;
-                            t.Conditions.Add(new SourceFragmentRefDescription.Condition(
+                            t.JoinType = SourceFragmentRefDefinition.JoinTypeEnum.outer;
+                            t.Conditions.Add(new SourceFragmentRefDefinition.Condition(
                                 ed.PkProperty.FieldName, columnName));
                         }
                         DatabaseColumn c = new DatabaseColumn(t.Selector, t.Name, columnName, false, null, false, 1);
-                        foreach (Pair<DatabaseColumn, PropertyDescription> p2 in notFound.FindAll((ff) => ff.First.Equals(c)))
+                        foreach (Pair<DatabaseColumn, PropertyDefinition> p2 in notFound.FindAll((ff) => ff.First.Equals(c)))
                         {
                             p2.Second.PropertyType = td;
                         }
@@ -831,7 +834,7 @@ namespace WXML.DatabaseConnector
             return dic;
         }
 
-        private static SourceFragmentDescription GetSourceFragment(WXMLModel odef, string schema, string table, bool escape)
+        private static SourceFragmentDefinition GetSourceFragment(WXMLModel odef, string schema, string table, bool escape)
         {
             string id = "tbl" + schema + table;
             var t = odef.GetSourceFragment(id);
@@ -845,14 +848,14 @@ namespace WXML.DatabaseConnector
                     if (!(schema.StartsWith("[") || schema.EndsWith("]")))
                         schema = "[" + schema + "]";
                 }
-                t = new SourceFragmentDescription(id, table, schema);
+                t = new SourceFragmentDefinition(id, table, schema);
                 odef.SourceFragments.Add(t);
             }
             return t;
         }
 
-        protected PropertyDescription AppendColumns(Dictionary<DatabaseColumn, DatabaseColumn> columns, EntityDescription ed,
-            string schema, string table, string constraint, bool escape, List<Pair<DatabaseColumn,PropertyDescription>> notFound,
+        protected PropertyDefinition AppendColumns(Dictionary<DatabaseColumn, DatabaseColumn> columns, EntityDefinition ed,
+            string schema, string table, string constraint, bool escape, List<Pair<DatabaseColumn,PropertyDefinition>> notFound,
             List<Pair<string>> defferedCols, relation1to1 rb)
         {
             using (DbConnection conn = GetDBConn(_server, _m, _db, _i, _user, _psw))
@@ -906,8 +909,8 @@ namespace WXML.DatabaseConnector
                             {
                                 columns.Add(c, c);
                                 bool cr;
-                                Pair<DatabaseColumn, PropertyDescription> pfd = null;
-                                PropertyDescription pd = AppendColumn(columns, c, ed, out cr, escape, (clm) => pfd = new Pair<DatabaseColumn, PropertyDescription>(clm, null), defferedCols, rb);
+                                Pair<DatabaseColumn, PropertyDefinition> pfd = null;
+                                PropertyDefinition pd = AppendColumn(columns, c, ed, out cr, escape, (clm) => pfd = new Pair<DatabaseColumn, PropertyDefinition>(clm, null), defferedCols, rb);
                                 if (pfd != null)
                                 {
                                     pfd.Second = pd;
@@ -925,10 +928,10 @@ namespace WXML.DatabaseConnector
             return null;
         }
 
-        protected TypeDescription GetType(DatabaseColumn c, IDictionary<DatabaseColumn, DatabaseColumn> columns,
+        protected TypeDefinition GetType(DatabaseColumn c, IDictionary<DatabaseColumn, DatabaseColumn> columns,
             WXMLModel odef, bool escape, Action<DatabaseColumn> notFound, List<Pair<string>> defferedCols)
         {
-            TypeDescription t = null;
+            TypeDefinition t = null;
 
             if (c.IsFK)
             {
@@ -941,7 +944,7 @@ namespace WXML.DatabaseConnector
             return t;
         }
 
-        protected TypeDescription GetRelatedType(DatabaseColumn col, IDictionary<DatabaseColumn, DatabaseColumn> columns,
+        protected TypeDefinition GetRelatedType(DatabaseColumn col, IDictionary<DatabaseColumn, DatabaseColumn> columns,
             WXMLModel odef, bool escape, Action<DatabaseColumn> notFound, List<Pair<string>> defferedCols)
         {
             using (DbConnection conn = GetDBConn(_server, _m, _db, _i, _user, _psw))
@@ -970,12 +973,12 @@ namespace WXML.DatabaseConnector
                             if (columns.ContainsKey(c))
                             {
                                 string id = "t" + Capitalize(c.Table);
-                                TypeDescription t = odef.GetType(id, false);
+                                TypeDefinition t = odef.GetType(id, false);
                                 if (t == null)
                                 {
                                     bool cr;
-                                    EntityDescription e = GetEntity(odef, c.Schema, c.Table, out cr, escape);
-                                    t = new TypeDescription(id, e);
+                                    EntityDefinition e = GetEntity(odef, c.Schema, c.Table, out cr, escape);
+                                    t = new TypeDefinition(id, e);
                                     odef.Types.Add(t);
                                     if (cr)
                                     {
@@ -1015,7 +1018,7 @@ namespace WXML.DatabaseConnector
             return null;
         }
 
-        protected TypeDescription GetRelatedType(string constraint, IDictionary<DatabaseColumn, DatabaseColumn> columns,
+        protected TypeDefinition GetRelatedType(string constraint, IDictionary<DatabaseColumn, DatabaseColumn> columns,
             WXMLModel odef, bool escape, List<Pair<string>> defferedCols, ref string clm)
         {
             using (DbConnection conn = GetDBConn(_server, _m, _db, _i, _user, _psw))
@@ -1047,11 +1050,11 @@ namespace WXML.DatabaseConnector
                             if (columns.ContainsKey(c))
                             {
                                 string id = "t" + Capitalize(c.Table);
-                                TypeDescription t = odef.GetType(id, false);
+                                TypeDefinition t = odef.GetType(id, false);
                                 if (t == null)
                                 {
                                     bool cr;
-                                    t = new TypeDescription(id, GetEntity(odef, c.Schema, c.Table, out cr, escape));
+                                    t = new TypeDefinition(id, GetEntity(odef, c.Schema, c.Table, out cr, escape));
                                     if (cr)
                                     {
                                         Pair<string> p = defferedCols.Find((pp) => pp.First == c.FullTableName);
@@ -1114,16 +1117,16 @@ namespace WXML.DatabaseConnector
             }
         }
 
-        private static EntityDescription GetEntity(WXMLModel odef, string schema,
+        private static EntityDefinition GetEntity(WXMLModel odef, string schema,
             string tableName, out bool created, bool escape)
         {
             created = false;
             string ename = GetEntityName(schema, tableName);
-            EntityDescription e = odef.GetEntity(ename);
+            EntityDefinition e = odef.GetEntity(ename);
             if (e == null)
             {
-                e = new EntityDescription(ename, Capitalize(tableName), "", null, odef);
-                var t = new SourceFragmentRefDescription(GetSourceFragment(odef, schema, tableName, escape));
+                e = new EntityDefinition(ename, Capitalize(tableName), "", null, odef);
+                var t = new SourceFragmentRefDefinition(GetSourceFragment(odef, schema, tableName, escape));
                 e.AddSourceFragment(t);
                 odef.AddEntity(e);
                 created = true;
@@ -1141,22 +1144,23 @@ namespace WXML.DatabaseConnector
             return s.Substring(0, 1).ToUpper() + s.Substring(1);
         }
 
-        private static bool IsPrimaryKey(DatabaseColumn c, out string[] attrs)
+        private static bool IsPrimaryKey(DatabaseColumn c, out Field2DbRelations attrs)
         {
-            attrs = new string[] { };
+            //attrs = new string[] { };
+            attrs = Field2DbRelations.None;
             if (c.IsPK)
             {
                 if (!c.IsAutoIncrement)
-                    attrs = new string[] { "PK" };
+                    attrs = Field2DbRelations.PK; //new string[] { "PK" };
                 else
-                    attrs = new string[] { "PrimaryKey" };
+                    attrs = Field2DbRelations.PrimaryKey; //new string[] { "PrimaryKey" };
                 return true;
             }
             return false;
         }
-        private static TypeDescription GetClrType(string dbType, bool nullable, WXMLModel odef)
+        private static TypeDefinition GetClrType(string dbType, bool nullable, WXMLModel odef)
         {
-            TypeDescription t = null;
+            TypeDefinition t = null;
             string id = null;
             string type = null;
 
@@ -1247,7 +1251,7 @@ namespace WXML.DatabaseConnector
                 if (nullable && tp.IsValueType)
                     type = String.Format("System.Nullable`1[{0}]", type);
 
-                t = new TypeDescription(id, type);
+                t = new TypeDefinition(id, type);
                 odef.Types.Add(t);
             }
             return t;

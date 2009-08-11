@@ -19,41 +19,46 @@ namespace WXML.Model.Descriptors
         }
     }
 
-    public class PropertyDescription : ICloneable
+    public class PropertyDefinition : ICloneable
     {
         private string _name;
         private string _propertyAlias;
-        private string[] _attributes;
+        //private string[] _attributes;
+        private Field2DbRelations _attributes;
         private string _description;
-        private TypeDescription _type;
+        private TypeDefinition _type;
         private string _fieldName;
-        private SourceFragmentDescription _table;
+        private SourceFragmentDefinition _table;
         private bool _fromBase;
         private AccessLevel _fieldAccessLevel;
         private AccessLevel _propertyAccessLevel;
         //private bool _isSuppressed;
 
-        public PropertyDescription(EntityDescription entity, string name)
-            : this(entity, name, name, null, null, null, null, null, false, AccessLevel.Private, AccessLevel.Public, false)
+        public PropertyDefinition(EntityDefinition entity, string name)
+            : this(entity, name, name, Field2DbRelations.None, null, null, null, null, false, AccessLevel.Private, AccessLevel.Public, false)
         {
         }
 
-        public PropertyDescription(string name)
-            : this(null, name, name, null, null, null, null, null, false, AccessLevel.Private, AccessLevel.Public, false)
+        public PropertyDefinition(string name)
+            : this(null, name, name, Field2DbRelations.None, null, null, null, null, false, AccessLevel.Private, AccessLevel.Public, false)
         {
         }
 
-        public PropertyDescription(EntityDescription entity, string name, string alias, string[] attributes, string description, TypeDescription type, string fieldname, SourceFragmentDescription table, AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
+        public PropertyDefinition(EntityDefinition entity, string name, string alias, Field2DbRelations attributes, 
+            string description, TypeDefinition type, string fieldname, SourceFragmentDefinition table, 
+            AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
             : this(entity,name, alias, attributes, description, type, fieldname, table, false, fieldAccessLevel, propertyAccessLevel, false)
         {
         }
 
-        public PropertyDescription(string name, string alias, string[] attributes, string description, TypeDescription type, string fieldname, SourceFragmentDescription table, AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel) 
+        public PropertyDefinition(string name, string alias, Field2DbRelations attributes, string description, 
+            TypeDefinition type, string fieldname, SourceFragmentDefinition table, 
+            AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel) 
             : this(null,name, alias, attributes, description, type, fieldname, table, false, fieldAccessLevel, propertyAccessLevel, false)
         {
         }
 
-        internal PropertyDescription(EntityDescription entity, string name, string alias, string[] attributes, string description, TypeDescription type, string fieldname, SourceFragmentDescription table, bool fromBase, AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel/*, bool isSuppressed*/, bool isRefreshed)
+        internal PropertyDefinition(EntityDefinition entity, string name, string alias, Field2DbRelations attributes, string description, TypeDefinition type, string fieldname, SourceFragmentDefinition table, bool fromBase, AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel/*, bool isSuppressed*/, bool isRefreshed)
         {
             _name = name;
             _propertyAlias = string.IsNullOrEmpty(alias)?name:alias;
@@ -75,8 +80,8 @@ namespace WXML.Model.Descriptors
             get { return _name; }
             set { _name = value; }
         }
-                
-        public string[] Attributes
+
+        public Field2DbRelations Attributes
         {
             get { return _attributes; }
             set { _attributes = value; }
@@ -88,7 +93,7 @@ namespace WXML.Model.Descriptors
             set { _description = value; }
         }
 
-        public TypeDescription PropertyType
+        public TypeDefinition PropertyType
         {
             get { return _type; }
             set { _type = value; }
@@ -100,7 +105,7 @@ namespace WXML.Model.Descriptors
             set { _fieldName = value; }
         }
                 
-        public SourceFragmentDescription SourceFragment
+        public SourceFragmentDefinition SourceFragment
         {
             get { return _table; }
             set { _table = value; }
@@ -141,7 +146,7 @@ namespace WXML.Model.Descriptors
 
         public bool IsRefreshed { get; set; }
 
-        public EntityDescription Entity { get; set; }
+        public EntityDefinition Entity { get; set; }
 
         public bool Disabled { get; set; }
 
@@ -165,7 +170,7 @@ namespace WXML.Model.Descriptors
 
         object ICloneable.Clone()
         {
-            PropertyDescription prop = new PropertyDescription(Entity, Name)
+            PropertyDefinition prop = new PropertyDefinition(Entity, Name)
             {
                 Disabled=Disabled,
                 Obsolete=Obsolete,
@@ -191,28 +196,29 @@ namespace WXML.Model.Descriptors
             return prop;
         }
 
-        public PropertyDescription Clone()
+        public PropertyDefinition Clone()
         {
-            return (PropertyDescription)(this as ICloneable).Clone();
+            return (PropertyDefinition)(this as ICloneable).Clone();
         }
 
     	public bool HasAttribute(Field2DbRelations attribute)
     	{
-    		bool hasIt = false;
-    		foreach (string s in _attributes)
-    		{
-				if (((Field2DbRelations)Enum.Parse(typeof(Field2DbRelations), s, true) & attribute) == attribute)
-				{
-					hasIt = true;
-					break;
-				}
-    		}
-    		return hasIt;
+            //bool hasIt = false;
+            //foreach (string s in _attributes)
+            //{
+            //    if (((Field2DbRelations)Enum.Parse(typeof(Field2DbRelations), s, true) & attribute) == attribute)
+            //    {
+            //        hasIt = true;
+            //        break;
+            //    }
+            //}
+            //return hasIt;
+    	    return (_attributes & attribute) == attribute;
     	}
 
-        internal PropertyDescription Clone(EntityDescription entityDescription)
+        internal PropertyDefinition Clone(EntityDefinition entityDescription)
         {
-            PropertyDescription p = Clone();
+            PropertyDefinition p = Clone();
             p.Entity = entityDescription;
             return p;
         }
