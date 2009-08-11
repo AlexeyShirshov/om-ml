@@ -4,7 +4,7 @@ using System.Text;
 
 namespace WXML.Model.Descriptors
 {
-    public class RelationDescription : RelationDescriptionBase
+    public class RelationDefinition : RelationDefinitionBase
     {
         //private readonly LinkTarget _left;
         //private readonly LinkTarget _right;
@@ -12,12 +12,12 @@ namespace WXML.Model.Descriptors
         //private readonly EntityDescription _underlyingEntity;
         //private bool _disabled;
 
-        public RelationDescription(LinkTarget left, LinkTarget right, SourceFragmentDescription table, EntityDescription underlyingEntity)
+        public RelationDefinition(LinkTarget left, LinkTarget right, SourceFragmentDefinition table, EntityDefinition underlyingEntity)
             : this(left, right, table, underlyingEntity, false)
         {
         }
 
-        public RelationDescription(LinkTarget left, LinkTarget right, SourceFragmentDescription table, EntityDescription underlyingEntity, bool disabled)
+        public RelationDefinition(LinkTarget left, LinkTarget right, SourceFragmentDefinition table, EntityDefinition underlyingEntity, bool disabled)
             : base(table, underlyingEntity, left, right, disabled)
         {
             //_left = left;
@@ -58,7 +58,7 @@ namespace WXML.Model.Descriptors
         //    return yep;
         //}
 
-		public override bool IsEntityTakePart(EntityDescription entity)
+		public override bool IsEntityTakePart(EntityDefinition entity)
 		{
 			return Left.Entity == entity || Right.Entity == entity;
 		}

@@ -40,7 +40,7 @@ namespace WXML.CodeDom
         }
 
 
-        public string GetEntityFileName(EntityDescription entity)
+        public string GetEntityFileName(EntityDefinition entity)
         {
             WXMLCodeDomGeneratorSettings settings = GetSettings();
             string baseName = 
@@ -53,7 +53,7 @@ namespace WXML.CodeDom
             return baseName;
         }
 
-        public string GetEntitySchemaDefFileName(EntityDescription entity)
+        public string GetEntitySchemaDefFileName(EntityDefinition entity)
         {
             WXMLCodeDomGeneratorSettings settings = GetSettings();
             string baseName = 
@@ -68,7 +68,7 @@ namespace WXML.CodeDom
     	/// </summary>
     	/// <param name="entity">The entity.</param>
     	/// <returns></returns>
-    	public string GetEntityClassName(EntityDescription entity)
+    	public string GetEntityClassName(EntityDefinition entity)
     	{
     		return GetEntityClassName(entity, false);
     	}
@@ -79,7 +79,7 @@ namespace WXML.CodeDom
 		/// <param name="entity">The entity.</param>
 		/// <param name="qualified">if set to <c>true</c> return qualified name.</param>
 		/// <returns></returns>
-        public string GetEntityClassName(EntityDescription entity, bool qualified)
+        public string GetEntityClassName(EntityDefinition entity, bool qualified)
         {
             WXMLCodeDomGeneratorSettings settings = GetSettings();
             string en = entity.Name;
@@ -117,7 +117,7 @@ namespace WXML.CodeDom
         /// </summary>
         /// <param name="entity">The entity.</param>
         /// <returns></returns>
-        public string GetEntitySchemaDefClassName(EntityDescription entity)
+        public string GetEntitySchemaDefClassName(EntityDefinition entity)
         {
             WXMLCodeDomGeneratorSettings settings = GetSettings();
             return 
@@ -128,17 +128,17 @@ namespace WXML.CodeDom
                 (entity.Model.AddVersionToSchemaName ? entity.Model.SchemaVersion : String.Empty);
         }
 
-        public string GetEntitySchemaDefClassQualifiedName(EntityDescription entity)
+        public string GetEntitySchemaDefClassQualifiedName(EntityDefinition entity)
         {
             return string.Format("{0}.{1}", GetEntityClassName(entity, true), GetEntitySchemaDefClassName(entity));
         }
 
-    	public string GetEntityInterfaceName(EntityDescription entity)
+    	public string GetEntityInterfaceName(EntityDefinition entity)
     	{
     		return GetEntityInterfaceName(entity, null, null, false);
     	}
 
-    	public string GetEntityInterfaceName(EntityDescription entity, string prefix, string suffix, bool qualified)
+    	public string GetEntityInterfaceName(EntityDefinition entity, string prefix, string suffix, bool qualified)
     	{
     		string interfaceName = "I" + (prefix ?? string.Empty) + GetEntityClassName(entity, false) + (suffix ?? string.Empty);
 

@@ -16,11 +16,11 @@ namespace WXML.Model
 
         #region Private Fields
 
-        private readonly List<EntityDescription> _entities;
-		private readonly List<SourceFragmentDescription> _sourceFragments;
-        private readonly List<RelationDescriptionBase> _relations;
+        private readonly List<EntityDefinition> _entities;
+		private readonly List<SourceFragmentDefinition> _sourceFragments;
+        private readonly List<RelationDefinitionBase> _relations;
     	//private readonly List<SelfRelationDescription> _selfRelations;
-        private readonly List<TypeDescription> _types;
+        private readonly List<TypeDefinition> _types;
         private readonly IncludesCollection _includes;
 
 	    private readonly List<string> _userComments;
@@ -29,18 +29,18 @@ namespace WXML.Model
         private readonly string _appVersion;
 
 	    private string _entityBaseTypeName;
-		private TypeDescription _entityBaseType;
+		private TypeDefinition _entityBaseType;
 
         private Dictionary<string, XmlDocument> _extensions = new Dictionary<string, XmlDocument>();
 	    #endregion Private Fields
 
         public WXMLModel()
         {
-            _entities = new List<EntityDescription>();
-            _relations = new List<RelationDescriptionBase>();
+            _entities = new List<EntityDefinition>();
+            _relations = new List<RelationDefinitionBase>();
         	//_selfRelations = new List<SelfRelationDescription>();
-        	_sourceFragments = new List<SourceFragmentDescription>();
-            _types = new List<TypeDescription>();
+        	_sourceFragments = new List<SourceFragmentDefinition>();
+            _types = new List<TypeDefinition>();
             _userComments = new List<string>();
             _systemComments = new List<string>();
             _includes = new IncludesCollection(this);
@@ -72,7 +72,7 @@ namespace WXML.Model
             _entities.Clear();
         }
 
-        public void AddEntity(EntityDescription e)
+        public void AddEntity(EntityDefinition e)
         {
             if (_entities.Exists(ee => ee.Identifier == e.Identifier))
                 throw new ArgumentException(String.Format("Entity {0} already in collection", e.Identifier));
@@ -80,12 +80,12 @@ namespace WXML.Model
             _entities.Add(e);
         }
 
-        public void RemoveEntity(EntityDescription e)
+        public void RemoveEntity(EntityDefinition e)
         {
             _entities.Remove(e);
         }
 
-        public IEnumerable<EntityDescription> Entities
+        public IEnumerable<EntityDefinition> Entities
         {
             get
             {
@@ -93,7 +93,7 @@ namespace WXML.Model
             }
         }
 
-        public IEnumerable<EntityDescription> ActiveEntities
+        public IEnumerable<EntityDefinition> ActiveEntities
 		{
 			get
 			{
@@ -101,17 +101,17 @@ namespace WXML.Model
 			}
 		}
 
-	    public IList<EntityDescription> FlatEntities
+	    public IList<EntityDefinition> FlatEntities
 	    {
 	        get
 	        {
-	            IList<EntityDescription> baseFlatEntities = ((BaseSchema == null) ? new List<EntityDescription>() : BaseSchema.FlatEntities);
+	            IList<EntityDefinition> baseFlatEntities = ((BaseSchema == null) ? new List<EntityDefinition>() : BaseSchema.FlatEntities);
 	        	var entities = ActiveEntities;
 	        	int count = entities.Count() + ((BaseSchema == null) ? 0 : baseFlatEntities.Count);
-	            var list = new List<EntityDescription>(count);
+	            var list = new List<EntityDefinition>(count);
 	            list.AddRange(entities);
 
-	            foreach (EntityDescription baseEntityDescription in baseFlatEntities)
+	            foreach (EntityDefinition baseEntityDescription in baseFlatEntities)
 	            {
 	                string name = baseEntityDescription.Name;
                     if (!list.Exists(entityDescription => entityDescription.Name == name))
@@ -121,7 +121,7 @@ namespace WXML.Model
 	        }
 	    }
 
-		public List<SourceFragmentDescription> SourceFragments
+		public List<SourceFragmentDefinition> SourceFragments
 		{
 			get
 			{
@@ -129,7 +129,7 @@ namespace WXML.Model
 			}
 		}
 		
-        public List<RelationDescriptionBase> Relations
+        public List<RelationDefinitionBase> Relations
         {
             get
             {
@@ -137,7 +137,7 @@ namespace WXML.Model
             }
         }
 
-        public List<RelationDescriptionBase> ActiveRelations
+        public List<RelationDefinitionBase> ActiveRelations
         {
             get
             {
@@ -145,7 +145,7 @@ namespace WXML.Model
             }
         }
 
-        public List<TypeDescription> Types
+        public List<TypeDefinition> Types
         {
             get
             {
@@ -179,7 +179,7 @@ namespace WXML.Model
 
 	    public WXMLModel BaseSchema { get; protected internal set; }
 
-	    public TypeDescription EntityBaseType
+	    public TypeDefinition EntityBaseType
 		{
 			get
 			{
@@ -232,14 +232,14 @@ namespace WXML.Model
 
         #region Methods
 
-        public EntityDescription GetEntity(string entityId)
+        public EntityDefinition GetEntity(string entityId)
         {
             return GetEntity(entityId, false);
         }
 
-        public EntityDescription GetEntity(string entityId, bool throwNotFoundException)
+        public EntityDefinition GetEntity(string entityId, bool throwNotFoundException)
         {
-            EntityDescription entity = ActiveEntities
+            EntityDefinition entity = ActiveEntities
                 .SingleOrDefault(match => match.Identifier == entityId);
             
             if(entity == null && Includes.Count != 0)
@@ -254,12 +254,12 @@ namespace WXML.Model
             return entity;
         }
 
-        public SourceFragmentDescription GetSourceFragment(string tableId)
+        public SourceFragmentDefinition GetSourceFragment(string tableId)
         {
             return GetSourceFragment(tableId, false);
         }
 
-        public SourceFragmentDescription GetSourceFragment(string tableId, bool throwNotFoundException)
+        public SourceFragmentDefinition GetSourceFragment(string tableId, bool throwNotFoundException)
         {
             var table = SourceFragments.Find(match => match.Identifier == tableId);
             if(table == null && Includes.Count > 0)
@@ -274,12 +274,12 @@ namespace WXML.Model
             return table;
         }
 
-        public TypeDescription GetType(string typeId, bool throwNotFoundException)
+        public TypeDefinition GetType(string typeId, bool throwNotFoundException)
         {
-            TypeDescription type = null;
+            TypeDefinition type = null;
             if (!string.IsNullOrEmpty(typeId))
             {
-                type = Types.Find(delegate(TypeDescription match) { return match.Identifier == typeId; });
+                type = Types.Find(delegate(TypeDefinition match) { return match.Identifier == typeId; });
                 if (type == null && Includes.Count != 0)
                     foreach (WXMLModel objectsDef in Includes)
                     {
@@ -302,10 +302,10 @@ namespace WXML.Model
 
 	    private void MergeTypes(WXMLModel model)
 	    {
-	        foreach (TypeDescription newType in model.Types)
+	        foreach (TypeDefinition newType in model.Types)
 	        {
 	            string newTypeIdentifier = newType.Identifier;
-	            TypeDescription type = Types.SingleOrDefault(item => item.Identifier == newTypeIdentifier);
+	            TypeDefinition type = Types.SingleOrDefault(item => item.Identifier == newTypeIdentifier);
                 if (type != null)
                 {
                     if (type.ToString() != newType.ToString())
@@ -318,18 +318,18 @@ namespace WXML.Model
 
 	    private void MergeEntities(WXMLModel mergeWith)
 	    {
-	        foreach (EntityDescription newEntity in mergeWith.Entities)
+	        foreach (EntityDefinition newEntity in mergeWith.Entities)
 	        {
 	            string newEntityIdentifier = newEntity.Identifier;
 
-	            EntityDescription entity = Entities.SingleOrDefault(item => item.Identifier == newEntityIdentifier);
+	            EntityDefinition entity = Entities.SingleOrDefault(item => item.Identifier == newEntityIdentifier);
 	            if (entity != null)
 	            {
-	                foreach (PropertyDescription newProperty in newEntity.Properties)
+	                foreach (PropertyDefinition newProperty in newEntity.Properties)
 	                {
 	                    string newPropertyName = newProperty.PropertyAlias;
 
-	                    PropertyDescription property =
+	                    PropertyDefinition property =
 	                        entity.Properties.SingleOrDefault(item => item.PropertyAlias == newPropertyName);
 
 	                    if (property!=null)
@@ -342,14 +342,15 @@ namespace WXML.Model
                             property.Name = MergeString(property, newProperty, (item) => item.Name);
                             property.ObsoleteDescripton = MergeString(property, newProperty, (item) => item.ObsoleteDescripton);
 
-                            List<string> newAttributes = new List<string>();
+                            //List<string> newAttributes = new List<string>();
                             
-                            if (property.Attributes != null)
-                                newAttributes.AddRange(property.Attributes);
-                            if (newProperty.Attributes != null)
-                                newAttributes.AddRange(newProperty.Attributes.Where(item=>!newAttributes.Contains(item)));
-
-	                        property.Attributes = newAttributes.ToArray();
+                            //if (property.Attributes != )
+                            //    newAttributes.AddRange(property.Attributes);
+                            if (newProperty.Attributes != Field2DbRelations.None)
+                            {
+                                //newAttributes.AddRange(newProperty.Attributes.Where(item=>!newAttributes.Contains(item)));
+    	                        property.Attributes = newProperty.Attributes;
+                            }
 
 	                        property.DbTypeNullable = newProperty.DbTypeNullable ?? property.DbTypeNullable;
                             property.DbTypeSize = newProperty.DbTypeSize ?? property.DbTypeSize;
@@ -381,8 +382,8 @@ namespace WXML.Model
 	        }
 	    }
 
-        private static string MergeString(PropertyDescription existingProperty, PropertyDescription newProperty,
-            Func<PropertyDescription, string> accessor)
+        private static string MergeString(PropertyDefinition existingProperty, PropertyDefinition newProperty,
+            Func<PropertyDefinition, string> accessor)
         {
             return string.IsNullOrEmpty(accessor(newProperty))
               ? accessor(existingProperty)
@@ -391,14 +392,14 @@ namespace WXML.Model
         
 	    #endregion
         
-        public RelationDescriptionBase GetSimilarRelation(RelationDescriptionBase relation)
+        public RelationDefinitionBase GetSimilarRelation(RelationDefinitionBase relation)
         {
             return _relations.Find(relation.Similar);
         }
 
-        public bool HasSimilarRelationM2M(RelationDescription relation)
+        public bool HasSimilarRelationM2M(RelationDefinition relation)
         {
-            return _relations.OfType<RelationDescription>().Any((RelationDescription match)=>
+            return _relations.OfType<RelationDefinition>().Any((RelationDefinition match)=>
                 relation != match && (
                 (match.Left.Entity.Identifier == relation.Left.Entity.Identifier && match.Right.Entity.Identifier == relation.Right.Entity.Identifier) ||
                 (match.Left.Entity.Identifier == relation.Right.Entity.Identifier && match.Right.Entity.Identifier == relation.Left.Entity.Identifier))

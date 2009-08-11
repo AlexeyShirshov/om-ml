@@ -36,7 +36,7 @@ namespace WXML.CodeDom
         }
         public static class Delegates
         {
-            public delegate void UpdateSetValueMethodDelegate(PropertyDescription propertyDesc, CodeMemberMethod setvalueMethod);
+            public delegate void UpdateSetValueMethodDelegate(PropertyDefinition propertyDesc, CodeMemberMethod setvalueMethod);
 
             //public static event WXML.CodeDom.WXMLCodeDomGeneratorNameHelper.GetSettingsDelegate SettingsRequied;
 
@@ -70,7 +70,7 @@ namespace WXML.CodeDom
                     _settings = settings;
                 }
 
-                public void DefaultUpdateSetValueMethod(PropertyDescription propertyDesc, CodeMemberMethod setvalueMethod)
+                public void DefaultUpdateSetValueMethod(PropertyDefinition propertyDesc, CodeMemberMethod setvalueMethod)
                 {
                     //Type fieldRealType;
                     //fieldRealType = Type.GetType(field.Type.BaseType, false);
@@ -168,7 +168,7 @@ namespace WXML.CodeDom
                     return "To" + type.Name;
                 }
 
-                public void EnumPervUpdateSetValueMethod(PropertyDescription propertyDesc, CodeMemberMethod setvalueMethod)
+                public void EnumPervUpdateSetValueMethod(PropertyDefinition propertyDesc, CodeMemberMethod setvalueMethod)
                 {
                 	var fieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(propertyDesc.Name);
                     if (propertyDesc.PropertyType.IsEnum)

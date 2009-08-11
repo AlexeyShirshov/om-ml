@@ -5,46 +5,46 @@ using WXML.CodeDom;
 
 namespace WXML.Model.Descriptors
 {
-    public class TypeDescription
+    public class TypeDefinition
     {
         private readonly string _id;
         private readonly string _userType;
         private readonly Type _clrType;
-        private readonly EntityDescription _entity;
+        private readonly EntityDefinition _entity;
         private readonly UserTypeHintFlags? _userTpeHint;
         //private WXMLCodeDomGeneratorSettings _settings;
 
         #region Ctors
 
-        public TypeDescription(string id, string typeName, bool treatAsUserType)
+        public TypeDefinition(string id, string typeName, bool treatAsUserType)
             : this(id, typeName, null, treatAsUserType, null)
         {
         }
 
-        public TypeDescription(string id, string typeName)
+        public TypeDefinition(string id, string typeName)
             : this(id, typeName, null, false, null)
         {
         }
 
-        public TypeDescription(string id, EntityDescription entity)
+        public TypeDefinition(string id, EntityDefinition entity)
             : this(id, null, entity, false, null)
         {
         }
 
-        public TypeDescription(string id, Type type) : this(id, null, null, false, null)
+        public TypeDefinition(string id, Type type) : this(id, null, null, false, null)
         {
             if (type == null)
                 throw new ArgumentNullException("type");
             _clrType = type;
         }
 
-        public TypeDescription(string id, string typeName, UserTypeHintFlags? userTypeHint)
+        public TypeDefinition(string id, string typeName, UserTypeHintFlags? userTypeHint)
             : this(id, typeName, null, true, userTypeHint)
         {
             
         }
 
-        protected TypeDescription(string id, string typeName, EntityDescription entity, bool treatAsUserType, UserTypeHintFlags? userTypeHint)
+        protected TypeDefinition(string id, string typeName, EntityDefinition entity, bool treatAsUserType, UserTypeHintFlags? userTypeHint)
         {
             _id = id;
             if(!string.IsNullOrEmpty(typeName))
@@ -87,7 +87,7 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public EntityDescription Entity
+        public EntityDefinition Entity
         {
             get { return _entity; }
         }
@@ -194,7 +194,7 @@ namespace WXML.Model.Descriptors
 
         public CodeTypeReference ToCodeType(WXMLCodeDomGeneratorSettings settings)
         {
-            TypeDescription propertyTypeDesc = this;
+            TypeDefinition propertyTypeDesc = this;
 
             return new CodeTypeReference(propertyTypeDesc.IsEntityType
                   ? new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(propertyTypeDesc.Entity, true)

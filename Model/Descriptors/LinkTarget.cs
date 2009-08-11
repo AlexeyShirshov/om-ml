@@ -2,17 +2,17 @@ namespace WXML.Model.Descriptors
 {
     public class LinkTarget : SelfRelationTarget
     {
-        private EntityDescription _entity;
+        private EntityDefinition _entity;
         //private string _fieldName;
         //private bool _cascadeDelete;
 
-    	public LinkTarget(EntityDescription entity, string fieldName, bool cascadeDelete)
+    	public LinkTarget(EntityDefinition entity, string fieldName, bool cascadeDelete)
     		: base(fieldName, cascadeDelete)
     	{
 			_entity = entity;
     	}
 
-    	public LinkTarget(EntityDescription entity, string fieldName, bool cascadeDelete, string accessorName)
+    	public LinkTarget(EntityDefinition entity, string fieldName, bool cascadeDelete, string accessorName)
             : base(fieldName, cascadeDelete, accessorName)
         {
             _entity = entity;
@@ -20,7 +20,7 @@ namespace WXML.Model.Descriptors
             //_cascadeDelete = cascadeDelete;
         }
 
-        public EntityDescription Entity
+        public EntityDefinition Entity
         {
             get { return _entity; }
             set { _entity = value; }

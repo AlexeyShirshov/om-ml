@@ -193,12 +193,12 @@ namespace WXML.Model
                 return;
             XmlNode relationsNode = CreateElement("EntityRelations");
             _ormXmlDocumentMain.DocumentElement.AppendChild(relationsNode);
-            foreach (RelationDescriptionBase rel in _ormObjectsDef.Relations)
+            foreach (RelationDefinitionBase rel in _ormObjectsDef.Relations)
             {
                 XmlElement relationElement;
-                if (rel is RelationDescription)
+                if (rel is RelationDefinition)
                 {
-					RelationDescription relation = (RelationDescription)rel;
+					RelationDefinition relation = (RelationDefinition)rel;
 
                     relationElement = CreateElement("Relation");
 
@@ -316,7 +316,7 @@ namespace WXML.Model
             XmlNode entitiesNode = CreateElement("Entities");
             _ormXmlDocumentMain.DocumentElement.AppendChild(entitiesNode);
 
-            foreach (EntityDescription entity in _ormObjectsDef.Entities)
+            foreach (EntityDefinition entity in _ormObjectsDef.Entities)
             {
                 XmlElement entityElement = CreateElement("Entity");
 
@@ -342,7 +342,7 @@ namespace WXML.Model
 				
 
                 XmlNode tablesNode = CreateElement("SourceFragments");
-                foreach (SourceFragmentRefDescription table in entity.GetSourceFragments())
+                foreach (SourceFragmentRefDefinition table in entity.GetSourceFragments())
                 {
 					XmlElement tableElement = CreateElement("SourceFragment");
                     tableElement.SetAttribute("ref", table.Identifier);
@@ -350,7 +350,7 @@ namespace WXML.Model
                     {
                         tableElement.SetAttribute("anchorTableRef", table.AnchorTable.Identifier);
                         tableElement.SetAttribute("type", table.JoinType.ToString());
-                        foreach (SourceFragmentRefDescription.Condition c in table.Conditions)
+                        foreach (SourceFragmentRefDefinition.Condition c in table.Conditions)
                         {
                             XmlElement join = CreateElement("join");
                             join.SetAttribute("refColumn", c.LeftColumn);
@@ -368,7 +368,7 @@ namespace WXML.Model
 				entityElement.AppendChild(tablesNode);	
 
                 XmlNode propertiesNode = CreateElement("Properties");
-                IEnumerable<PropertyDescription> properties = entity.Properties.Where(p => p.Group == null);
+                IEnumerable<PropertyDefinition> properties = entity.Properties.Where(p => p.Group == null);
                 FillEntityProperties(properties, propertiesNode);
                 entityElement.AppendChild(propertiesNode);
 
@@ -437,15 +437,15 @@ namespace WXML.Model
             }
         }
 
-        private void FillEntityProperties(IEnumerable<PropertyDescription> properties, XmlNode propertiesNode)
+        private void FillEntityProperties(IEnumerable<PropertyDefinition> properties, XmlNode propertiesNode)
         {
-            foreach (PropertyDescription property in properties)
+            foreach (PropertyDefinition property in properties)
             {
                 XmlElement propertyElement = CreateElement("Property");
                 propertyElement.SetAttribute("propertyName", property.Name);
-                if(property.Attributes != null && property.Attributes.Length > 0)
+                if(property.Attributes != Field2DbRelations.None /*null && property.Attributes.Length > 0*/)
                 {
-                    propertyElement.SetAttribute("attributes", string.Join(" ", property.Attributes));
+                    propertyElement.SetAttribute("attributes", Enum.GetName(typeof(Field2DbRelations), property.Attributes) /*string.Join(" ", property.Attributes)*/);
                 }
                 if (property.SourceFragment != null)
                     propertyElement.SetAttribute("table", property.SourceFragment.Identifier);
@@ -486,7 +486,7 @@ namespace WXML.Model
         {
             XmlNode typesNode = CreateElement("Types");
             _ormXmlDocumentMain.DocumentElement.AppendChild(typesNode);
-            foreach (TypeDescription type in _ormObjectsDef.Types)
+            foreach (TypeDefinition type in _ormObjectsDef.Types)
             {
                 XmlElement typeElement = CreateElement("Type");
 
@@ -521,7 +521,7 @@ namespace WXML.Model
 		{
 			XmlElement tablesNode = CreateElement("SourceFragments");
 			_ormXmlDocumentMain.DocumentElement.AppendChild(tablesNode);
-			foreach (SourceFragmentDescription table in _ormObjectsDef.SourceFragments)
+			foreach (SourceFragmentDefinition table in _ormObjectsDef.SourceFragments)
 			{
 				XmlElement tableElement = CreateElement("SourceFragment");
 				tableElement.SetAttribute("id", table.Identifier);

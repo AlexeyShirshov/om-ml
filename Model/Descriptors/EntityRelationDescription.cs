@@ -5,17 +5,17 @@ using System.Linq;
 
 namespace WXML.Model.Descriptors
 {
-    public class EntityRelationDescription
+    public class EntityRelationDefinition
     {
         public string AccessorDescription { get; set; }
 
-        public EntityDescription SourceEntity
+        public EntityDefinition SourceEntity
         {
             get;
             set;
         }
 
-        public EntityDescription Entity
+        public EntityDefinition Entity
         {
             get;
             set;
@@ -45,11 +45,11 @@ namespace WXML.Model.Descriptors
             set;
         }
 
-        public PropertyDescription Property
+        public PropertyDefinition Property
         {
             get
             {
-                PropertyDescription res = null;
+                PropertyDefinition res = null;
                 if(!string.IsNullOrEmpty(PropertyAlias))
                 {
                     res = Entity.Properties.SingleOrDefault(p => p.PropertyAlias == PropertyAlias);

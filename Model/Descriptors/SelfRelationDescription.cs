@@ -4,10 +4,10 @@ using System.Text;
 
 namespace WXML.Model.Descriptors
 {
-    public abstract class RelationDescriptionBase
+    public abstract class RelationDefinitionBase
     {
-        private readonly SourceFragmentDescription _table;
-        private readonly EntityDescription _underlyingEntity;
+        private readonly SourceFragmentDefinition _table;
+        private readonly EntityDefinition _underlyingEntity;
         private readonly bool _disabled;
         private readonly SelfRelationTarget _left;
         private readonly SelfRelationTarget _right;
@@ -15,10 +15,10 @@ namespace WXML.Model.Descriptors
 
         public override bool Equals(object obj)
         {
-            return base.Equals(obj as RelationDescriptionBase);
+            return base.Equals(obj as RelationDefinitionBase);
         }
 
-        public bool Equals(RelationDescriptionBase obj)
+        public bool Equals(RelationDefinitionBase obj)
         {
             if (obj == null)
                 return false;
@@ -31,12 +31,12 @@ namespace WXML.Model.Descriptors
             return _table.GetHashCode() ^ _left.GetHashCode() ^ _right.GetHashCode();
         }
 
-        public SourceFragmentDescription SourceFragment
+        public SourceFragmentDefinition SourceFragment
         {
             get { return _table; }
         }
 
-        public EntityDescription UnderlyingEntity
+        public EntityDefinition UnderlyingEntity
         {
             get { return _underlyingEntity; }
         }
@@ -46,12 +46,12 @@ namespace WXML.Model.Descriptors
             get { return _disabled; }
         }
 
-        public RelationDescriptionBase(SourceFragmentDescription table, EntityDescription underlyingEntity, SelfRelationTarget left, SelfRelationTarget right)
+        public RelationDefinitionBase(SourceFragmentDefinition table, EntityDefinition underlyingEntity, SelfRelationTarget left, SelfRelationTarget right)
             : this(table, underlyingEntity, left, right, false)
         {
         }
 
-        public RelationDescriptionBase(SourceFragmentDescription table, EntityDescription underlyingEntity, SelfRelationTarget left, SelfRelationTarget right, bool disabled)
+        public RelationDefinitionBase(SourceFragmentDefinition table, EntityDefinition underlyingEntity, SelfRelationTarget left, SelfRelationTarget right, bool disabled)
         {
             _table = table;
             _underlyingEntity = underlyingEntity;
@@ -79,7 +79,7 @@ namespace WXML.Model.Descriptors
             get { return _right; }
         }
 
-        public virtual bool Similar(RelationDescriptionBase obj)
+        public virtual bool Similar(RelationDefinitionBase obj)
         {
             if (obj == null)
                 return false;
@@ -88,7 +88,7 @@ namespace WXML.Model.Descriptors
                 (_left == obj._right && _right == obj._left);
         }
 
-    	public abstract bool IsEntityTakePart(EntityDescription entity);
+    	public abstract bool IsEntityTakePart(EntityDefinition entity);
 
     	public virtual bool HasAccessors
     	{
@@ -99,22 +99,22 @@ namespace WXML.Model.Descriptors
     	}
     }
     
-	public class SelfRelationDescription : RelationDescriptionBase
+	public class SelfRelationDescription : RelationDefinitionBase
 	{
-		private readonly EntityDescription _entity;
+		private readonly EntityDefinition _entity;
 
-		public SelfRelationDescription(EntityDescription entity, SelfRelationTarget direct, SelfRelationTarget reverse, SourceFragmentDescription table, EntityDescription underlyingEntity, bool disabled)
+		public SelfRelationDescription(EntityDefinition entity, SelfRelationTarget direct, SelfRelationTarget reverse, SourceFragmentDefinition table, EntityDefinition underlyingEntity, bool disabled)
             : base(table, underlyingEntity, direct, reverse, disabled)
 		{
 			_entity = entity;
 		}
 
-        public SelfRelationDescription(EntityDescription entity, SelfRelationTarget direct, SelfRelationTarget reverse, SourceFragmentDescription table, EntityDescription underlyingEntity)
+        public SelfRelationDescription(EntityDefinition entity, SelfRelationTarget direct, SelfRelationTarget reverse, SourceFragmentDefinition table, EntityDefinition underlyingEntity)
             : this(entity, direct, reverse, table, underlyingEntity, false)
         {
         }
 
-		public EntityDescription Entity
+		public EntityDefinition Entity
 		{
 			get { return _entity; }
 		}        		
@@ -129,7 +129,7 @@ namespace WXML.Model.Descriptors
 			get { return Right; }
 		}
 
-        public override bool Similar(RelationDescriptionBase obj)
+        public override bool Similar(RelationDefinitionBase obj)
         {
             return _Similar(obj as SelfRelationDescription);
         }
@@ -141,10 +141,10 @@ namespace WXML.Model.Descriptors
 
         protected bool _Similar(SelfRelationDescription obj)
         {
-            return base.Similar((RelationDescriptionBase)obj) && _entity.Name == obj._entity.Name;
+            return base.Similar((RelationDefinitionBase)obj) && _entity.Name == obj._entity.Name;
         }
 
-		public override bool IsEntityTakePart(EntityDescription entity)
+		public override bool IsEntityTakePart(EntityDefinition entity)
 		{
 			return Entity == entity;
 		}
