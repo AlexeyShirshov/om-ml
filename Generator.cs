@@ -82,7 +82,7 @@ namespace LinqCodeGenerator
                               .Select(n => new { name = n, ns = c.AddNamespace(n) })
                               .ToArray();
 
-            foreach(EntityDescription e in Model.ActiveEntities)
+            foreach(EntityDefinition e in Model.ActiveEntities)
             {
                 CodeNamespace ens = ns;
                 var item = namespaces.SingleOrDefault(s => s.name == e.Namespace);
@@ -93,13 +93,13 @@ namespace LinqCodeGenerator
             }
         }
 
-        private void FillEntity(CodeNamespace ns, EntityDescription e, LinqToCodedom.CodeDomGenerator.Language language)
+        private void FillEntity(CodeNamespace ns, EntityDefinition e, LinqToCodedom.CodeDomGenerator.Language language)
         {
             CodeTypeDeclaration cls = ns.AddClass(/*new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(e, true)*/ e.Name)
                 .Inherits(typeof(System.ComponentModel.INotifyPropertyChanging))
                 .Inherits(typeof(System.ComponentModel.INotifyPropertyChanged));
 
-            SourceFragmentDescription tbl = e.GetSourceFragments().First();
+            SourceFragmentDefinition tbl = e.GetSourceFragments().First();
 
             var c = Define.Attribute(typeof(System.Data.Linq.Mapping.TableAttribute));
             cls.AddAttribute(c);
@@ -110,7 +110,7 @@ namespace LinqCodeGenerator
             cls.AddField(typeof(System.ComponentModel.PropertyChangingEventArgs), MemberAttributes.Private | MemberAttributes.Static,
                 "emptyChangingEventArgs", () => new System.ComponentModel.PropertyChangingEventArgs(string.Empty));
 
-            foreach (PropertyDescription p in e.ActiveProperties)
+            foreach (PropertyDefinition p in e.ActiveProperties)
             {
                 cls.AddField(p.PropertyType.ToCodeType(_settings),
                     WXMLCodeDomGenerator.GetMemberAttribute(p.FieldAccessLevel), 
@@ -124,7 +124,7 @@ namespace LinqCodeGenerator
             cls.AddCtor(Emit.stmt(() => CodeDom.Call(null, "OnCreated")))
                 .Base();
 
-            foreach (PropertyDescription p in e.ActiveProperties)
+            foreach (PropertyDefinition p in e.ActiveProperties)
             {
                 var fieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name);
 
@@ -177,7 +177,7 @@ namespace LinqCodeGenerator
             );
         }
 
-        private static CodeAttributeDeclaration AddPropertyAttribute(PropertyDescription p, string fieldName)
+        private static CodeAttributeDeclaration AddPropertyAttribute(PropertyDefinition p, string fieldName)
         {
             var attr = Define.Attribute(typeof(System.Data.Linq.Mapping.ColumnAttribute));
             string nullable = " NULL";
@@ -216,12 +216,12 @@ namespace LinqCodeGenerator
             return attr;
         }
 
-        private void AddEntityPartialMethods(CodeTypeDeclaration cls, EntityDescription e)
+        private void AddEntityPartialMethods(CodeTypeDeclaration cls, EntityDefinition e)
         {
             cls.AddMethod(MemberAttributes.Private, () => "OnLoaded");
             cls.AddMethod(MemberAttributes.Private, (System.Data.Linq.ChangeAction action) => "OnValidate");
             cls.AddMethod(MemberAttributes.Private, () => "OnCreated");
-            foreach (PropertyDescription p in e.ActiveProperties)
+            foreach (PropertyDefinition p in e.ActiveProperties)
             {
                 cls.AddMethod(MemberAttributes.Private, (DynType value) => "On" + p.Name + "Changing" + value.SetType(p.PropertyType.ToCodeType(Settings)));
                 cls.AddMethod(MemberAttributes.Private, () => "On" + p.Name + "Changed");
@@ -232,7 +232,7 @@ namespace LinqCodeGenerator
         {
             var n = new WXMLCodeDomGeneratorNameHelper(Settings);
             
-            foreach (EntityDescription e in Model.ActiveEntities)
+            foreach (EntityDefinition e in Model.ActiveEntities)
             {
                 CodeTypeReference t = new CodeTypeReference(typeof(System.Data.Linq.Table<>));
                 CodeTypeReference et = new CodeTypeReference(n.GetEntityClassName(e, true));
@@ -249,7 +249,7 @@ namespace LinqCodeGenerator
             ctx.AddMethod(MemberAttributes.Private, () => "OnCreated");
             var n = new WXMLCodeDomGeneratorNameHelper(Settings);
 
-            foreach (EntityDescription e in Model.ActiveEntities)
+            foreach (EntityDefinition e in Model.ActiveEntities)
             {
                 CodeTypeReference et = new CodeTypeReference(n.GetEntityClassName(e, true));
 
