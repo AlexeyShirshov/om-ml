@@ -79,7 +79,7 @@ namespace WXMLTests
 
                 WXMLModel newModel = new WXMLModel();
 
-                TypeDescription newType = new TypeDescription("tInt16",typeof(short));
+                TypeDefinition newType = new TypeDefinition("tInt16",typeof(short));
 
                 newModel.Types.Add(newType);
 
@@ -108,7 +108,7 @@ namespace WXMLTests
 
                 Assert.IsNotNull(model);
 
-                EntityDescription entity = model.ActiveEntities.Single(item => item.Identifier == "e1");
+                EntityDefinition entity = model.ActiveEntities.Single(item => item.Identifier == "e1");
 
                 Assert.IsNotNull(entity);
 
@@ -118,21 +118,21 @@ namespace WXMLTests
 
                 WXMLModel newModel = new WXMLModel();
 
-                EntityDescription newEntity = new EntityDescription(entity.Identifier, entity.Name, entity.Namespace, entity.Description, newModel);
+                EntityDefinition newEntity = new EntityDefinition(entity.Identifier, entity.Name, entity.Namespace, entity.Description, newModel);
 
                 newModel.AddEntity(newEntity);
 
-                TypeDescription tString = model.Types.Single(item => item.Identifier == "tString");
+                TypeDefinition tString = model.Types.Single(item => item.Identifier == "tString");
 
                 newModel.Types.Add(tString);
 
-                SourceFragmentRefDescription newTable = entity.GetSourceFragments().First();
+                SourceFragmentRefDefinition newTable = entity.GetSourceFragments().First();
 
                 newModel.SourceFragments.Add(newTable);
 
                 newEntity.AddSourceFragment(newTable);
 
-                newEntity.AddProperty(new PropertyDescription(newEntity, "Prop2", "Prop2", null, null, 
+                newEntity.AddProperty(new PropertyDefinition(newEntity, "Prop2", "Prop2", Field2DbRelations.None, null, 
                     tString, "prop2", newTable, AccessLevel.Private, AccessLevel.Public));
 
                 model.Merge(Normalize(newModel));
@@ -154,7 +154,7 @@ namespace WXMLTests
 
                 Assert.IsNotNull(model);
 
-                EntityDescription entity = model.ActiveEntities.Single(item => item.Identifier == "e1");
+                EntityDefinition entity = model.ActiveEntities.Single(item => item.Identifier == "e1");
 
                 Assert.IsNotNull(entity);
 
@@ -164,17 +164,17 @@ namespace WXMLTests
 
                 WXMLModel newModel = new WXMLModel();
 
-                PropertyDescription oldProp = entity.ActiveProperties.Single(item => item.PropertyAlias == "Prop1").Clone();
+                PropertyDefinition oldProp = entity.ActiveProperties.Single(item => item.PropertyAlias == "Prop1").Clone();
 
-                TypeDescription newType = new TypeDescription("tInt16", typeof(short));
+                TypeDefinition newType = new TypeDefinition("tInt16", typeof(short));
 
                 newModel.Types.Add(newType);
 
-                EntityDescription newEntity = new EntityDescription(entity.Identifier, entity.Name, entity.Namespace, entity.Description, newModel);
+                EntityDefinition newEntity = new EntityDefinition(entity.Identifier, entity.Name, entity.Namespace, entity.Description, newModel);
 
                 newModel.AddEntity(newEntity);
 
-                PropertyDescription newProp = new PropertyDescription(newEntity,"Prop2")
+                PropertyDefinition newProp = new PropertyDefinition(newEntity,"Prop2")
                 {
                     PropertyAlias = "Prop1",
                     PropertyType = newType
@@ -186,7 +186,7 @@ namespace WXMLTests
 
                 Assert.AreEqual(2, entity.ActiveProperties.Count);
 
-                PropertyDescription renewProp = entity.ActiveProperties.Single(item=>item.PropertyAlias=="Prop1");
+                PropertyDefinition renewProp = entity.ActiveProperties.Single(item=>item.PropertyAlias=="Prop1");
 
                 Assert.AreEqual("Prop2", renewProp.Name);
 

@@ -82,21 +82,19 @@ namespace WXMLTests
             parser.FillTypes();
 
 
-            WXMLModel ormObjectDef;
-            ormObjectDef = parser.Model;
+            WXMLModel ormObjectDef = parser.Model;
 
-            EntityDescription entity = ormObjectDef.Entities
+            EntityDefinition entity = ormObjectDef.Entities
                 .Single(match => match.Identifier == "eArtist" && match.Name == "Artist");
 
             parser.FillProperties(entity);
 
             Assert.AreEqual<int>(8, entity.Properties.Count());
-            PropertyDescription prop;
 
-            prop = entity.GetProperty("ID");
+            PropertyDefinition prop = entity.GetProperty("ID");
             Assert.IsNotNull(prop);
-            Assert.AreEqual<int>(1, prop.Attributes.Length, "Attributes is undefined");
-            Assert.AreEqual<string>("PK", prop.Attributes[0], "Attributes is not correct defined");
+            //Assert.AreEqual<int>(1, prop.Attributes.Length, "Attributes is undefined");
+            Assert.AreEqual<string>("PK", prop.Attributes.ToString(), "Attributes is not correct defined");
             Assert.IsNotNull(prop.SourceFragment, "Table is undefined");
             Assert.AreEqual<string>("tblArtists", prop.SourceFragment.Identifier, "Table.Identifier is undefined");
             Assert.AreEqual<string>("id", prop.FieldName, "FieldName is undefined");
@@ -108,7 +106,7 @@ namespace WXMLTests
 
             prop = entity.GetProperty("Title");
             Assert.IsNotNull(prop);
-            Assert.AreEqual<int>(0, prop.Attributes.Length, "Attributes is undefined");
+            //Assert.AreEqual<int>(0, prop.Attributes.Length, "Attributes is undefined");
             Assert.IsNotNull(prop.SourceFragment, "Table is undefined");
             Assert.AreEqual<string>("tblArtists", prop.SourceFragment.Identifier, "Table.Identifier is undefined");
             Assert.AreEqual<string>("name", prop.FieldName, "FieldName is undefined");
@@ -121,7 +119,7 @@ namespace WXMLTests
             prop = entity.GetProperty("DisplayTitle");
             Assert.IsNotNull(prop);
             Assert.AreEqual<string>("DisplayTitle", prop.Name, "Name is undefined");
-            Assert.AreEqual<int>(0, prop.Attributes.Length, "Attributes is undefined");
+            //Assert.AreEqual<int>(0, prop.Attributes.Length, "Attributes is undefined");
             Assert.IsNotNull(prop.SourceFragment, "Table is undefined");
             Assert.AreEqual<string>("tblArtists", prop.SourceFragment.Identifier, "Table.Identifier is undefined");
             Assert.AreEqual<string>("display_name", prop.FieldName, "FieldName is undefined");
@@ -133,13 +131,13 @@ namespace WXMLTests
 
             prop = entity.GetProperty("Fact");
 
-            Assert.AreEqual<int>(1, prop.Attributes.Length, "Attributes.Factory absent");
-            Assert.AreEqual<string>("Factory", prop.Attributes[0], "Attributes.Factory invalid");
+            //Assert.AreEqual<int>(1, prop.Attributes.Length, "Attributes.Factory absent");
+            Assert.AreEqual<string>("Factory", prop.Attributes.ToString(), "Attributes.Factory invalid");
 
             prop = entity.GetProperty("TestInsDef");
 
-            Assert.AreEqual<int>(1, prop.Attributes.Length, "Attributes.Factory absent");
-            Assert.AreEqual<string>("InsertDefault", prop.Attributes[0], "Attributes.InsertDefault invalid");
+            //Assert.AreEqual<int>(1, prop.Attributes.Length, "Attributes.Factory absent");
+            Assert.AreEqual<string>("InsertDefault", prop.Attributes.ToString(), "Attributes.InsertDefault invalid");
 
             prop = entity.GetProperty("TestNullabe");
 
@@ -169,18 +167,18 @@ namespace WXMLTests
 
             WXMLModel ormObjectDef = parser.Model;
 
-            EntityDescription entity = ormObjectDef.GetEntity("e11");
+            EntityDefinition entity = ormObjectDef.GetEntity("e11");
 
             parser.FillEntities();
 
             Assert.AreEqual<int>(1, entity.SuppressedProperties.Count, "SuppressedProperties.Count");
 
-            PropertyDescription prop = entity.GetCompleteProperties().Single(item=>item.PropertyAlias==entity.SuppressedProperties[0]);
+            PropertyDefinition prop = entity.GetCompleteProperties().Single(item=>item.PropertyAlias==entity.SuppressedProperties[0]);
 
             Assert.AreEqual<string>("Prop1", prop.Name, "SuppressedPropertyName");
             Assert.IsTrue(prop.IsSuppressed, "SuppressedPropery.IsSuppressed");
 
-            EntityDescription completeEntity = entity.CompleteEntity;
+            EntityDefinition completeEntity = entity.CompleteEntity;
 
             prop = completeEntity.GetProperty("Prop1");
             Assert.IsNotNull(prop);
@@ -213,13 +211,13 @@ namespace WXMLTests
             WXMLModel ormObjectDef;
             ormObjectDef = parser.Model;
 
-            EntityDescription entity = ormObjectDef.Entities
+            EntityDefinition entity = ormObjectDef.Entities
                 .Single(match => match.Identifier == "e1");
 
             parser.FillProperties(entity);
 
             Assert.AreEqual<int>(6, entity.Properties.Count());
-            PropertyDescription prop;
+            PropertyDefinition prop;
 
             prop = entity.GetProperty("Identifier1");
             Assert.IsNotNull(prop);
@@ -258,7 +256,7 @@ namespace WXMLTests
 
             WXMLModel ormObjectDef = parser.Model;
 
-            EntityDescription entity = ormObjectDef.Entities
+            EntityDefinition entity = ormObjectDef.Entities
                 .Single(match => match.Identifier == "eArtist" && match.Name == "Artist");
 
             Assert.AreEqual<int>(2, entity.GetSourceFragments().Count());
@@ -306,9 +304,9 @@ namespace WXMLTests
 
             Assert.AreEqual<int>(5, ormObjectDef.Entities.Count());
             Assert.AreEqual<int>(4, ormObjectDef.ActiveEntities.Count());
-            Assert.IsTrue(ormObjectDef.Entities.Any(delegate(EntityDescription match) { return match.Identifier == "eArtist" && match.Name == "Artist"; }));
-            Assert.IsTrue(ormObjectDef.Entities.Any(delegate(EntityDescription match) { return match.Identifier == "eAlbum" && match.Name == "Album"; }));
-            Assert.IsTrue(ormObjectDef.Entities.Any(delegate(EntityDescription match) { return match.Identifier == "Album2ArtistRelation" && match.Name == "Album2ArtistRelation"; }));
+            Assert.IsTrue(ormObjectDef.Entities.Any(delegate(EntityDefinition match) { return match.Identifier == "eArtist" && match.Name == "Artist"; }));
+            Assert.IsTrue(ormObjectDef.Entities.Any(delegate(EntityDefinition match) { return match.Identifier == "eAlbum" && match.Name == "Album"; }));
+            Assert.IsTrue(ormObjectDef.Entities.Any(delegate(EntityDefinition match) { return match.Identifier == "Album2ArtistRelation" && match.Name == "Album2ArtistRelation"; }));
 
         }
 
@@ -399,7 +397,7 @@ namespace WXMLTests
                 Assert.AreEqual("greeting", xdoc.DocumentElement.Name);
                 Assert.AreEqual("hi!", xdoc.DocumentElement.InnerText);
 
-                EntityDescription e11 = model.Entities.Single(e => e.Identifier == "e11");
+                EntityDefinition e11 = model.Entities.Single(e => e.Identifier == "e11");
 
                 Assert.IsNotNull(e11.Extensions["x"]);
 

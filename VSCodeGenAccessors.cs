@@ -210,11 +210,11 @@ internal class Worm_CodeGen_Core_OrmXmlParserAccessor : BaseAccessor {
         m_privateObject.Invoke("FillEntities", new System.Type[0], args);
     }
     
-    internal void FillSuppresedProperties(global::WXML.Model.Descriptors.EntityDescription entity) {
+    internal void FillSuppresedProperties(global::WXML.Model.Descriptors.EntityDefinition entity) {
         object[] args = new object[] {
                 entity};
         m_privateObject.Invoke("FillSuppresedProperties", new System.Type[] {
-                    typeof(global::WXML.Model.Descriptors.EntityDescription)}, args);
+                    typeof(global::WXML.Model.Descriptors.EntityDefinition)}, args);
     }
     
     internal void FillFileDescriptions() {
@@ -227,11 +227,11 @@ internal class Worm_CodeGen_Core_OrmXmlParserAccessor : BaseAccessor {
         m_privateObject.Invoke("FindEntities", new System.Type[0], args);
     }
     
-    internal void FillProperties(global::WXML.Model.Descriptors.EntityDescription entity) {
+    internal void FillProperties(global::WXML.Model.Descriptors.EntityDefinition entity) {
         object[] args = new object[] {
                 entity};
         m_privateObject.Invoke("FillProperties", new System.Type[] {
-                    typeof(global::WXML.Model.Descriptors.EntityDescription)}, args);
+                    typeof(global::WXML.Model.Descriptors.EntityDefinition)}, args);
     }
     
     internal void FillRelations() {
@@ -244,11 +244,11 @@ internal class Worm_CodeGen_Core_OrmXmlParserAccessor : BaseAccessor {
 		m_privateObject.Invoke("FillSourceFragments", new System.Type[0], args);
     }
     
-    internal void FillEntityTables(global::WXML.Model.Descriptors.EntityDescription entity) {
+    internal void FillEntityTables(global::WXML.Model.Descriptors.EntityDefinition entity) {
         object[] args = new object[] {
                 entity};
         m_privateObject.Invoke("FillEntityTables", new System.Type[] {
-                    typeof(global::WXML.Model.Descriptors.EntityDescription)}, args);
+                    typeof(global::WXML.Model.Descriptors.EntityDefinition)}, args);
     }
     
     internal void Read() {
