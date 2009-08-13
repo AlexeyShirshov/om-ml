@@ -232,7 +232,29 @@ namespace WXML.Model
 
         #region Methods
 
-        public EntityDefinition GetEntity(string entityId)
+        public TypeDefinition GetOrCreateClrType(Type t)
+        {
+            TypeDefinition td = Types.FirstOrDefault(item => item.IsClrType && item.ClrType == t);
+            if (td == null)
+            {
+                td = new TypeDefinition(t.ToString(), t);
+                _types.Add(td);
+            }
+            return td;
+        }
+
+        public SourceFragmentDefinition GetOrCreateSourceFragment(string selector, string sourceName)
+        {
+            SourceFragmentDefinition sf = SourceFragments.FirstOrDefault(item => item.Selector == selector && item.Name == sourceName);
+            if (sf == null)
+            {
+                sf = new SourceFragmentDefinition(selector + "." + sourceName, sourceName, selector);
+                _sourceFragments.Add(sf);
+            }
+            return sf;
+        }
+
+	    public EntityDefinition GetEntity(string entityId)
         {
             return GetEntity(entityId, false);
         }

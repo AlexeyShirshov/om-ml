@@ -533,27 +533,27 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public PropertyDefinition PkProperty
-        {
-            get
-            {
-                if (HasSinglePk)
-                    foreach (var propertyDescription in CompleteEntity.Properties)
-                    {
-                        if (propertyDescription.HasAttribute(Field2DbRelations.PK)
-                            //&& propertyDescription.PropertyType.IsClrType && propertyDescription.PropertyType.ClrType.IsAssignableFrom(typeof(Int32))
-                            )
-                            return propertyDescription;
-                    }
-                throw new InvalidOperationException("Only usable with single PK");
-            }
-        }
+        //public PropertyDefinition PkProperty
+        //{
+        //    get
+        //    {
+        //        if (HasSinglePk)
+        //            foreach (var propertyDescription in CompleteEntity.Properties)
+        //            {
+        //                if (propertyDescription.HasAttribute(Field2DbRelations.PK)
+        //                    //&& propertyDescription.PropertyType.IsClrType && propertyDescription.PropertyType.ClrType.IsAssignableFrom(typeof(Int32))
+        //                    )
+        //                    return propertyDescription;
+        //            }
+        //        throw new InvalidOperationException("Only usable with single PK");
+        //    }
+        //}
 
         public IEnumerable<PropertyDefinition> PkProperties
         {
             get
             {
-                return Properties.Where(p => p.HasAttribute(Field2DbRelations.PK));
+                return GetCompleteProperties().Where(p => p.HasAttribute(Field2DbRelations.PK));
             }
         }
 

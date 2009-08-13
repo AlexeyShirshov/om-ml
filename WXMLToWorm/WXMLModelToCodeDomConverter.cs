@@ -602,11 +602,12 @@ namespace WXMLToWorm
                         //if(
                         if (entity.HasSinglePk)
                         {
+                            PropertyDefinition pkProperty = entity.PkProperties.Single();
                             // параметризированный конструктор
                             ctr = new CodeConstructor();
                             ctr.Attributes = MemberAttributes.Public;
                             // параметры конструктора
-                            ctr.Parameters.Add(new CodeParameterDeclarationExpression(entity.PkProperty.PropertyType.ToCodeType(Settings), "id"));
+                            ctr.Parameters.Add(new CodeParameterDeclarationExpression(pkProperty.PropertyType.ToCodeType(Settings), "id"));
                             ctr.Parameters.Add(new CodeParameterDeclarationExpression(typeof(CacheBase), "cache"));
                             ctr.Parameters.Add(new CodeParameterDeclarationExpression(typeof(ObjectMappingEngine),
                                                                                       "schema"));
@@ -1132,7 +1133,7 @@ namespace WXMLToWorm
             }
             else
             {
-                var pkProperty = entity.PkProperty;
+                PropertyDefinition pkProperty = entity.PkProperties.Single();
                 meth.Statements.Add(
                     new CodeAssignStatement(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(),
                                                                             new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(pkProperty.Name)),
@@ -1257,7 +1258,7 @@ namespace WXMLToWorm
                                    HasSet = true,
                                    Attributes = MemberAttributes.Public | MemberAttributes.Override
                                };
-            PropertyDefinition pkProperty = entityClass.Entity.PkProperty;
+            PropertyDefinition pkProperty = entityClass.Entity.PkProperties.Single();
             property.GetStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(),
                                                                            new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(pkProperty.Name))));
             //Convert.ChangeType(object, type);
@@ -1334,7 +1335,7 @@ namespace WXMLToWorm
             }
             else
             {
-                var pkProperty = entity.PkProperty;
+                PropertyDefinition pkProperty = entity.PkProperties.Single();
                 meth.Statements.Add(
                 new CodeAssignStatement(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(),
                                                                             new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(pkProperty.Name)),

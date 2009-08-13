@@ -816,10 +816,11 @@ namespace WXML.DatabaseConnector
                         if (!ed.GetSourceFragments().Contains(t))
                         {
                             ed.AddSourceFragment(t);
+                            PropertyDefinition pkProperty = ed.PkProperties.Single();
                             t.AnchorTable = ed.GetSourceFragments().First();
                             t.JoinType = SourceFragmentRefDefinition.JoinTypeEnum.outer;
                             t.Conditions.Add(new SourceFragmentRefDefinition.Condition(
-                                ed.PkProperty.FieldName, columnName));
+                                pkProperty.FieldName, columnName));
                         }
                         DatabaseColumn c = new DatabaseColumn(t.Selector, t.Name, columnName, false, null, false, 1);
                         foreach (Pair<DatabaseColumn, PropertyDefinition> p2 in notFound.FindAll((ff) => ff.First.Equals(c)))
