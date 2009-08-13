@@ -210,5 +210,50 @@ namespace WXMLTests
                 Assert.AreEqual(oldProp.SourceFragment, renewProp.SourceFragment);
             }
         }
+
+        [TestMethod]
+        public void TestAddEntity()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("suppressed"))
+            {
+                Assert.IsNotNull(stream);
+
+                WXMLModel model = WXMLModel.LoadFromXml(new XmlTextReader(stream));
+
+                Assert.IsNotNull(model);
+
+                Assert.Inconclusive();
+            }
+        }
+
+        [TestMethod]
+        public void TestAlterEntity()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("suppressed"))
+            {
+                Assert.IsNotNull(stream);
+
+                WXMLModel model = WXMLModel.LoadFromXml(new XmlTextReader(stream));
+
+                Assert.IsNotNull(model);
+
+                Assert.Inconclusive();
+            }
+        }
+
+        [TestMethod]
+        public void TestAlterEntity_ChangeTable()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("suppressed"))
+            {
+                Assert.IsNotNull(stream);
+
+                WXMLModel model = WXMLModel.LoadFromXml(new XmlTextReader(stream));
+
+                Assert.IsNotNull(model);
+
+                Assert.Inconclusive();
+            }
+        }
     }
 }
