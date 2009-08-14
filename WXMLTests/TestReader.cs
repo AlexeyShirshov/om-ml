@@ -89,7 +89,7 @@ namespace WXMLTests
 
             parser.FillProperties(entity);
 
-            Assert.AreEqual<int>(8, entity.Properties.Count());
+            Assert.AreEqual<int>(8, entity.SelfProperties.Count());
 
             PropertyDefinition prop = entity.GetProperty("ID");
             Assert.IsNotNull(prop);
@@ -117,6 +117,8 @@ namespace WXMLTests
             Assert.AreEqual<string>(prop.Name, prop.PropertyAlias, "PropertyAlias");
 
             prop = entity.GetProperty("DisplayTitle");
+            Assert.IsNull(prop);
+            prop = entity.GetProperty("DisplayName");
             Assert.IsNotNull(prop);
             Assert.AreEqual<string>("DisplayTitle", prop.Name, "Name is undefined");
             //Assert.AreEqual<int>(0, prop.Attributes.Length, "Attributes is undefined");
@@ -173,7 +175,7 @@ namespace WXMLTests
 
             Assert.AreEqual<int>(1, entity.SuppressedProperties.Count, "SuppressedProperties.Count");
 
-            PropertyDefinition prop = entity.GetCompleteProperties().Single(item=>item.PropertyAlias==entity.SuppressedProperties[0]);
+            PropertyDefinition prop = entity.GetProperties().Single(item=>item.PropertyAlias==entity.SuppressedProperties[0]);
 
             Assert.AreEqual<string>("Prop1", prop.Name, "SuppressedPropertyName");
             Assert.IsTrue(prop.IsSuppressed, "SuppressedPropery.IsSuppressed");
@@ -208,19 +210,20 @@ namespace WXMLTests
             parser.FillTypes();
 
 
-            WXMLModel ormObjectDef;
-            ormObjectDef = parser.Model;
+            WXMLModel ormObjectDef = parser.Model;
 
             EntityDefinition entity = ormObjectDef.Entities
                 .Single(match => match.Identifier == "e1");
 
             parser.FillProperties(entity);
 
-            Assert.AreEqual<int>(6, entity.Properties.Count());
-            PropertyDefinition prop;
+            Assert.AreEqual<int>(6, entity.SelfProperties.Count());
 
-            prop = entity.GetProperty("Identifier1");
+            PropertyDefinition prop = entity.GetProperty("Identifier1");
+            Assert.IsNull(prop);
+            prop = entity.GetProperty("ID");
             Assert.IsNotNull(prop);
+
             Assert.IsNull(prop.Group);
 
             prop = entity.GetProperty("prop1");

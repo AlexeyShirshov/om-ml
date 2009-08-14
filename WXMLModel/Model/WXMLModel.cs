@@ -77,7 +77,11 @@ namespace WXML.Model
             if (_entities.Exists(ee => ee.Identifier == e.Identifier))
                 throw new ArgumentException(String.Format("Entity {0} already in collection", e.Identifier));
 
+            //if (e.Model != this)
+            //    throw new InvalidOperationException(string.Format("Entity {0} belongs to another model", e.Identifier));
+
             _entities.Add(e);
+            e._model = this;
         }
 
         public void RemoveEntity(EntityDefinition e)
@@ -319,7 +323,37 @@ namespace WXML.Model
         public void Merge(WXMLModel mergeWith)
         {
             MergeTypes(mergeWith);
+            MergeTables(mergeWith);
             MergeEntities(mergeWith);
+            MergeExtensions(Extensions, mergeWith.Extensions);
+        }
+
+        private static void MergeExtensions(Dictionary<string, XmlDocument> extensions, Dictionary<string, XmlDocument> newExtensions)
+        {
+            foreach (KeyValuePair<string, XmlDocument> extension in newExtensions)
+            {
+                if (!extensions.ContainsKey(extension.Key))
+                    extensions.Add(extension.Key, extension.Value);
+            }
+        }
+
+        private void MergeTables(WXMLModel mergeWith)
+        {
+            foreach (SourceFragmentDefinition newsf in mergeWith.SourceFragments)
+            {
+                string newsfIdentifier = newsf.Identifier;
+                SourceFragmentDefinition sf = SourceFragments.SingleOrDefault(item => item.Identifier == newsfIdentifier);
+                if (sf != null)
+                {
+                    if (!string.IsNullOrEmpty(newsf.Name))
+                        sf.Name = newsf.Name;
+
+                    if (!string.IsNullOrEmpty(newsf.Selector))
+                        sf.Selector = newsf.Selector;
+                }
+                else
+                    SourceFragments.Add(newsf);
+            }
         }
 
 	    private void MergeTypes(WXMLModel model)
@@ -347,16 +381,52 @@ namespace WXML.Model
 	            EntityDefinition entity = Entities.SingleOrDefault(item => item.Identifier == newEntityIdentifier);
 	            if (entity != null)
 	            {
-	                foreach (PropertyDefinition newProperty in newEntity.Properties)
+                    if (!string.IsNullOrEmpty(newEntity.Name))
+                        entity.Name = newEntity.Name;
+
+                    entity.Namespace = newEntity.Namespace;
+                    entity.BaseEntity = newEntity.BaseEntity;
+	                entity.Behaviour = newEntity.Behaviour;
+	                entity.CacheCheckRequired = newEntity.CacheCheckRequired;
+	                entity.Description = newEntity.Description;
+	                entity.Disabled = newEntity.Disabled;
+	                entity.InheritsBaseTables = newEntity.InheritsBaseTables;
+	                entity.MakeInterface = newEntity.MakeInterface;
+	                entity.UseGenerics = newEntity.UseGenerics;
+
+	                foreach (SourceFragmentRefDefinition newsf in newEntity.GetSourceFragments())
 	                {
-	                    string newPropertyName = newProperty.PropertyAlias;
+	                    string newsfId = newsf.Identifier;
+	                    SourceFragmentRefDefinition sf =
+	                        entity.GetSourceFragments().SingleOrDefault(item => item.Identifier == newsfId);
 
-	                    PropertyDefinition property =
-	                        entity.Properties.SingleOrDefault(item => item.PropertyAlias == newPropertyName);
+                        if (sf != null)
+                        {
+                            if (newsf.AnchorTable != null)
+                            {
+                                sf.AnchorTable = newsf.AnchorTable;
+                                sf.JoinType = newsf.JoinType;
+                                if (newsf.Conditions.Count > 0)
+                                {
+                                    sf.Conditions.Clear();
+                                    sf.Conditions.AddRange(newsf.Conditions);
+                                }
+                            }
+                        }
+                        else
+                            entity.AddSourceFragment(newsf);
+	                }
 
-	                    if (property!=null)
-	                    {
-	                        property.DbTypeName = MergeString(property, newProperty, (item) => item.DbTypeName);
+                    foreach (PropertyDefinition newProperty in newEntity.GetProperties())
+                    {
+                        string newPropertyName = newProperty.PropertyAlias;
+
+                        PropertyDefinition property =
+                            entity.GetProperties().SingleOrDefault(item => item.PropertyAlias == newPropertyName);
+
+                        if (property != null)
+                        {
+                            property.DbTypeName = MergeString(property, newProperty, (item) => item.DbTypeName);
                             property.DefferedLoadGroup = MergeString(property, newProperty, (item) => item.DefferedLoadGroup);
                             property.Description = MergeString(property, newProperty, (item) => item.Description);
                             property.FieldAlias = MergeString(property, newProperty, (item) => item.FieldAlias);
@@ -365,29 +435,29 @@ namespace WXML.Model
                             property.ObsoleteDescripton = MergeString(property, newProperty, (item) => item.ObsoleteDescripton);
 
                             //List<string> newAttributes = new List<string>();
-                            
+
                             //if (property.Attributes != )
                             //    newAttributes.AddRange(property.Attributes);
                             if (newProperty.Attributes != Field2DbRelations.None)
                             {
                                 //newAttributes.AddRange(newProperty.Attributes.Where(item=>!newAttributes.Contains(item)));
-    	                        property.Attributes = newProperty.Attributes;
+                                property.Attributes = newProperty.Attributes;
                             }
 
-	                        property.DbTypeNullable = newProperty.DbTypeNullable ?? property.DbTypeNullable;
+                            property.DbTypeNullable = newProperty.DbTypeNullable ?? property.DbTypeNullable;
                             property.DbTypeSize = newProperty.DbTypeSize ?? property.DbTypeSize;
                             property.Group = newProperty.Group ?? property.Group;
                             property.PropertyType = newProperty.PropertyType ?? property.PropertyType;
                             property.SourceFragment = newProperty.SourceFragment ?? property.SourceFragment;
 
-	                        property.Disabled = newProperty.Disabled;
-	                        property.EnablePropertyChanged = newProperty.EnablePropertyChanged;
-	                        //property.IsSuppressed = newProperty.IsSuppressed;
-	                        property.FromBase = newProperty.FromBase;
+                            property.Disabled = newProperty.Disabled;
+                            property.EnablePropertyChanged = newProperty.EnablePropertyChanged;
+                            //property.IsSuppressed = newProperty.IsSuppressed;
+                            property.FromBase = newProperty.FromBase;
 
                             if (newProperty.FieldAccessLevel != default(AccessLevel))
                                 property.FieldAccessLevel = newProperty.FieldAccessLevel;
-                            
+
                             if (newProperty.PropertyAccessLevel != default(AccessLevel))
                                 property.PropertyAccessLevel = newProperty.PropertyAccessLevel;
 
@@ -395,10 +465,12 @@ namespace WXML.Model
                                 property.Obsolete = newProperty.Obsolete;
 
                         }
-	                    else
-	                        entity.AddProperty(newProperty);
-	                }
-	            }
+                        else
+                            entity.AddProperty(newProperty);
+                    }
+
+                    MergeExtensions(entity.Extensions, entity.Extensions);
+                }
 	            else
 	                AddEntity(newEntity);
 	        }

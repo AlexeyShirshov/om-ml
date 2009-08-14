@@ -52,11 +52,11 @@ namespace WXML.Model.Descriptors
                 PropertyDefinition res = null;
                 if(!string.IsNullOrEmpty(PropertyAlias))
                 {
-                    res = Entity.Properties.SingleOrDefault(p => p.PropertyAlias == PropertyAlias);
+                    res = Entity.GetProperties().SingleOrDefault(p => p.PropertyAlias == PropertyAlias);
                 }
                 else
                 {
-                    var lst = Entity.Properties.Where(p => p.PropertyType.IsEntityType && p.PropertyType.Entity == SourceEntity);
+                    var lst = Entity.GetProperties().Where(p => p.PropertyType.IsEntityType && p.PropertyType.Entity == SourceEntity);
                     if (lst.Count() > 1)
                     {
                         throw new OrmCodeGenException(

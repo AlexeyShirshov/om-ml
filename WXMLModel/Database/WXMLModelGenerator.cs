@@ -311,7 +311,7 @@ namespace WXML.DatabaseConnector
                 foreach (EntityDefinition ed in odef.Entities)
                 {
                     List<PropertyDefinition> col2remove = new List<PropertyDefinition>();
-                    foreach (PropertyDefinition pd in ed.Properties)
+                    foreach (PropertyDefinition pd in ed.GetProperties())
                     {
                         string[] ss = ed.GetSourceFragments().First().Name.Split('.');
                         DatabaseColumn c = new DatabaseColumn(ss[0].Trim(new char[] { '[', ']' }), ss[1].Trim(new char[] { '[', ']' }),
@@ -642,7 +642,7 @@ namespace WXML.DatabaseConnector
 
             try
             {
-                pe = e.Properties.SingleOrDefault((PropertyDefinition pd) =>
+                pe = e.SelfProperties.SingleOrDefault((PropertyDefinition pd) =>
                 {
                     if (pd.FieldName == c.ColumnName || pd.FieldName.TrimEnd(']').TrimStart('[') == c.ColumnName)
                         return true;
@@ -652,7 +652,7 @@ namespace WXML.DatabaseConnector
             }
             catch (InvalidOperationException)
             {
-                pe = e.Properties.SingleOrDefault((PropertyDefinition pd) =>
+                pe = e.SelfProperties.SingleOrDefault((PropertyDefinition pd) =>
                 {
                     if ((pd.FieldName == c.ColumnName || pd.FieldName.TrimEnd(']').TrimStart('[') == c.ColumnName)
                         && !pd.PropertyType.IsEntityType)
@@ -707,7 +707,7 @@ namespace WXML.DatabaseConnector
                     {
                         attrs = Field2DbRelations.ReadOnly | Field2DbRelations.SyncInsert; //new string[] { "ReadOnly", "SyncInsert" };
                         string propName = pt2.Entity.Name;
-                        int cnt = e.Properties.Count(p => !p.Disabled && p.Name == propName);
+                        int cnt = e.SelfProperties.Count(p => !p.Disabled && p.Name == propName);
                         if (cnt > 0)
                             propName = propName + cnt.ToString();
 
@@ -816,7 +816,7 @@ namespace WXML.DatabaseConnector
                         if (!ed.GetSourceFragments().Contains(t))
                         {
                             ed.AddSourceFragment(t);
-                            PropertyDefinition pkProperty = ed.PkProperties.Single();
+                            PropertyDefinition pkProperty = ed.GetPkProperties().Single();
                             t.AnchorTable = ed.GetSourceFragments().First();
                             t.JoinType = SourceFragmentRefDefinition.JoinTypeEnum.outer;
                             t.Conditions.Add(new SourceFragmentRefDefinition.Condition(

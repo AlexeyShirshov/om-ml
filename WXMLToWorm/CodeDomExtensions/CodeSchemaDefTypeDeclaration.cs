@@ -343,7 +343,7 @@ namespace WXMLToWorm.CodeDomExtensions
 			                                         						)
 			                                         			)
 			                                         	};
-            condTrueStatements.AddRange(m_entityClass.Entity.Properties
+            condTrueStatements.AddRange(m_entityClass.Entity.SelfProperties
                 .Where(action => !action.Disabled)
                 .SelectMany<PropertyDefinition, CodeStatement>(action =>
                     {

@@ -23,13 +23,13 @@ namespace WXMLToWorm.CodeDomExtensions
 
         void OnPopulateMemebers(object sender, EventArgs e)
         {
-            if (Entity.BaseEntity != null && Entity.BaseEntity.Properties.Any(p => p.Group != null && p.Group.Name == Group.Name))
+            if (Entity.BaseEntity != null && Entity.BaseEntity.SelfProperties.Any(p => p.Group != null && p.Group.Name == Group.Name))
                 throw new OrmCodeGenException(
                     string.Format(
                         "В сущности {0} описана группа {1} перекрывающая одноименную группу базовой сущности {2}.",
                         Entity.Name, Group.Name, Entity.BaseEntity.Name));
 
-            var properties = Entity.Properties.Where(p => p.Group == Group);
+            var properties = Entity.SelfProperties.Where(p => p.Group == Group);
             CodeTypeReference entityClassTypeReference = WXMLCodeDomGeneratorHelper.GetEntityClassTypeReference(_settings,Entity);
 
             var entityField = new CodeMemberField(entityClassTypeReference,

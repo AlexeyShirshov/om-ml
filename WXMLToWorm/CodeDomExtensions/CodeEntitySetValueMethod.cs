@@ -35,7 +35,7 @@ namespace WXMLToWorm.CodeDomExtensions
 				)
 			);
 
-			foreach (var property in entity.CompleteEntity.Properties)
+			foreach (var property in entity.GetProperties())
 			{
 				if (property.Disabled)
 					continue;
