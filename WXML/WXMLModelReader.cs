@@ -354,24 +354,20 @@ namespace WXML.Model
 
         internal protected void FindEntities()
         {
-            XmlNodeList entitiesList;
-            entitiesList = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:Entities/{0}:Entity", WXMLModel.NS_PREFIX), _nsMgr);
-
-            EntityDefinition entity;
+            XmlNodeList entitiesList = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:Entities/{0}:Entity", WXMLModel.NS_PREFIX), _nsMgr);
 
             _ormObjectsDef.ClearEntities();
 
             foreach (XmlNode entityNode in entitiesList)
             {
-                string id, name, description, nameSpace, behaviourName;
                 EntityBehaviuor behaviour = EntityBehaviuor.ForcePartial;
 
                 XmlElement entityElement = (XmlElement) entityNode;
-                id = entityElement.GetAttribute("id");
-                name = entityElement.GetAttribute("name");
-                description = entityElement.GetAttribute("description");
-                nameSpace = entityElement.GetAttribute("namespace");
-                behaviourName = entityElement.GetAttribute("behaviour");
+                string id = entityElement.GetAttribute("id");
+                string name = entityElement.GetAttribute("name");
+                string description = entityElement.GetAttribute("description");
+                string nameSpace = entityElement.GetAttribute("namespace");
+                string behaviourName = entityElement.GetAttribute("behaviour");
 
             	string useGenericsAttribute = entityElement.GetAttribute("useGenerics");
             	string makeInterfaceAttribute = entityElement.GetAttribute("makeInterface");
@@ -389,7 +385,7 @@ namespace WXML.Model
                     behaviour = (EntityBehaviuor) Enum.Parse(typeof (EntityBehaviuor), behaviourName);
 
 
-                entity = new EntityDefinition(id, name, nameSpace, description, _ormObjectsDef);
+                EntityDefinition entity = new EntityDefinition(id, name, nameSpace, description, _ormObjectsDef);
 
 				entity.Behaviour = behaviour;
             	entity.UseGenerics = useGenerics;
@@ -397,7 +393,7 @@ namespace WXML.Model
             	entity.Disabled = disabled;
             	entity.CacheCheckRequired = cacheCheckRequired;
 
-                _ormObjectsDef.AddEntity(entity);
+                //_ormObjectsDef.AddEntity(entity);
 
                 FillEntityTables(entity);
             }
@@ -408,11 +404,9 @@ namespace WXML.Model
             if (entity == null)
                 throw new ArgumentNullException("entity");
 
-            XmlNode entityNode;
-            entityNode = _ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX, entity.Identifier), _nsMgr);
+            XmlNode entityNode = _ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX, entity.Identifier), _nsMgr);
 
-            XmlNodeList propertiesList;
-            propertiesList = entityNode.SelectNodes(string.Format("{0}:Properties/{0}:Property", WXMLModel.NS_PREFIX), _nsMgr);
+            XmlNodeList propertiesList = entityNode.SelectNodes(string.Format("{0}:Properties/{0}:Property", WXMLModel.NS_PREFIX), _nsMgr);
 
             FillEntityProperties(entity, propertiesList, null);
 

@@ -44,24 +44,24 @@ namespace WXML.Model.Descriptors
         {
         }
 
-        public PropertyDefinition(EntityDefinition entity, string name, string alias, Field2DbRelations attributes, 
-            string description, TypeDefinition type, string fieldname, SourceFragmentDefinition table, 
+        public PropertyDefinition(EntityDefinition entity, string name, string alias, Field2DbRelations attributes,
+            string description, TypeDefinition type, string fieldname, SourceFragmentDefinition table,
             AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
-            : this(entity,name, alias, attributes, description, type, fieldname, table, false, fieldAccessLevel, propertyAccessLevel, false)
+            : this(entity, name, alias, attributes, description, type, fieldname, table, false, fieldAccessLevel, propertyAccessLevel, false)
         {
         }
 
-        public PropertyDefinition(string name, string alias, Field2DbRelations attributes, string description, 
-            TypeDefinition type, string fieldname, SourceFragmentDefinition table, 
-            AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel) 
-            : this(null,name, alias, attributes, description, type, fieldname, table, false, fieldAccessLevel, propertyAccessLevel, false)
+        public PropertyDefinition(string name, string alias, Field2DbRelations attributes, string description,
+            TypeDefinition type, string fieldname, SourceFragmentDefinition table,
+            AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
+            : this(null, name, alias, attributes, description, type, fieldname, table, false, fieldAccessLevel, propertyAccessLevel, false)
         {
         }
 
         internal PropertyDefinition(EntityDefinition entity, string name, string alias, Field2DbRelations attributes, string description, TypeDefinition type, string fieldname, SourceFragmentDefinition table, bool fromBase, AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel/*, bool isSuppressed*/, bool isRefreshed)
         {
             _name = name;
-            _propertyAlias = string.IsNullOrEmpty(alias)?name:alias;
+            _propertyAlias = string.IsNullOrEmpty(alias) ? name : alias;
             _attributes = attributes;
             _description = description;
             _type = type;
@@ -74,7 +74,15 @@ namespace WXML.Model.Descriptors
             IsRefreshed = isRefreshed;
             Entity = entity;
         }
-        
+
+        public string Identifier
+        {
+            get
+            {
+                return _propertyAlias;
+            }
+        }
+
         public string Name
         {
             get { return _name; }
@@ -86,7 +94,7 @@ namespace WXML.Model.Descriptors
             get { return _attributes; }
             set { _attributes = value; }
         }
-        
+
         public string Description
         {
             get { return _description; }
@@ -98,13 +106,13 @@ namespace WXML.Model.Descriptors
             get { return _type; }
             set { _type = value; }
         }
-                
+
         public string FieldName
         {
             get { return _fieldName; }
             set { _fieldName = value; }
         }
-                
+
         public SourceFragmentDefinition SourceFragment
         {
             get { return _table; }
@@ -131,7 +139,7 @@ namespace WXML.Model.Descriptors
 
         public AccessLevel PropertyAccessLevel
         {
-            get { return  _propertyAccessLevel; }
+            get { return _propertyAccessLevel; }
             set { _propertyAccessLevel = value; }
         }
 
@@ -139,7 +147,7 @@ namespace WXML.Model.Descriptors
         {
             get
             {
-                return Entity.SuppressedProperties.Exists(item=>item == PropertyAlias);
+                return Entity.SuppressedProperties.Exists(item => item == PropertyAlias);
             }
             //set { _isSuppressed = value; }
         }
@@ -166,19 +174,19 @@ namespace WXML.Model.Descriptors
 
         public string FieldAlias { get; set; }
 
-		public string DefferedLoadGroup { get; set; }
+        public string DefferedLoadGroup { get; set; }
 
         object ICloneable.Clone()
         {
             PropertyDefinition prop = new PropertyDefinition(Entity, Name)
             {
-                Disabled=Disabled,
-                Obsolete=Obsolete,
+                Disabled = Disabled,
+                Obsolete = Obsolete,
                 ObsoleteDescripton = ObsoleteDescripton,
                 EnablePropertyChanged = EnablePropertyChanged,
                 DbTypeName = DbTypeName,
                 DbTypeSize = DbTypeSize,
-                DbTypeNullable=DbTypeNullable,
+                DbTypeNullable = DbTypeNullable,
                 Group = Group,
                 FieldAlias = FieldAlias,
                 DefferedLoadGroup = DefferedLoadGroup
@@ -201,8 +209,8 @@ namespace WXML.Model.Descriptors
             return (PropertyDefinition)(this as ICloneable).Clone();
         }
 
-    	public bool HasAttribute(Field2DbRelations attribute)
-    	{
+        public bool HasAttribute(Field2DbRelations attribute)
+        {
             //bool hasIt = false;
             //foreach (string s in _attributes)
             //{
@@ -213,8 +221,8 @@ namespace WXML.Model.Descriptors
             //    }
             //}
             //return hasIt;
-    	    return (_attributes & attribute) == attribute;
-    	}
+            return (_attributes & attribute) == attribute;
+        }
 
         internal PropertyDefinition Clone(EntityDefinition entityDescription)
         {
@@ -224,10 +232,10 @@ namespace WXML.Model.Descriptors
         }
     }
 
-	public enum ObsoleteType
-	{
-		None,
-		Warning,
-		Error
-	}
+    public enum ObsoleteType
+    {
+        None,
+        Warning,
+        Error
+    }
 }

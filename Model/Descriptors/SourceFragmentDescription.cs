@@ -7,8 +7,8 @@ namespace WXML.Model.Descriptors
 	public class SourceFragmentDefinition
 	{
 		public string Identifier { get; private set; }
-		public string Name { get; private set; }
-		public string Selector { get; private set; }
+		public string Name { get; set; }
+		public string Selector { get; set; }
 
 		public SourceFragmentDefinition(string id, string name) : this(id, name, null)
 		{

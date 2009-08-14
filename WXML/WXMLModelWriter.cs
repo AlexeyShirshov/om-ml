@@ -333,7 +333,7 @@ namespace WXML.Model
 				if (entity.MakeInterface)
 					entityElement.SetAttribute("makeInterface", XmlConvert.ToString(entity.MakeInterface));
                 if (entity.BaseEntity != null)
-                    entityElement.SetAttribute("baseEntity", entity.Identifier);
+                    entityElement.SetAttribute("baseEntity", entity.BaseEntity.Identifier);
 				if (entity.Disabled)
 					entityElement.SetAttribute("disabled", XmlConvert.ToString(entity.Disabled));
 
@@ -368,12 +368,12 @@ namespace WXML.Model
 				entityElement.AppendChild(tablesNode);	
 
                 XmlNode propertiesNode = CreateElement("Properties");
-                IEnumerable<PropertyDefinition> properties = entity.Properties.Where(p => p.Group == null);
+                IEnumerable<PropertyDefinition> properties = entity.SelfProperties.Where(p => p.Group == null);
                 FillEntityProperties(properties, propertiesNode);
                 entityElement.AppendChild(propertiesNode);
 
                 List<PropertyGroup> groups = new List<PropertyGroup>();
-                properties = entity.Properties.Where(p => p.Group != null);
+                properties = entity.SelfProperties.Where(p => p.Group != null);
 
                 foreach (var property in properties)
                 {
