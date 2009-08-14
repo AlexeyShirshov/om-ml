@@ -79,7 +79,7 @@ namespace WXMLTests
 
                 WXMLModel newModel = new WXMLModel();
 
-                TypeDefinition newType = new TypeDefinition("tInt16",typeof(short));
+                TypeDefinition newType = new TypeDefinition("tInt16", typeof(short));
 
                 newModel.Types.Add(newType);
 
@@ -120,7 +120,7 @@ namespace WXMLTests
 
                 EntityDefinition newEntity = new EntityDefinition(entity.Identifier, entity.Name, entity.Namespace, entity.Description, newModel);
 
-                newModel.AddEntity(newEntity);
+                //newModel.AddEntity(newEntity);
 
                 TypeDefinition tString = model.Types.Single(item => item.Identifier == "tString");
 
@@ -132,7 +132,7 @@ namespace WXMLTests
 
                 newEntity.AddSourceFragment(newTable);
 
-                newEntity.AddProperty(new PropertyDefinition(newEntity, "Prop2", "Prop2", Field2DbRelations.None, null, 
+                newEntity.AddProperty(new PropertyDefinition(newEntity, "Prop2", "Prop2", Field2DbRelations.None, null,
                     tString, "prop2", newTable, AccessLevel.Private, AccessLevel.Public));
 
                 model.Merge(Normalize(newModel));
@@ -172,9 +172,9 @@ namespace WXMLTests
 
                 EntityDefinition newEntity = new EntityDefinition(entity.Identifier, entity.Name, entity.Namespace, entity.Description, newModel);
 
-                newModel.AddEntity(newEntity);
+                //newModel.AddEntity(newEntity);
 
-                PropertyDefinition newProp = new PropertyDefinition(newEntity,"Prop2")
+                PropertyDefinition newProp = new PropertyDefinition(newEntity, "Prop2")
                 {
                     PropertyAlias = "Prop1",
                     PropertyType = newType
@@ -186,7 +186,7 @@ namespace WXMLTests
 
                 Assert.AreEqual(2, entity.ActiveProperties.Count);
 
-                PropertyDefinition renewProp = entity.ActiveProperties.Single(item=>item.PropertyAlias=="Prop1");
+                PropertyDefinition renewProp = entity.ActiveProperties.Single(item => item.PropertyAlias == "Prop1");
 
                 Assert.AreEqual("Prop2", renewProp.Name);
 
@@ -222,23 +222,73 @@ namespace WXMLTests
 
                 Assert.IsNotNull(model);
 
-                Assert.Inconclusive();
+                Assert.AreEqual(2, model.ActiveEntities.Count());
+
+                WXMLModel newModel = new WXMLModel();
+
+                EntityDefinition newEntity = new EntityDefinition("ee", "ee", string.Empty, string.Empty, newModel);
+
+                SourceFragmentRefDefinition sf = new SourceFragmentRefDefinition(newModel.GetOrCreateSourceFragment("dbo", "ee"));
+
+                newEntity.AddSourceFragment(sf);
+
+                newEntity.AddProperty(new PropertyDefinition(newEntity, "ID", "ID", Field2DbRelations.None,
+                    string.Empty, newModel.GetOrCreateClrType(typeof(Int32)), "id", sf, AccessLevel.Private,
+                    AccessLevel.Public));
+
+                model.Merge(Normalize(newModel));
+
+                Assert.AreEqual(3, model.ActiveEntities.Count());
+
+                Assert.AreEqual(1, model.ActiveEntities.Single(item => item.Identifier == "ee").ActiveProperties.Count);
             }
         }
 
         [TestMethod]
         public void TestAlterEntity()
         {
-            using (Stream stream = Resources.GetXmlDocumentStream("suppressed"))
-            {
-                Assert.IsNotNull(stream);
+            WXMLModel newModel = GetModel("suppressed");
 
-                WXMLModel model = WXMLModel.LoadFromXml(new XmlTextReader(stream));
+            Assert.IsNotNull(newModel);
 
-                Assert.IsNotNull(model);
+            Assert.AreEqual(2, newModel.ActiveEntities.Count());
 
-                Assert.Inconclusive();
-            }
+            EntityDefinition e = newModel.ActiveEntities.Single(item => item.Identifier == "e1");
+            EntityDefinition e2 = newModel.ActiveEntities.Single(item => item.Identifier == "e11");
+
+            Assert.AreEqual(e2.BaseEntity, e);
+            Assert.AreEqual("E1", e.Name);
+
+            e.Name = "xxx";
+
+            Assert.AreEqual(e2.BaseEntity, e);
+
+            WXMLModel model = GetModel("suppressed");
+
+            model.Merge(Normalize(newModel));
+
+            Assert.AreEqual(2, model.ActiveEntities.Count());
+
+            e = model.ActiveEntities.Single(item => item.Identifier == "e1");
+            Assert.AreEqual("xxx", e.Name);
+        }
+
+        [TestMethod]
+        public void TestMergeExtension()
+        {
+            WXMLModel newModel = GetModel("extensions");
+
+            Assert.AreEqual(1, newModel.Extensions.Count);
+
+            XmlDocument xdoc = new XmlDocument();
+            xdoc.LoadXml("<root/>");
+
+            newModel.Extensions.Add("dfdf", xdoc);
+            WXMLModel model = GetModel("extensions");
+
+            model.Merge(Normalize(newModel));
+
+            Assert.AreEqual(2, model.Extensions.Count);
         }
 
         [TestMethod]
@@ -248,11 +298,57 @@ namespace WXMLTests
             {
                 Assert.IsNotNull(stream);
 
+                WXMLModel newModel = WXMLModel.LoadFromXml(new XmlTextReader(stream));
+
+                Assert.IsNotNull(newModel);
+
+                Assert.AreEqual(2, newModel.ActiveEntities.Count());
+
+                EntityDefinition e = newModel.ActiveEntities.Single(item => item.Identifier == "e1");
+
+                Assert.AreEqual(1, e.GetSourceFragments().Count());
+                Assert.AreEqual(1, newModel.SourceFragments.Count());
+
+                Assert.AreEqual("tbl1", e.GetSourceFragments().First().Name);
+                Assert.IsTrue(string.IsNullOrEmpty(e.GetSourceFragments().First().Selector));
+
+                SourceFragmentRefDefinition sf = new SourceFragmentRefDefinition(newModel.GetOrCreateSourceFragment("dbo", "table"));
+
+                e.ClearSourceFragments();
+
+                e.AddSourceFragment(sf);
+
+                foreach (PropertyDefinition property in e.GetProperties())
+                {
+                    property.SourceFragment = sf;
+                }
+
+                WXMLModel model = GetModel("suppressed");
+
+                model.Merge(Normalize(newModel));
+
+                e = model.ActiveEntities.Single(item => item.Identifier == "e1");
+
+                Assert.AreEqual(1, e.GetSourceFragments().Count());
+                Assert.AreEqual(2, model.SourceFragments.Count());
+
+                Assert.AreEqual("table", e.GetSourceFragments().First().Name);
+                Assert.AreEqual("dbo", e.GetSourceFragments().First().Selector);
+
+            }
+        }
+
+        private WXMLModel GetModel(string fileName)
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream(fileName))
+            {
+                Assert.IsNotNull(stream);
+
                 WXMLModel model = WXMLModel.LoadFromXml(new XmlTextReader(stream));
 
                 Assert.IsNotNull(model);
 
-                Assert.Inconclusive();
+                return model;
             }
         }
     }
