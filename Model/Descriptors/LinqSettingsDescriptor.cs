@@ -30,7 +30,7 @@ namespace WXML.Model.Descriptors
             get;
             set;
         }
-
+        public string BaseContext { get; set; }
     }
 
     public enum ContextClassBehaviourType

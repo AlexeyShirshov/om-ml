@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Xml;
@@ -89,50 +90,25 @@ namespace WXML.Model
             _entities.Remove(e);
         }
 
-        public IEnumerable<EntityDefinition> Entities
-        {
-            get
-            {
-                return _entities;
-            }
-        }
+        //public IList<EntityDefinition> FlatEntities
+        //{
+        //    get
+        //    {
+        //        IList<EntityDefinition> baseFlatEntities = ((BaseSchema == null) ? new List<EntityDefinition>() : BaseSchema.FlatEntities);
+        //        var entities = GetActiveEntities();
+        //        var list = new List<EntityDefinition>();
+        //        list.AddRange(entities);
 
-        public IEnumerable<EntityDefinition> ActiveEntities
-		{
-			get
-			{
-				return _entities.FindAll(e => !e.Disabled);
-			}
-		}
+        //        foreach (EntityDefinition baseEntityDescription in baseFlatEntities)
+        //        {
+        //            string name = baseEntityDescription.Name;
+        //            if (!list.Exists(entityDescription => entityDescription.Name == name))
+        //                list.Add(baseEntityDescription);
+        //        }
+        //        return list;
+        //    }
+        //}
 
-	    public IList<EntityDefinition> FlatEntities
-	    {
-	        get
-	        {
-	            IList<EntityDefinition> baseFlatEntities = ((BaseSchema == null) ? new List<EntityDefinition>() : BaseSchema.FlatEntities);
-	        	var entities = ActiveEntities;
-	        	int count = entities.Count() + ((BaseSchema == null) ? 0 : baseFlatEntities.Count);
-	            var list = new List<EntityDefinition>(count);
-	            list.AddRange(entities);
-
-	            foreach (EntityDefinition baseEntityDescription in baseFlatEntities)
-	            {
-	                string name = baseEntityDescription.Name;
-                    if (!list.Exists(entityDescription => entityDescription.Name == name))
-                        list.Add(baseEntityDescription);
-	            }
-	            return list;
-	        }
-	    }
-
-		public List<SourceFragmentDefinition> SourceFragments
-		{
-			get
-			{
-				return _sourceFragments;
-			}
-		}
-		
         public List<RelationDefinitionBase> Relations
         {
             get
@@ -146,14 +122,6 @@ namespace WXML.Model
             get
             {
                 return _relations.FindAll(r=>!r.Disabled);
-            }
-        }
-
-        public List<TypeDefinition> Types
-        {
-            get
-            {
-                return _types;
             }
         }
 
@@ -226,6 +194,14 @@ namespace WXML.Model
             set;
         }
 
+	    public IEnumerable<EntityDefinition> FileEntities
+	    {
+	        get
+	        {
+	            return _entities;
+	        }
+	    }
+
 	    //[XmlIgnore]
         //public List<SelfRelationDescription> SelfRelations
         //{
@@ -236,9 +212,43 @@ namespace WXML.Model
 
         #region Methods
 
+        public IEnumerable<EntityDefinition> GetDerived(string identifier)
+        {
+            var be = GetEntities().Where(item => item.BaseEntity != null && item.BaseEntity.Identifier == identifier);
+
+            List<EntityDefinition> derived = new List<EntityDefinition>(be);
+
+            foreach (EntityDefinition d in be)
+            {
+                foreach (EntityDefinition n in GetDerived(d.Identifier))
+                {
+                    derived.Insert(0, n);
+                }
+            }
+
+            return derived;
+        }
+
+
+        public void AddSourceFragment(SourceFragmentDefinition newsf)
+        {
+            if (GetSourceFragments().Any(item => item.Identifier == newsf.Identifier))
+                throw new ArgumentException(string.Format("SourceFragment {0} already in collection", newsf.Identifier));
+
+            _sourceFragments.Add(newsf);
+        }
+
+        public void AddType(TypeDefinition type)
+        {
+            if (GetTypes().Any(item => item.Identifier == type.Identifier))
+                throw new ArgumentException(string.Format("Type {0} already in collection", type.Identifier));
+
+            _types.Add(type);
+        }
+
         public TypeDefinition GetOrCreateClrType(Type t)
         {
-            TypeDefinition td = Types.FirstOrDefault(item => item.IsClrType && item.ClrType == t);
+            TypeDefinition td = GetTypes().FirstOrDefault(item => item.IsClrType && item.ClrType == t);
             if (td == null)
             {
                 td = new TypeDefinition(t.ToString(), t);
@@ -249,7 +259,7 @@ namespace WXML.Model
 
         public SourceFragmentDefinition GetOrCreateSourceFragment(string selector, string sourceName)
         {
-            SourceFragmentDefinition sf = SourceFragments.FirstOrDefault(item => item.Selector == selector && item.Name == sourceName);
+            SourceFragmentDefinition sf = GetSourceFragments().FirstOrDefault(item => item.Selector == selector && item.Name == sourceName);
             if (sf == null)
             {
                 sf = new SourceFragmentDefinition(selector + "." + sourceName, sourceName, selector);
@@ -265,7 +275,7 @@ namespace WXML.Model
 
         public EntityDefinition GetEntity(string entityId, bool throwNotFoundException)
         {
-            EntityDefinition entity = ActiveEntities
+            EntityDefinition entity = GetActiveEntities()
                 .SingleOrDefault(match => match.Identifier == entityId);
             
             if(entity == null && Includes.Count != 0)
@@ -280,14 +290,34 @@ namespace WXML.Model
             return entity;
         }
 
-        public SourceFragmentDefinition GetSourceFragment(string tableId)
+	    public IEnumerable<EntityDefinition> GetEntities()
+	    {
+	        IEnumerable<EntityDefinition> e = _entities;
+	        foreach (WXMLModel objectsDef in Includes)
+	        {
+	            e = e.Union(objectsDef.GetEntities());
+	        }
+	        return e;
+	    }
+
+	    public IEnumerable<EntityDefinition> GetActiveEntities()
+	    {
+	        IEnumerable<EntityDefinition> e = _entities.Where(item => !item.Disabled);
+	        foreach (WXMLModel objectsDef in Includes)
+	        {
+	            e = e.Union(objectsDef.GetActiveEntities());
+	        }
+	        return e;
+	    }
+
+	    public SourceFragmentDefinition GetSourceFragment(string tableId)
         {
             return GetSourceFragment(tableId, false);
         }
 
         public SourceFragmentDefinition GetSourceFragment(string tableId, bool throwNotFoundException)
         {
-            var table = SourceFragments.Find(match => match.Identifier == tableId);
+            var table = _sourceFragments.Find(match => match.Identifier == tableId);
             if(table == null && Includes.Count > 0)
                 foreach (WXMLModel objectsDef in Includes)
                 {
@@ -300,12 +330,22 @@ namespace WXML.Model
             return table;
         }
 
-        public TypeDefinition GetType(string typeId, bool throwNotFoundException)
+	    public IEnumerable<SourceFragmentDefinition> GetSourceFragments()
+	    {
+	        IEnumerable<SourceFragmentDefinition> sf = _sourceFragments;
+	        foreach (WXMLModel objectsDef in Includes)
+	        {
+	            sf = sf.Union(objectsDef.GetSourceFragments());
+	        }
+	        return sf;
+	    }
+
+	    public TypeDefinition GetType(string typeId, bool throwNotFoundException)
         {
             TypeDefinition type = null;
             if (!string.IsNullOrEmpty(typeId))
             {
-                type = Types.Find(delegate(TypeDefinition match) { return match.Identifier == typeId; });
+                type = _types.Find(match=>match.Identifier == typeId);
                 if (type == null && Includes.Count != 0)
                     foreach (WXMLModel objectsDef in Includes)
                     {
@@ -319,7 +359,18 @@ namespace WXML.Model
             return type;
         }
 
-        #region Merge
+	    public IEnumerable<TypeDefinition> GetTypes()
+	    {
+	        IEnumerable<TypeDefinition> t = _types;
+	        foreach (WXMLModel objectsDef in Includes)
+	        {
+	            t = t.Union(objectsDef.GetTypes());
+	        }
+	        return t;
+	    }
+
+	    #region Merge
+
         public void Merge(WXMLModel mergeWith)
         {
             MergeTypes(mergeWith);
@@ -339,10 +390,10 @@ namespace WXML.Model
 
         private void MergeTables(WXMLModel mergeWith)
         {
-            foreach (SourceFragmentDefinition newsf in mergeWith.SourceFragments)
+            foreach (SourceFragmentDefinition newsf in mergeWith.GetSourceFragments())
             {
                 string newsfIdentifier = newsf.Identifier;
-                SourceFragmentDefinition sf = SourceFragments.SingleOrDefault(item => item.Identifier == newsfIdentifier);
+                SourceFragmentDefinition sf = GetSourceFragments().SingleOrDefault(item => item.Identifier == newsfIdentifier);
                 if (sf != null)
                 {
                     if (!string.IsNullOrEmpty(newsf.Name))
@@ -352,33 +403,33 @@ namespace WXML.Model
                         sf.Selector = newsf.Selector;
                 }
                 else
-                    SourceFragments.Add(newsf);
+                    AddSourceFragment(newsf);
             }
         }
 
 	    private void MergeTypes(WXMLModel model)
 	    {
-	        foreach (TypeDefinition newType in model.Types)
+	        foreach (TypeDefinition newType in model.GetTypes())
 	        {
 	            string newTypeIdentifier = newType.Identifier;
-	            TypeDefinition type = Types.SingleOrDefault(item => item.Identifier == newTypeIdentifier);
+	            TypeDefinition type = GetTypes().SingleOrDefault(item => item.Identifier == newTypeIdentifier);
                 if (type != null)
                 {
                     if (type.ToString() != newType.ToString())
                         throw new NotSupportedException(string.Format("Type with identifier {0} already exists.", newTypeIdentifier));
                 }
                 else
-                    Types.Add(newType);
+                    AddType(newType);
 	        }
 	    }
 
 	    private void MergeEntities(WXMLModel mergeWith)
 	    {
-	        foreach (EntityDefinition newEntity in mergeWith.Entities)
+	        foreach (EntityDefinition newEntity in mergeWith.GetEntities())
 	        {
 	            string newEntityIdentifier = newEntity.Identifier;
 
-	            EntityDefinition entity = Entities.SingleOrDefault(item => item.Identifier == newEntityIdentifier);
+	            EntityDefinition entity = GetEntities().SingleOrDefault(item => item.Identifier == newEntityIdentifier);
 	            if (entity != null)
 	            {
                     if (!string.IsNullOrEmpty(newEntity.Name))
@@ -393,6 +444,7 @@ namespace WXML.Model
 	                entity.InheritsBaseTables = newEntity.InheritsBaseTables;
 	                entity.MakeInterface = newEntity.MakeInterface;
 	                entity.UseGenerics = newEntity.UseGenerics;
+	                entity.FamilyName = newEntity.FamilyName;
 
 	                foreach (SourceFragmentRefDefinition newsf in newEntity.GetSourceFragments())
 	                {
@@ -453,7 +505,7 @@ namespace WXML.Model
                             property.Disabled = newProperty.Disabled;
                             property.EnablePropertyChanged = newProperty.EnablePropertyChanged;
                             //property.IsSuppressed = newProperty.IsSuppressed;
-                            property.FromBase = newProperty.FromBase;
+                            //property.FromBase = newProperty.FromBase;
 
                             if (newProperty.FieldAccessLevel != default(AccessLevel))
                                 property.FieldAccessLevel = newProperty.FieldAccessLevel;
@@ -630,6 +682,7 @@ namespace WXML.Model
 
             #endregion
         }
+
     }
 
     public static class Ext

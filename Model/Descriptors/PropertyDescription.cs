@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace WXML.Model.Descriptors
@@ -29,36 +30,38 @@ namespace WXML.Model.Descriptors
         private TypeDefinition _type;
         private string _fieldName;
         private SourceFragmentDefinition _table;
-        private bool _fromBase;
+        //private bool _fromBase;
         private AccessLevel _fieldAccessLevel;
         private AccessLevel _propertyAccessLevel;
         //private bool _isSuppressed;
 
         public PropertyDefinition(EntityDefinition entity, string name)
-            : this(entity, name, name, Field2DbRelations.None, null, null, null, null, false, AccessLevel.Private, AccessLevel.Public, false)
+            : this(entity, name, name, Field2DbRelations.None, null, null, null, null, AccessLevel.Private, AccessLevel.Public)
         {
         }
 
         public PropertyDefinition(string name)
-            : this(null, name, name, Field2DbRelations.None, null, null, null, null, false, AccessLevel.Private, AccessLevel.Public, false)
+            : this(null, name, name, Field2DbRelations.None, null, null, null, null, AccessLevel.Private, AccessLevel.Public)
         {
         }
 
-        public PropertyDefinition(EntityDefinition entity, string name, string alias, Field2DbRelations attributes,
-            string description, TypeDefinition type, string fieldname, SourceFragmentDefinition table,
-            AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
-            : this(entity, name, alias, attributes, description, type, fieldname, table, false, fieldAccessLevel, propertyAccessLevel, false)
-        {
-        }
+        //public PropertyDefinition(EntityDefinition entity, string name, string alias, Field2DbRelations attributes,
+        //    string description, TypeDefinition type, string fieldname, SourceFragmentDefinition table,
+        //    AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
+        //    : this(entity, name, alias, attributes, description, type, fieldname, table, fieldAccessLevel, propertyAccessLevel)
+        //{
+        //}
 
         public PropertyDefinition(string name, string alias, Field2DbRelations attributes, string description,
             TypeDefinition type, string fieldname, SourceFragmentDefinition table,
             AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
-            : this(null, name, alias, attributes, description, type, fieldname, table, false, fieldAccessLevel, propertyAccessLevel, false)
+            : this(null, name, alias, attributes, description, type, fieldname, table, fieldAccessLevel, propertyAccessLevel)
         {
         }
 
-        internal PropertyDefinition(EntityDefinition entity, string name, string alias, Field2DbRelations attributes, string description, TypeDefinition type, string fieldname, SourceFragmentDefinition table, bool fromBase, AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel/*, bool isSuppressed*/, bool isRefreshed)
+        public PropertyDefinition(EntityDefinition entity, string name, string alias, Field2DbRelations attributes, 
+            string description, TypeDefinition type, string fieldname, SourceFragmentDefinition table, 
+            AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
         {
             _name = name;
             _propertyAlias = string.IsNullOrEmpty(alias) ? name : alias;
@@ -67,11 +70,11 @@ namespace WXML.Model.Descriptors
             _type = type;
             _fieldName = fieldname;
             _table = table;
-            _fromBase = fromBase;
+            //_fromBase = fromBase;
             _fieldAccessLevel = fieldAccessLevel;
             _propertyAccessLevel = propertyAccessLevel;
             //_isSuppressed = isSuppressed;
-            IsRefreshed = isRefreshed;
+            //NeedReplace = isRefreshed;
             Entity = entity;
         }
 
@@ -121,8 +124,11 @@ namespace WXML.Model.Descriptors
 
         public bool FromBase
         {
-            get { return _fromBase; }
-            set { _fromBase = value; }
+            get
+            {
+                return !Entity.SelfProperties.Any(item=>!item.Disabled && item.Identifier == Identifier);
+            }
+            //set { _fromBase = value; }
         }
 
         public string PropertyAlias
@@ -151,8 +157,23 @@ namespace WXML.Model.Descriptors
             }
             //set { _isSuppressed = value; }
         }
+        public MergeAction Action { get; set; }
 
-        public bool IsRefreshed { get; set; }
+        public TypeDefinition NeedReplace()
+        {
+            if (FromBase && PropertyType.IsEntityType)
+            {
+                var e = Entity.Model.GetDerived(PropertyType.Entity.Identifier).FirstOrDefault(item =>
+                     !item.Disabled && item.FamilyName == PropertyType.Entity.FamilyName
+                );
+
+                if (e != null)
+                    return Entity.Model.GetTypes().SingleOrDefault(
+                        item => item.IsEntityType && item.Entity.Identifier == e.Identifier) ??
+                        new TypeDefinition(e.Identifier, e);
+            }
+            return null;
+        }
 
         public EntityDefinition Entity { get; set; }
 
@@ -195,7 +216,7 @@ namespace WXML.Model.Descriptors
             prop._description = this._description;
             prop._fieldAccessLevel = this._fieldAccessLevel;
             prop._fieldName = _fieldName;
-            prop._fromBase = _fromBase;
+            //prop._fromBase = _fromBase;
             //prop._isSuppressed = _isSuppressed;
             prop._propertyAccessLevel = _propertyAccessLevel;
             prop._propertyAlias = _propertyAlias;

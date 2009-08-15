@@ -46,12 +46,13 @@ namespace WXML.Model.Descriptors
             _baseEntity = baseEntity;
             Behaviour = behaviour;
 
-            if (!model.Entities.Any(item=>item.Identifier == id))
+            if (!model.GetEntities().Any(item=>item.Identifier == id))
                 model.AddEntity(this);
 
         }
 
         #region Properties
+        public MergeAction Action { get; set; }
 
         public Dictionary<string, XmlDocument> Extensions
         {
@@ -82,21 +83,20 @@ namespace WXML.Model.Descriptors
         {
             if (InheritsBaseTables && _baseEntity != null)
                 return _sourceFragments.Union(_baseEntity.GetSourceFragments(),
-                  new EqualityComparer<SourceFragmentRefDefinition, string>(
-                      (item) => item.Identifier)
-                );
-            else
-                return _sourceFragments;
+                    new EqualityComparer<SourceFragmentRefDefinition, string>((item) => item.Identifier)
+                ).OrderBy(item=>_sourceFragments.Any(p=>p.Identifier == item.Identifier)?2:1);
+            return _sourceFragments;
         }
 
         public IEnumerable<PropertyDefinition> GetProperties()
         {
-            if (InheritsBaseTables && _baseEntity != null)
-                return SelfProperties.Union(_baseEntity.SelfProperties.Select(item => item.Clone(this)),
-                    new EqualityComparer<PropertyDefinition, string>((item) => item.PropertyAlias)
-                );
-            else
-                return SelfProperties;
+            if (_baseEntity != null)
+                return 
+                    SelfProperties
+                        .Union(_baseEntity.GetProperties().Select(item => item.Clone(this)),
+                            new EqualityComparer<PropertyDefinition, string>(item=>item.PropertyAlias))
+                        .OrderBy(item=>SelfProperties.Any(p=>p.Identifier == item.Identifier)?2:1);
+            return SelfProperties;
         }
 
         private class EqualityComparer<T, T2> : IEqualityComparer<T> where T2 : class
@@ -110,7 +110,7 @@ namespace WXML.Model.Descriptors
 
             public bool Equals(T x, T y)
             {
-                return _accessor(x) == _accessor(y);
+                return Equals(_accessor(x), _accessor(y));
             }
 
             public int GetHashCode(T obj)
@@ -118,6 +118,7 @@ namespace WXML.Model.Descriptors
                 return _accessor(obj).GetHashCode();
             }
         }
+
         public void AddSourceFragment(SourceFragmentRefDefinition sf)
         {
             CheckSourceFragment(sf);
@@ -126,7 +127,7 @@ namespace WXML.Model.Descriptors
 
         private void CheckSourceFragment(SourceFragmentDefinition sf)
         {
-            if (!Model.SourceFragments.Any(item => item.Identifier == sf.Identifier))
+            if (!Model.GetSourceFragments().Any(item => item.Identifier == sf.Identifier))
                 throw new ArgumentException(
                     string.Format("SourceFragment {0} not found in Model.SourceFragment collection", sf.Identifier));
 
@@ -151,9 +152,9 @@ namespace WXML.Model.Descriptors
             get { return _properties; }
         }
 
-        public List<PropertyDefinition> ActiveProperties
+        public IEnumerable<PropertyDefinition> GetActiveProperties()
         {
-            get { return _properties.FindAll(p => !p.Disabled); }
+            return GetProperties().Where(p => !p.Disabled);
         }
 
         public WXMLModel Model
@@ -387,6 +388,7 @@ namespace WXML.Model.Descriptors
         }
 
         private readonly List<EntityRelationDefinition> _relations = new List<EntityRelationDefinition>();
+        private string _familyName;
 
         public ICollection<EntityRelationDefinition> EntityRelations
         {
@@ -412,6 +414,7 @@ namespace WXML.Model.Descriptors
         //    }
         //}
 
+/*
         private static EntityDefinition MergeEntities(EntityDefinition baseEntity, EntityDefinition newOne)
         {
             EntityDefinition resultOne =
@@ -483,19 +486,19 @@ namespace WXML.Model.Descriptors
                         PropertyDefinition oldProperty1 = oldProperty;
                         //bool isSuppressed =
                         //    resultOne.SuppressedProperties.Exists(match => match.Name == oldProperty1.Name);
-                        bool isRefreshed = false;
-                        const bool fromBase = true;
+                        //bool isRefreshed = false;
+                        //const bool fromBase = true;
                         if (newType.IsEntityType)
                         {
-                            TypeDefinition newType1 = newType;
-                            EntityDefinition newEntity =
-                                resultOne.Model.ActiveEntities.SingleOrDefault(
-                                    matchEntity =>
-                                    matchEntity.BaseEntity != null && matchEntity.BaseEntity.Identifier == newType1.Entity.Identifier);
+                            string newTypeEntityIdentifier = newType.Entity.Identifier;
+                            EntityDefinition newEntity = resultOne.Model.GetActiveEntities().SingleOrDefault(
+                                item => item.BaseEntity != null && 
+                                item.BaseEntity.Identifier == newTypeEntityIdentifier
+                            );
                             if (newEntity != null)
                             {
                                 newType = new TypeDefinition(newType.Identifier, newEntity);
-                                isRefreshed = true;
+                                //isRefreshed = true;
                             }
                         }
                         resultOne.InsertProperty(resultOne.SelfProperties.Count() - newOne.SelfProperties.Count(),
@@ -503,22 +506,23 @@ namespace WXML.Model.Descriptors
                                 oldProperty.Attributes,
                                 oldProperty.Description,
                                 newType,
-                                oldProperty.FieldName, newTable, fromBase, oldProperty.FieldAccessLevel, oldProperty.PropertyAccessLevel, isRefreshed));
+                                oldProperty.FieldName, newTable, oldProperty.FieldAccessLevel, oldProperty.PropertyAccessLevel));
                     }
                 }
             }
 
             return resultOne;
         }
+*/
 
-        public EntityDefinition CompleteEntity
-        {
-            get
-            {
-                EntityDefinition baseEntity = _baseEntity == null ? null : _baseEntity.CompleteEntity;
-                return MergeEntities(baseEntity, this);
-            }
-        }
+        //public EntityDefinition CompleteEntity
+        //{
+        //    get
+        //    {
+        //        EntityDefinition baseEntity = _baseEntity == null ? null : _baseEntity.CompleteEntity;
+        //        return MergeEntities(baseEntity, this);
+        //    }
+        //}
 
         public EntityBehaviuor Behaviour { get; set; }
 
@@ -606,37 +610,37 @@ namespace WXML.Model.Descriptors
             //return res.ToArray();
         }
 
-
-        public bool IsMultitable
+        public bool IsImplementMultitable
         {
             get
             {
                 bool multitable = false;
 
-                var entity = this;
-                do
+                var entity = _baseEntity;
+                while (!multitable && entity != null)
                 {
-                    multitable |= entity.CompleteEntity.GetSourceFragments().Count() > 1;
+                    multitable = entity.GetSourceFragments().Count() > 1;
                     entity = entity.BaseEntity;
-                } while (!multitable && entity != null);
+                };
                 return multitable;
+                //return GetSourceFragments().Count() > 1;
             }
         }
 
         public IEnumerable<PropertyDefinition> GetPropertiesFromBase()
         {
-            //var be = BaseEntity;
+            var be = BaseEntity;
 
-            //List<PropertyDefinition> baseProperties = new List<PropertyDefinition>();
+            List<PropertyDefinition> baseProperties = new List<PropertyDefinition>();
 
-            //while (be != null)
-            //{
-            //    baseProperties.AddRange(be.SelfProperties);
-            //    be = be.BaseEntity;
-            //}
+            while (be != null)
+            {
+                baseProperties.AddRange(be.SelfProperties);
+                be = be.BaseEntity;
+            }
 
-            //return baseProperties;
-            return GetProperties().Except(SelfProperties);
+            return baseProperties;
+            //return GetProperties().Except(SelfProperties);
         }
 
         public void AddProperty(PropertyDefinition pe)
@@ -653,7 +657,7 @@ namespace WXML.Model.Descriptors
             if (SelfProperties.Any(item => item.PropertyAlias == pe.PropertyAlias))
                 throw new ArgumentException(string.Format("Property with alias {0} already exists", pe.PropertyAlias));
 
-            if (pe.PropertyType != null && !Model.Types.Any(item => item.Identifier == pe.PropertyType.Identifier))
+            if (pe.PropertyType != null && !Model.GetTypes().Any(item => item.Identifier == pe.PropertyType.Identifier))
                 throw new ArgumentException(string.Format("Property {0} has type {1} which is not found in Model.Types collection", pe.PropertyAlias, pe.PropertyType.Identifier));
 
             if (pe.SourceFragment != null && !GetSourceFragments().Any(item => item.Identifier == pe.SourceFragment.Identifier))
@@ -678,6 +682,18 @@ namespace WXML.Model.Descriptors
             get
             {
                 return _items;
+            }
+        }
+
+        public string FamilyName
+        {
+            get
+            {
+                return string.IsNullOrEmpty(_familyName) ? Name : _familyName;
+            }
+            set
+            {
+                _familyName = value;
             }
         }
     }
