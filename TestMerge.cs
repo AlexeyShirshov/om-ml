@@ -75,17 +75,17 @@ namespace WXMLTests
 
                 Assert.IsNotNull(model);
 
-                Assert.AreEqual(2, model.Types.Count);
+                Assert.AreEqual(2, model.GetTypes().Count());
 
                 WXMLModel newModel = new WXMLModel();
 
                 TypeDefinition newType = new TypeDefinition("tInt16", typeof(short));
 
-                newModel.Types.Add(newType);
+                newModel.AddType(newType);
 
                 model.Merge(Normalize(newModel));
 
-                Assert.AreEqual(3, model.Types.Count);
+                Assert.AreEqual(3, model.GetTypes().Count());
 
             }
         }
@@ -108,13 +108,13 @@ namespace WXMLTests
 
                 Assert.IsNotNull(model);
 
-                EntityDefinition entity = model.ActiveEntities.Single(item => item.Identifier == "e1");
+                EntityDefinition entity = model.GetActiveEntities().Single(item => item.Identifier == "e1");
 
                 Assert.IsNotNull(entity);
 
-                Assert.AreEqual(2, model.ActiveEntities.Count());
+                Assert.AreEqual(2, model.GetActiveEntities().Count());
 
-                Assert.AreEqual(2, entity.ActiveProperties.Count());
+                Assert.AreEqual(2, entity.GetActiveProperties().Count());
 
                 WXMLModel newModel = new WXMLModel();
 
@@ -122,13 +122,13 @@ namespace WXMLTests
 
                 //newModel.AddEntity(newEntity);
 
-                TypeDefinition tString = model.Types.Single(item => item.Identifier == "tString");
+                TypeDefinition tString = model.GetTypes().Single(item => item.Identifier == "tString");
 
-                newModel.Types.Add(tString);
+                newModel.AddType(tString);
 
                 SourceFragmentRefDefinition newTable = entity.GetSourceFragments().First();
 
-                newModel.SourceFragments.Add(newTable);
+                newModel.AddSourceFragment(newTable);
 
                 newEntity.AddSourceFragment(newTable);
 
@@ -137,9 +137,9 @@ namespace WXMLTests
 
                 model.Merge(Normalize(newModel));
 
-                Assert.AreEqual(2, model.ActiveEntities.Count());
+                Assert.AreEqual(2, model.GetActiveEntities().Count());
 
-                Assert.AreEqual(3, entity.ActiveProperties.Count());
+                Assert.AreEqual(3, entity.GetActiveProperties().Count());
             }
         }
 
@@ -154,21 +154,21 @@ namespace WXMLTests
 
                 Assert.IsNotNull(model);
 
-                EntityDefinition entity = model.ActiveEntities.Single(item => item.Identifier == "e1");
+                EntityDefinition entity = model.GetActiveEntities().Single(item => item.Identifier == "e1");
 
                 Assert.IsNotNull(entity);
 
-                Assert.AreEqual(2, entity.ActiveProperties.Count);
+                Assert.AreEqual(2, entity.GetActiveProperties().Count());
 
-                Assert.AreEqual("Prop1", entity.ActiveProperties.Single(item => item.PropertyAlias == "Prop1").Name);
+                Assert.AreEqual("Prop1", entity.GetActiveProperties().Single(item => item.PropertyAlias == "Prop1").Name);
 
                 WXMLModel newModel = new WXMLModel();
 
-                PropertyDefinition oldProp = entity.ActiveProperties.Single(item => item.PropertyAlias == "Prop1").Clone();
+                PropertyDefinition oldProp = entity.GetActiveProperties().Single(item => item.PropertyAlias == "Prop1").Clone();
 
                 TypeDefinition newType = new TypeDefinition("tInt16", typeof(short));
 
-                newModel.Types.Add(newType);
+                newModel.AddType(newType);
 
                 EntityDefinition newEntity = new EntityDefinition(entity.Identifier, entity.Name, entity.Namespace, entity.Description, newModel);
 
@@ -184,9 +184,9 @@ namespace WXMLTests
 
                 model.Merge(Normalize(newModel));
 
-                Assert.AreEqual(2, entity.ActiveProperties.Count);
+                Assert.AreEqual(2, entity.GetActiveProperties().Count());
 
-                PropertyDefinition renewProp = entity.ActiveProperties.Single(item => item.PropertyAlias == "Prop1");
+                PropertyDefinition renewProp = entity.GetActiveProperties().Single(item => item.PropertyAlias == "Prop1");
 
                 Assert.AreEqual("Prop2", renewProp.Name);
 
@@ -222,7 +222,7 @@ namespace WXMLTests
 
                 Assert.IsNotNull(model);
 
-                Assert.AreEqual(2, model.ActiveEntities.Count());
+                Assert.AreEqual(2, model.GetActiveEntities().Count());
 
                 WXMLModel newModel = new WXMLModel();
 
@@ -238,9 +238,9 @@ namespace WXMLTests
 
                 model.Merge(Normalize(newModel));
 
-                Assert.AreEqual(3, model.ActiveEntities.Count());
+                Assert.AreEqual(3, model.GetActiveEntities().Count());
 
-                Assert.AreEqual(1, model.ActiveEntities.Single(item => item.Identifier == "ee").ActiveProperties.Count);
+                Assert.AreEqual(1, model.GetActiveEntities().Single(item => item.Identifier == "ee").GetActiveProperties().Count());
             }
         }
 
@@ -251,10 +251,10 @@ namespace WXMLTests
 
             Assert.IsNotNull(newModel);
 
-            Assert.AreEqual(2, newModel.ActiveEntities.Count());
+            Assert.AreEqual(2, newModel.GetActiveEntities().Count());
 
-            EntityDefinition e = newModel.ActiveEntities.Single(item => item.Identifier == "e1");
-            EntityDefinition e2 = newModel.ActiveEntities.Single(item => item.Identifier == "e11");
+            EntityDefinition e = newModel.GetActiveEntities().Single(item => item.Identifier == "e1");
+            EntityDefinition e2 = newModel.GetActiveEntities().Single(item => item.Identifier == "e11");
 
             Assert.AreEqual(e2.BaseEntity, e);
             Assert.AreEqual("E1", e.Name);
@@ -267,9 +267,9 @@ namespace WXMLTests
 
             model.Merge(Normalize(newModel));
 
-            Assert.AreEqual(2, model.ActiveEntities.Count());
+            Assert.AreEqual(2, model.GetActiveEntities().Count());
 
-            e = model.ActiveEntities.Single(item => item.Identifier == "e1");
+            e = model.GetActiveEntities().Single(item => item.Identifier == "e1");
             Assert.AreEqual("xxx", e.Name);
         }
 
@@ -302,12 +302,12 @@ namespace WXMLTests
 
                 Assert.IsNotNull(newModel);
 
-                Assert.AreEqual(2, newModel.ActiveEntities.Count());
+                Assert.AreEqual(2, newModel.GetActiveEntities().Count());
 
-                EntityDefinition e = newModel.ActiveEntities.Single(item => item.Identifier == "e1");
+                EntityDefinition e = newModel.GetActiveEntities().Single(item => item.Identifier == "e1");
 
                 Assert.AreEqual(1, e.GetSourceFragments().Count());
-                Assert.AreEqual(1, newModel.SourceFragments.Count());
+                Assert.AreEqual(1, newModel.GetSourceFragments().Count());
 
                 Assert.AreEqual("tbl1", e.GetSourceFragments().First().Name);
                 Assert.IsTrue(string.IsNullOrEmpty(e.GetSourceFragments().First().Selector));
@@ -327,10 +327,10 @@ namespace WXMLTests
 
                 model.Merge(Normalize(newModel));
 
-                e = model.ActiveEntities.Single(item => item.Identifier == "e1");
+                e = model.GetActiveEntities().Single(item => item.Identifier == "e1");
 
                 Assert.AreEqual(1, e.GetSourceFragments().Count());
-                Assert.AreEqual(2, model.SourceFragments.Count());
+                Assert.AreEqual(2, model.GetSourceFragments().Count());
 
                 Assert.AreEqual("table", e.GetSourceFragments().First().Name);
                 Assert.AreEqual("dbo", e.GetSourceFragments().First().Selector);

@@ -84,7 +84,7 @@ namespace WXMLTests
 
             WXMLModel ormObjectDef = parser.Model;
 
-            EntityDefinition entity = ormObjectDef.Entities
+            EntityDefinition entity = ormObjectDef.GetEntities()
                 .Single(match => match.Identifier == "eArtist" && match.Name == "Artist");
 
             parser.FillProperties(entity);
@@ -180,7 +180,7 @@ namespace WXMLTests
             Assert.AreEqual<string>("Prop1", prop.Name, "SuppressedPropertyName");
             Assert.IsTrue(prop.IsSuppressed, "SuppressedPropery.IsSuppressed");
 
-            EntityDefinition completeEntity = entity.CompleteEntity;
+            EntityDefinition completeEntity = entity;//.CompleteEntity;
 
             prop = completeEntity.GetProperty("Prop1");
             Assert.IsNotNull(prop);
@@ -212,7 +212,7 @@ namespace WXMLTests
 
             WXMLModel ormObjectDef = parser.Model;
 
-            EntityDefinition entity = ormObjectDef.Entities
+            EntityDefinition entity = ormObjectDef.GetEntities()
                 .Single(match => match.Identifier == "e1");
 
             parser.FillProperties(entity);
@@ -259,7 +259,7 @@ namespace WXMLTests
 
             WXMLModel ormObjectDef = parser.Model;
 
-            EntityDefinition entity = ormObjectDef.Entities
+            EntityDefinition entity = ormObjectDef.GetEntities()
                 .Single(match => match.Identifier == "eArtist" && match.Name == "Artist");
 
             Assert.AreEqual<int>(2, entity.GetSourceFragments().Count());
@@ -286,7 +286,7 @@ namespace WXMLTests
             parser.FillTypes();
 
             WXMLModel ormObjectDef = parser.Model;
-            Assert.AreEqual<int>(11, ormObjectDef.Types.Count);
+            Assert.AreEqual<int>(11, ormObjectDef.GetTypes().Count());
         }
 
         [TestMethod]
@@ -305,11 +305,11 @@ namespace WXMLTests
 
             WXMLModel ormObjectDef = parser.Model;
 
-            Assert.AreEqual<int>(5, ormObjectDef.Entities.Count());
-            Assert.AreEqual<int>(4, ormObjectDef.ActiveEntities.Count());
-            Assert.IsTrue(ormObjectDef.Entities.Any(delegate(EntityDefinition match) { return match.Identifier == "eArtist" && match.Name == "Artist"; }));
-            Assert.IsTrue(ormObjectDef.Entities.Any(delegate(EntityDefinition match) { return match.Identifier == "eAlbum" && match.Name == "Album"; }));
-            Assert.IsTrue(ormObjectDef.Entities.Any(delegate(EntityDefinition match) { return match.Identifier == "Album2ArtistRelation" && match.Name == "Album2ArtistRelation"; }));
+            Assert.AreEqual<int>(5, ormObjectDef.GetEntities().Count());
+            Assert.AreEqual<int>(4, ormObjectDef.GetActiveEntities().Count());
+            Assert.IsTrue(ormObjectDef.GetEntities().Any(delegate(EntityDefinition match) { return match.Identifier == "eArtist" && match.Name == "Artist"; }));
+            Assert.IsTrue(ormObjectDef.GetEntities().Any(delegate(EntityDefinition match) { return match.Identifier == "eAlbum" && match.Name == "Album"; }));
+            Assert.IsTrue(ormObjectDef.GetEntities().Any(delegate(EntityDefinition match) { return match.Identifier == "Album2ArtistRelation" && match.Name == "Album2ArtistRelation"; }));
 
         }
 
@@ -329,14 +329,14 @@ namespace WXMLTests
 
             WXMLModel ormObjectDef = parser.Model;
 
-            Assert.AreEqual<int>(6, ormObjectDef.SourceFragments.Count);
-            Assert.IsTrue(ormObjectDef.SourceFragments.Exists(
+            Assert.AreEqual<int>(6, ormObjectDef.GetSourceFragments().Count());
+            Assert.IsTrue(ormObjectDef.GetSourceFragments().Any(
                             match => match.Identifier == "tblAlbums" && match.Name == "albums"));
-            Assert.IsTrue(ormObjectDef.SourceFragments.Exists(
+            Assert.IsTrue(ormObjectDef.GetSourceFragments().Any(
                             match => match.Identifier == "tblArtists" && match.Name == "artists"));
-            Assert.IsTrue(ormObjectDef.SourceFragments.Exists(
+            Assert.IsTrue(ormObjectDef.GetSourceFragments().Any(
                             match => match.Identifier == "tblAl2Ar" && match.Name == "al2ar"));
-            Assert.IsTrue(ormObjectDef.SourceFragments.Exists(
+            Assert.IsTrue(ormObjectDef.GetSourceFragments().Any(
                             match => match.Identifier == "tblSiteAccess" && match.Name == "sites_access"));
 
         }
@@ -400,7 +400,7 @@ namespace WXMLTests
                 Assert.AreEqual("greeting", xdoc.DocumentElement.Name);
                 Assert.AreEqual("hi!", xdoc.DocumentElement.InnerText);
 
-                EntityDefinition e11 = model.Entities.Single(e => e.Identifier == "e11");
+                EntityDefinition e11 = model.GetEntities().Single(e => e.Identifier == "e11");
 
                 Assert.IsNotNull(e11.Extensions["x"]);
 
