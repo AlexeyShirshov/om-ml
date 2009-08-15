@@ -11,7 +11,7 @@ using WXML.CodeDom;
 namespace WXMLToWorm.CodeDomExtensions
 {
     /// <summary>
-    /// Обертка над <see cref="CodeTypeDeclaration"/> применительно к <see cref="EntityDescription"/>
+    /// Обертка над <see cref="CodeTypeDeclaration"/> применительно к <see cref="EntityDefinition"/>
     /// </summary>
     public class CodeEntityTypeDeclaration : CodeTypeDeclaration
     {
@@ -447,7 +447,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
         protected virtual void OnPopulatePropertiesAccessors()
         {
-            foreach (var propertyDescription in Entity.ActiveProperties)
+            foreach (var propertyDescription in Entity.GetActiveProperties())
             {
                 if (propertyDescription.Group == null)
                     continue;

@@ -54,4 +54,10 @@ namespace WXML.Model
         SyncInsert = 1,
         SyncUpdate = 2
     }
+
+    public enum MergeAction
+    {
+        Merge,
+        Delete
+    }
 }

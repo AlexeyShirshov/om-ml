@@ -11,16 +11,16 @@ namespace WXML.Model
     {
         private readonly WXMLDocumentSet _wxmlDocumentSet;
         private XmlDocument _ormXmlDocumentMain;
-        private readonly WXMLModel _ormObjectsDef;
+        private readonly WXMLModel _model;
 
         private readonly XmlNamespaceManager _nsMgr;
         private readonly XmlNameTable _nametable;
 
         private readonly WXMLModelWriterSettings _settings;
 
-        internal WXMLModelWriter(WXMLModel ormObjectsDef, WXMLModelWriterSettings settings)
+        internal WXMLModelWriter(WXMLModel model, WXMLModelWriterSettings settings)
         {
-            _ormObjectsDef = ormObjectsDef;
+            _model = model;
             _nametable = new NameTable();
             _nsMgr = new XmlNamespaceManager(_nametable);
             _nsMgr.AddNamespace(WXMLModel.NS_PREFIX, WXMLModel.NS_URI);
@@ -41,7 +41,7 @@ namespace WXML.Model
         {
             get
             {
-                return _ormObjectsDef;
+                return _model;
             }
         }
 
@@ -91,32 +91,35 @@ namespace WXML.Model
 
         private void FillLinqSettings()
         {
-            if (_ormObjectsDef.LinqSettings == null)
+            if (_model.LinqSettings == null)
                 return;
 
             var linqSettings = CreateElement("Linq");
             _ormXmlDocumentMain.DocumentElement.AppendChild(linqSettings);
 
-            linqSettings.SetAttribute("enable", XmlConvert.ToString(_ormObjectsDef.LinqSettings.Enable));
+            linqSettings.SetAttribute("enable", XmlConvert.ToString(_model.LinqSettings.Enable));
 
-            if (!string.IsNullOrEmpty(_ormObjectsDef.LinqSettings.ContextName))
-                linqSettings.SetAttribute("contextName", _ormObjectsDef.LinqSettings.ContextName);
+            if (!string.IsNullOrEmpty(_model.LinqSettings.ContextName))
+                linqSettings.SetAttribute("contextName", _model.LinqSettings.ContextName);
 
-            if (!string.IsNullOrEmpty(_ormObjectsDef.LinqSettings.FileName))
-                linqSettings.SetAttribute("filename", _ormObjectsDef.LinqSettings.FileName);
+            if (!string.IsNullOrEmpty(_model.LinqSettings.FileName))
+                linqSettings.SetAttribute("filename", _model.LinqSettings.FileName);
 
-            if (_ormObjectsDef.LinqSettings.ContextClassBehaviour.HasValue)
+            if (!string.IsNullOrEmpty(_model.LinqSettings.BaseContext))
+                linqSettings.SetAttribute("baseContext", _model.LinqSettings.BaseContext);
+
+            if (_model.LinqSettings.ContextClassBehaviour.HasValue)
                 linqSettings.SetAttribute("contextClassBehaviour",
-                                          _ormObjectsDef.LinqSettings.ContextClassBehaviour.ToString());
+                                          _model.LinqSettings.ContextClassBehaviour.ToString());
         }
 
         private void FillImports()
         {
-            if(_ormObjectsDef.Includes.Count == 0)
+            if(_model.Includes.Count == 0)
                 return;
             XmlNode importsNode = CreateElement("Includes");
             _ormXmlDocumentMain.DocumentElement.AppendChild(importsNode);
-            foreach (WXMLModel objectsDef in _ormObjectsDef.Includes)
+            foreach (WXMLModel objectsDef in _model.Includes)
             {
                 WXMLModelWriterSettings settings = (WXMLModelWriterSettings)_settings.Clone();
                     //settings.DefaultMainFileName = _settings.DefaultIncludeFileName + _ormObjectsDef.Includes.IndexOf(objectsDef);
@@ -138,7 +141,7 @@ namespace WXML.Model
                                 _ormXmlDocumentMain.CreateElement("xi", "include", "http://www.w3.org/2001/XInclude");
                             includeElement.SetAttribute("parse", "xml");
 
-                            string fileName = GetIncludeFileName(_ormObjectsDef, objectsDef, settings);
+                            string fileName = GetIncludeFileName(_model, objectsDef, settings);
 
                             includeElement.SetAttribute("href", fileName);
                             importsNode.AppendChild(includeElement);
@@ -155,7 +158,7 @@ namespace WXML.Model
             _ormXmlDocumentMain.AppendChild(declaration);
             XmlElement root = CreateElement("WXMLModel");
             _ormXmlDocumentMain.AppendChild(root);
-            string filename = GetFilename(_ormObjectsDef, _settings);
+            string filename = GetFilename(_model, _settings);
             WXMLDocument doc = new WXMLDocument(filename, _ormXmlDocumentMain);
             _wxmlDocumentSet.Add(doc);
           
@@ -189,11 +192,11 @@ namespace WXML.Model
 
         private void FillRelations()
         {
-            if (_ormObjectsDef.Relations.Count == 0)
+            if (_model.Relations.Count == 0)
                 return;
             XmlNode relationsNode = CreateElement("EntityRelations");
             _ormXmlDocumentMain.DocumentElement.AppendChild(relationsNode);
-            foreach (RelationDefinitionBase rel in _ormObjectsDef.Relations)
+            foreach (RelationDefinitionBase rel in _model.Relations)
             {
                 XmlElement relationElement;
                 if (rel is RelationDefinition)
@@ -316,7 +319,7 @@ namespace WXML.Model
             XmlNode entitiesNode = CreateElement("Entities");
             _ormXmlDocumentMain.DocumentElement.AppendChild(entitiesNode);
 
-            foreach (EntityDefinition entity in _ormObjectsDef.Entities)
+            foreach (EntityDefinition entity in _model.GetEntities())
             {
                 XmlElement entityElement = CreateElement("Entity");
 
@@ -336,6 +339,9 @@ namespace WXML.Model
                     entityElement.SetAttribute("baseEntity", entity.BaseEntity.Identifier);
 				if (entity.Disabled)
 					entityElement.SetAttribute("disabled", XmlConvert.ToString(entity.Disabled));
+                
+                if (!string.IsNullOrEmpty(entity.FamilyName) && entity.FamilyName != entity.Name)
+                    entityElement.SetAttribute("familyName", entity.FamilyName);
 
 				if (entity.CacheCheckRequired)
 					entityElement.SetAttribute("cacheCheckRequired", XmlConvert.ToString(entity.CacheCheckRequired));
@@ -486,7 +492,7 @@ namespace WXML.Model
         {
             XmlNode typesNode = CreateElement("Types");
             _ormXmlDocumentMain.DocumentElement.AppendChild(typesNode);
-            foreach (TypeDefinition type in _ormObjectsDef.Types)
+            foreach (TypeDefinition type in _model.GetTypes())
             {
                 XmlElement typeElement = CreateElement("Type");
 
@@ -521,7 +527,7 @@ namespace WXML.Model
 		{
 			XmlElement tablesNode = CreateElement("SourceFragments");
 			_ormXmlDocumentMain.DocumentElement.AppendChild(tablesNode);
-			foreach (SourceFragmentDefinition table in _ormObjectsDef.SourceFragments)
+			foreach (SourceFragmentDefinition table in _model.GetSourceFragments())
 			{
 				XmlElement tableElement = CreateElement("SourceFragment");
 				tableElement.SetAttribute("id", table.Identifier);
@@ -539,32 +545,32 @@ namespace WXML.Model
 
         private void FillFileDescriptions()
         {
-            if (!string.IsNullOrEmpty(_ormObjectsDef.Namespace))
-                _ormXmlDocumentMain.DocumentElement.SetAttribute("defaultNamespace", _ormObjectsDef.Namespace);
+            if (!string.IsNullOrEmpty(_model.Namespace))
+                _ormXmlDocumentMain.DocumentElement.SetAttribute("defaultNamespace", _model.Namespace);
 
-            if (!string.IsNullOrEmpty(_ormObjectsDef.SchemaVersion))
-                _ormXmlDocumentMain.DocumentElement.SetAttribute("schemaVersion", _ormObjectsDef.SchemaVersion);
+            if (!string.IsNullOrEmpty(_model.SchemaVersion))
+                _ormXmlDocumentMain.DocumentElement.SetAttribute("schemaVersion", _model.SchemaVersion);
 			
-            if (!string.IsNullOrEmpty(_ormObjectsDef.EntityBaseTypeName))
-				_ormXmlDocumentMain.DocumentElement.SetAttribute("entityBaseType", _ormObjectsDef.EntityBaseTypeName);
+            if (!string.IsNullOrEmpty(_model.EntityBaseTypeName))
+				_ormXmlDocumentMain.DocumentElement.SetAttribute("entityBaseType", _model.EntityBaseTypeName);
 			
-            if (_ormObjectsDef.EnableCommonPropertyChangedFire)
+            if (_model.EnableCommonPropertyChangedFire)
 				_ormXmlDocumentMain.DocumentElement.SetAttribute("enableCommonPropertyChangedFire",
-				                                                 XmlConvert.ToString(_ormObjectsDef.EnableCommonPropertyChangedFire));
-            if (!_ormObjectsDef.GenerateEntityName)
+				                                                 XmlConvert.ToString(_model.EnableCommonPropertyChangedFire));
+            if (!_model.GenerateEntityName)
                 _ormXmlDocumentMain.DocumentElement.SetAttribute("generateEntityName",
-                                                                 XmlConvert.ToString(_ormObjectsDef.GenerateEntityName));
+                                                                 XmlConvert.ToString(_model.GenerateEntityName));
 
             StringBuilder commentBuilder = new StringBuilder();
-            foreach (string comment in _ormObjectsDef.SystemComments)
+            foreach (string comment in _model.SystemComments)
             {
                 commentBuilder.AppendLine(comment);
             }
 
-            if(_ormObjectsDef.UserComments.Count > 0)
+            if(_model.UserComments.Count > 0)
             {
                 commentBuilder.AppendLine();
-                foreach (string comment in _ormObjectsDef.UserComments)
+                foreach (string comment in _model.UserComments)
                 {
                     commentBuilder.AppendLine(comment);
                 }

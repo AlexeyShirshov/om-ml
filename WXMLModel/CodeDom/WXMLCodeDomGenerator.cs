@@ -7,13 +7,21 @@ using WXML.Model;
 
 namespace WXML.CodeDom
 {
-    public partial class WXMLCodeDomGenerator
+    public class WXMLCodeDomGenerator
     {
         public static void SetMemberDescription(CodeTypeMember member, string description)
         {
             if (string.IsNullOrEmpty(description))
                 return;
             member.Comments.Add(new CodeCommentStatement(string.Format("<summary>{1}{0}{1}</summary>", description, Environment.NewLine), true));
+        }
+
+        public static MemberAttributes GetMemberAttribute(PropertyDefinition p)
+        {
+            if (p.Group != null && p.Group.Hide)
+                return MemberAttributes.Family;
+            else
+                return GetMemberAttribute(p.PropertyAccessLevel);
         }
 
         public static MemberAttributes GetMemberAttribute(AccessLevel accessLevel)
@@ -34,6 +42,7 @@ namespace WXML.CodeDom
                     return 0;
             }
         }
+
         public static class Delegates
         {
             public delegate void UpdateSetValueMethodDelegate(PropertyDefinition propertyDesc, CodeMemberMethod setvalueMethod);

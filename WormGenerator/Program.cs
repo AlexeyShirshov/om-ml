@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using WXML.Model;
 using WXML.CodeDom;
+using WXMLToWorm;
 
 namespace WormCodeGenerator
 {
@@ -201,6 +202,7 @@ namespace WormCodeGenerator
             catch (Exception exc)
             {
                 Console.WriteLine("error: {0}", exc.Message);
+                Console.WriteLine("callstack: {0}", exc.StackTrace);
                 if(exc.InnerException != null)
                     Console.WriteLine("error: {0}", exc.InnerException.Message);
                 return;
@@ -253,17 +255,18 @@ namespace WormCodeGenerator
             }
             else
                 GenerateMultipleFilesOutput(outputFolder, ormObjectsDef, codeDomProvider, separateFolder, 
-                    skipEntities, processEntities, settings, testRun, gen);
+                    skipEntities, processEntities, testRun, gen);
         }
 
         private static void GenerateMultipleFilesOutput(string outputFolder, WXMLModel ormObjectsDef, 
-            CodeDomProvider codeDomProvider, bool separateFolder, string[] skipEntities, string[] processEntities, 
-            WXMLCodeDomGeneratorSettings settings, bool testRun, WXMLToWorm.WormCodeDomGenerator gen)
+            CodeDomProvider codeDomProvider, bool separateFolder, 
+            IEnumerable<string> skipEntities, IEnumerable<string> processEntities, bool testRun, 
+            WormCodeDomGenerator gen)
         {
             List<string> errorList = new List<string>();
             int totalEntities = 0;
             int totalFiles = 0;
-            foreach (EntityDefinition entity in ormObjectsDef.Entities)
+            foreach (EntityDefinition entity in ormObjectsDef.FileEntities)
             {
                 //bool skip = false;
                 //if (processEntities.Length != 0)
@@ -292,23 +295,23 @@ namespace WormCodeGenerator
 
                 string privateFolder;
                 if (separateFolder)
-                    privateFolder = outputFolder + System.IO.Path.DirectorySeparatorChar.ToString() + entity.Name + System.IO.Path.DirectorySeparatorChar;
+                    privateFolder = outputFolder + Path.DirectorySeparatorChar.ToString() + entity.Name + Path.DirectorySeparatorChar;
                 else
-                    privateFolder = outputFolder + System.IO.Path.DirectorySeparatorChar.ToString();
+                    privateFolder = outputFolder + Path.DirectorySeparatorChar.ToString();
 
-                var units = gen.GetEntityCompileUnits(entity.Identifier, typeof(Microsoft.VisualBasic.VBCodeProvider).IsAssignableFrom(codeDomProvider.GetType()) ? LinqToCodedom.CodeDomGenerator.Language.VB : LinqToCodedom.CodeDomGenerator.Language.CSharp);
+                var units = gen.GetEntityCompileUnits(entity.Identifier, typeof(VBCodeProvider).IsAssignableFrom(codeDomProvider.GetType()) ? LinqToCodedom.CodeDomGenerator.Language.VB : LinqToCodedom.CodeDomGenerator.Language.CSharp);
 
                 Console.Write(".");
 
-                if (!System.IO.Directory.Exists(privateFolder))
-                    System.IO.Directory.CreateDirectory(privateFolder);
+                if (!Directory.Exists(privateFolder))
+                    Directory.CreateDirectory(privateFolder);
 
                 foreach (var unit in units)
                 {
                     Console.Write(".");
                     try
                     {
-                        GenerateCode(codeDomProvider, unit, System.IO.Path.GetFullPath(privateFolder + System.IO.Path.DirectorySeparatorChar.ToString() + unit.Filename), testRun);
+                        GenerateCode(codeDomProvider, unit, Path.GetFullPath(privateFolder + Path.DirectorySeparatorChar.ToString() + unit.Filename), testRun);
                         Console.Write(".");
                         totalFiles++;
                     }
@@ -328,8 +331,8 @@ namespace WormCodeGenerator
                 if (ctx != null)
                 {
                     GenerateCode(codeDomProvider, ctx,
-                                 System.IO.Path.GetFullPath(outputFolder +
-                                                            System.IO.Path.DirectorySeparatorChar.ToString() +
+                                 Path.GetFullPath(outputFolder +
+                                                            Path.DirectorySeparatorChar.ToString() +
                                                             ctx.Filename), testRun);
                     Console.Write(".");
                     totalFiles++;

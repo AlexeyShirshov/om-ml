@@ -14,7 +14,7 @@ namespace WXML.Model
         private readonly List<string> _validationResult;
         private readonly XmlReader _reader;
         private XmlDocument _ormXmlDocument;
-        private readonly WXMLModel _ormObjectsDef;
+        private readonly WXMLModel _model;
 
         private readonly XmlNamespaceManager _nsMgr;
         private readonly XmlNameTable _nametable;
@@ -30,7 +30,7 @@ namespace WXML.Model
         {
             _validationResult = new List<string>();
             _reader = reader;
-            _ormObjectsDef = new WXMLModel();
+            _model = new WXMLModel();
             _nametable = new NameTable();
             _nsMgr = new XmlNamespaceManager(_nametable);
             _nsMgr.AddNamespace(WXMLModel.NS_PREFIX, WXMLModel.NS_URI);
@@ -39,7 +39,7 @@ namespace WXML.Model
 
         internal protected WXMLModelReader(XmlDocument document)
         {
-            _ormObjectsDef = new WXMLModel();
+            _model = new WXMLModel();
             _ormXmlDocument = document;
             _nametable = document.NameTable;
             _nsMgr = new XmlNamespaceManager(_nametable);
@@ -48,14 +48,13 @@ namespace WXML.Model
 
         internal protected static WXMLModel Parse(XmlReader reader, XmlResolver xmlResolver)
         {
-            WXMLModelReader parser;
-            parser = new WXMLModelReader(reader, xmlResolver);
+            WXMLModelReader parser = new WXMLModelReader(reader, xmlResolver);
 
             parser.Read();
 
             parser.FillObjectsDef();
 
-            return parser._ormObjectsDef;
+            return parser._model;
         }
 
         internal protected static WXMLModel LoadXmlDocument(XmlDocument document, bool skipValidation)
@@ -80,7 +79,7 @@ namespace WXML.Model
                 }
             }
             parser.FillObjectsDef();
-            return parser._ormObjectsDef;                
+            return parser._model;                
         }
 
         private void FillObjectsDef()
@@ -118,7 +117,7 @@ namespace WXML.Model
             }
         }
 
-        private void FillExtension(Dictionary<string, XmlDocument> dictionary, XmlElement extension)
+        private static void FillExtension(IDictionary<string, XmlDocument> dictionary, XmlNode extension)
         {
             XmlDocument xdoc = new XmlDocument();
             xdoc.LoadXml(extension.InnerXml);
@@ -133,37 +132,34 @@ namespace WXML.Model
             if (settingsNode == null)
                 return;
 
-            _ormObjectsDef.LinqSettings = new LinqSettingsDescriptor();
-
-            _ormObjectsDef.LinqSettings.Enable = XmlConvert.ToBoolean(settingsNode.GetAttribute("enable"));
-
-            _ormObjectsDef.LinqSettings.ContextName = settingsNode.GetAttribute("contextName");
-            _ormObjectsDef.LinqSettings.FileName = settingsNode.GetAttribute("filename");
+            _model.LinqSettings = new LinqSettingsDescriptor
+            {
+                Enable = XmlConvert.ToBoolean(settingsNode.GetAttribute("enable")),
+                ContextName = settingsNode.GetAttribute("contextName"),
+                FileName = settingsNode.GetAttribute("filename"),
+                BaseContext = settingsNode.GetAttribute("baseContext")
+            };
 
             string behaviourValue = settingsNode.GetAttribute("contextClassBehaviour");
             if(!string.IsNullOrEmpty(behaviourValue))
             {
                 var type =
                     (ContextClassBehaviourType) Enum.Parse(typeof (ContextClassBehaviourType), behaviourValue);
-                _ormObjectsDef.LinqSettings.ContextClassBehaviour = type;
+                _model.LinqSettings.ContextClassBehaviour = type;
             }
         }
 
         private void FillImports()
         {
-            XmlNodeList importNodes;
-            importNodes =
-                _ormXmlDocument.DocumentElement.SelectNodes(
-                    string.Format("{0}:Includes/{0}:WXMLModel", WXMLModel.NS_PREFIX), _nsMgr);
+            XmlNodeList importNodes = _ormXmlDocument.DocumentElement.SelectNodes(
+                string.Format("{0}:Includes/{0}:WXMLModel", WXMLModel.NS_PREFIX), _nsMgr);
 
             foreach (XmlNode importNode in importNodes)
             {
-                WXMLModel import;
-
                 XmlDocument tempDoc = new XmlDocument();
                 XmlNode importedNode = tempDoc.ImportNode(importNode, true);
                 tempDoc.AppendChild(importedNode);
-                import = LoadXmlDocument(tempDoc, true);
+                WXMLModel import = LoadXmlDocument(tempDoc, true);
 
                 Model.Includes.Add(import);
             }
@@ -171,23 +167,20 @@ namespace WXML.Model
 
         internal protected void FillTypes()
         {
-            XmlNodeList typeNodes;
-            typeNodes = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:Types/{0}:Type", WXMLModel.NS_PREFIX), _nsMgr);
+            XmlNodeList typeNodes = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:Types/{0}:Type", WXMLModel.NS_PREFIX), _nsMgr);
 
             foreach (XmlNode typeNode in typeNodes)
             {
                 TypeDefinition type;
-                string id;
                 XmlElement typeElement = (XmlElement)typeNode;
-                id = typeElement.GetAttribute("id");
+                string id = typeElement.GetAttribute("id");
                 
                 XmlNode typeDefNode = typeNode.LastChild;
                 XmlElement typeDefElement = (XmlElement)typeDefNode;
                 if(typeDefNode.LocalName.Equals("Entity"))
                 {
-                    string entityId;
-                    entityId = typeDefElement.GetAttribute("ref");
-                    EntityDefinition entity = _ormObjectsDef.GetEntity(entityId);
+                    string entityId = typeDefElement.GetAttribute("ref");
+                    EntityDefinition entity = _model.GetEntity(entityId);
                     if (entity == null)
                         throw new KeyNotFoundException(
                             string.Format("Underlying entity '{1}' in type '{0}' not found.", id, entityId));
@@ -209,20 +202,18 @@ namespace WXML.Model
                         type = new TypeDefinition(id, name, false);
                     }
                 }
-                _ormObjectsDef.Types.Add(type);
+                _model.AddType(type);
             }
         }
 
         internal protected void FillEntities()
         {
-            foreach (EntityDefinition entity in _ormObjectsDef.Entities)
+            foreach (EntityDefinition entity in _model.FileEntities)
             {
-                XmlNode entityNode =
-                    _ormXmlDocument.DocumentElement.SelectSingleNode(
+                XmlElement entityElement = (XmlElement)_ormXmlDocument.DocumentElement.SelectSingleNode(
                         string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX,
                                       entity.Identifier), _nsMgr);
-
-                XmlElement entityElement = (XmlElement)entityNode;
+                
                 string baseEntityId = entityElement.GetAttribute("baseEntity");
 
                 if (!string.IsNullOrEmpty(baseEntityId))
@@ -234,12 +225,13 @@ namespace WXML.Model
                                           entity.Identifier));
                     entity.BaseEntity = baseEntity;
                 }
+
                 FillProperties(entity);
                 FillSuppresedProperties(entity);
                 FillEntityRelations(entity);
 
                 var extensionsNode =
-                    entityNode.SelectNodes(string.Format("{0}:extension", WXMLModel.NS_PREFIX), _nsMgr);
+                    entityElement.SelectNodes(string.Format("{0}:extension", WXMLModel.NS_PREFIX), _nsMgr);
 
                 if (extensionsNode == null)
                     return;
@@ -267,7 +259,7 @@ namespace WXML.Model
             {
                 string entityId = relationNode.GetAttribute("entity");
 
-                var relationEntity = _ormObjectsDef.GetEntity(entityId);
+                var relationEntity = _model.GetEntity(entityId);
 
                 string propertyAlias = relationNode.GetAttribute("propertyAlias");
 
@@ -319,44 +311,44 @@ namespace WXML.Model
 
         internal protected void FillFileDescriptions()
         {
-            _ormObjectsDef.Namespace = _ormXmlDocument.DocumentElement.GetAttribute("defaultNamespace");
-            _ormObjectsDef.SchemaVersion = _ormXmlDocument.DocumentElement.GetAttribute("schemaVersion");
-        	_ormObjectsDef.EntityBaseTypeName = _ormXmlDocument.DocumentElement.GetAttribute("entityBaseType");
+            _model.Namespace = _ormXmlDocument.DocumentElement.GetAttribute("defaultNamespace");
+            _model.SchemaVersion = _ormXmlDocument.DocumentElement.GetAttribute("schemaVersion");
+        	_model.EntityBaseTypeName = _ormXmlDocument.DocumentElement.GetAttribute("entityBaseType");
 
             string generateEntityName = _ormXmlDocument.DocumentElement.GetAttribute("generateEntityName");            
-            _ormObjectsDef.GenerateEntityName = string.IsNullOrEmpty(generateEntityName) ? true : XmlConvert.ToBoolean(generateEntityName);
+            _model.GenerateEntityName = string.IsNullOrEmpty(generateEntityName) ? true : XmlConvert.ToBoolean(generateEntityName);
 
             string baseUriString = _ormXmlDocument.DocumentElement.GetAttribute("xml:base");
             if (!string.IsNullOrEmpty(baseUriString))
             {
                 Uri baseUri = new Uri(baseUriString, UriKind.RelativeOrAbsolute);
-                _ormObjectsDef.FileName = Path.GetFileName(baseUri.ToString());
+                _model.FileName = Path.GetFileName(baseUri.ToString());
             }
         	
             string enableCommonPropertyChangedFireAttr =
         		_ormXmlDocument.DocumentElement.GetAttribute("enableCommonPropertyChangedFire");
 			
             if (!string.IsNullOrEmpty(enableCommonPropertyChangedFireAttr))
-				_ormObjectsDef.EnableCommonPropertyChangedFire = XmlConvert.ToBoolean(enableCommonPropertyChangedFireAttr);
+				_model.EnableCommonPropertyChangedFire = XmlConvert.ToBoolean(enableCommonPropertyChangedFireAttr);
 
             string schemaOnly = _ormXmlDocument.DocumentElement.GetAttribute("generateSchemaOnly");
             if (!string.IsNullOrEmpty(schemaOnly))
-                _ormObjectsDef.GenerateSchemaOnly = XmlConvert.ToBoolean(schemaOnly);
+                _model.GenerateSchemaOnly = XmlConvert.ToBoolean(schemaOnly);
 
             string addVersionToSchemaName = _ormXmlDocument.DocumentElement.GetAttribute("addVersionToSchemaName");
             if (!string.IsNullOrEmpty(addVersionToSchemaName))
-                _ormObjectsDef.AddVersionToSchemaName = XmlConvert.ToBoolean(addVersionToSchemaName);
+                _model.AddVersionToSchemaName = XmlConvert.ToBoolean(addVersionToSchemaName);
 
             string singleFile = _ormXmlDocument.DocumentElement.GetAttribute("singleFile");
             if (!string.IsNullOrEmpty(singleFile))
-                _ormObjectsDef.GenerateSingleFile = XmlConvert.ToBoolean(singleFile);
+                _model.GenerateSingleFile = XmlConvert.ToBoolean(singleFile);
         }
 
         internal protected void FindEntities()
         {
             XmlNodeList entitiesList = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:Entities/{0}:Entity", WXMLModel.NS_PREFIX), _nsMgr);
 
-            _ormObjectsDef.ClearEntities();
+            _model.ClearEntities();
 
             foreach (XmlNode entityNode in entitiesList)
             {
@@ -368,7 +360,7 @@ namespace WXML.Model
                 string description = entityElement.GetAttribute("description");
                 string nameSpace = entityElement.GetAttribute("namespace");
                 string behaviourName = entityElement.GetAttribute("behaviour");
-
+                string familyName = entityElement.GetAttribute("familyName");
             	string useGenericsAttribute = entityElement.GetAttribute("useGenerics");
             	string makeInterfaceAttribute = entityElement.GetAttribute("makeInterface");
             	string disbledAttribute = entityElement.GetAttribute("disabled");
@@ -385,13 +377,15 @@ namespace WXML.Model
                     behaviour = (EntityBehaviuor) Enum.Parse(typeof (EntityBehaviuor), behaviourName);
 
 
-                EntityDefinition entity = new EntityDefinition(id, name, nameSpace, description, _ormObjectsDef);
-
-				entity.Behaviour = behaviour;
-            	entity.UseGenerics = useGenerics;
-            	entity.MakeInterface = makeInterface;
-            	entity.Disabled = disabled;
-            	entity.CacheCheckRequired = cacheCheckRequired;
+                EntityDefinition entity = new EntityDefinition(id, name, nameSpace, description, _model)
+                {
+                    Behaviour = behaviour,
+                    UseGenerics = useGenerics,
+                    MakeInterface = makeInterface,
+                    Disabled = disabled,
+                    CacheCheckRequired = cacheCheckRequired,
+                    FamilyName = familyName
+                };
 
                 //_ormObjectsDef.AddEntity(entity);
 
@@ -456,10 +450,12 @@ namespace WXML.Model
 
             	string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
 
-                //string[] attributes = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                string[] attrString = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                 Field2DbRelations attributes = Field2DbRelations.None;
-                if (!string.IsNullOrEmpty(sAttributes))
-                    attributes = (Field2DbRelations)Enum.Parse(typeof(Field2DbRelations), sAttributes);
+                foreach (string attr in attrString)
+                {
+                    attributes |= (Field2DbRelations)Enum.Parse(typeof(Field2DbRelations), attr);
+                }
 
                 if (!string.IsNullOrEmpty(propertyAccessLevelName))
                     propertyAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), propertyAccessLevelName);
@@ -481,7 +477,7 @@ namespace WXML.Model
                 //        string.Format("SourceFragment '{0}' for property '{1}' of entity '{2}' not found.", tableId, name,
                 //                      entity.Identifier));
 
-                TypeDefinition typeDesc = _ormObjectsDef.GetType(typeId, true);
+                TypeDefinition typeDesc = _model.GetType(typeId, true);
                 
                 if(!string.IsNullOrEmpty(propertyObsolete))
                 {
@@ -551,16 +547,16 @@ namespace WXML.Model
                 string leftAccessorDescription = leftTargetElement.GetAttribute("accessorDescription");
                 string rightAccessorDescription = rightTargetElement.GetAttribute("accessorDescription");
 
-				TypeDefinition leftAccessedEntityType = _ormObjectsDef.GetType(leftAccessedEntityTypeId, true);
-				TypeDefinition rightAccessedEntityType = _ormObjectsDef.GetType(rightAccessedEntityTypeId, true);
+				TypeDefinition leftAccessedEntityType = _model.GetType(leftAccessedEntityTypeId, true);
+				TypeDefinition rightAccessedEntityType = _model.GetType(rightAccessedEntityTypeId, true);
 
-				SourceFragmentDefinition relationTable = _ormObjectsDef.GetSourceFragment(relationTableId);
+				SourceFragmentDefinition relationTable = _model.GetSourceFragment(relationTableId);
 
 				EntityDefinition underlyingEntity;
 				if (string.IsNullOrEmpty(underlyingEntityId))
 					underlyingEntity = null;
 				else
-					underlyingEntity = _ormObjectsDef.GetEntity(underlyingEntityId);
+					underlyingEntity = _model.GetEntity(underlyingEntityId);
 
 				bool disabled;
 				if (string.IsNullOrEmpty(disabledValue))
@@ -569,9 +565,9 @@ namespace WXML.Model
 					disabled = XmlConvert.ToBoolean(disabledValue);
 
 
-				EntityDefinition leftLinkTargetEntity = _ormObjectsDef.GetEntity(leftLinkTargetEntityId);
+				EntityDefinition leftLinkTargetEntity = _model.GetEntity(leftLinkTargetEntityId);
 
-				EntityDefinition rightLinkTargetEntity = _ormObjectsDef.GetEntity(rightLinkTargetEntityId);
+				EntityDefinition rightLinkTargetEntity = _model.GetEntity(rightLinkTargetEntityId);
 
                 LinkTarget leftLinkTarget = new LinkTarget(leftLinkTargetEntity, leftFieldName, leftCascadeDelete, leftAccessorName) 
                 { 
@@ -586,7 +582,7 @@ namespace WXML.Model
                 };
 
 				RelationDefinition relation = new RelationDefinition(leftLinkTarget, rightLinkTarget, relationTable, underlyingEntity, disabled);
-				_ormObjectsDef.Relations.Add(relation);
+				_model.Relations.Add(relation);
 
 			    XmlNodeList constantsNodeList =
 			        relationNode.SelectNodes(string.Format("{0}:Constants/{0}:Constant", WXMLModel.NS_PREFIX), _nsMgr);
@@ -641,16 +637,16 @@ namespace WXML.Model
                 string directAccessorDescription = directTargetElement.GetAttribute("accessorDescription");
                 string reverseAccessorDescription = reverseTargetElement.GetAttribute("accessorDescription");
                 
-                TypeDefinition directAccessedEntityType = _ormObjectsDef.GetType(directAccessedEntityTypeId, true);
-				TypeDefinition reverseAccessedEntityType = _ormObjectsDef.GetType(reverseAccessedEntityTypeId, true);
+                TypeDefinition directAccessedEntityType = _model.GetType(directAccessedEntityTypeId, true);
+				TypeDefinition reverseAccessedEntityType = _model.GetType(reverseAccessedEntityTypeId, true);
 
-				var relationTable = _ormObjectsDef.GetSourceFragment(relationTableId);
+				var relationTable = _model.GetSourceFragment(relationTableId);
 
 				EntityDefinition underlyingEntity;
 				if (string.IsNullOrEmpty(underlyingEntityId))
 					underlyingEntity = null;
 				else
-					underlyingEntity = _ormObjectsDef.GetEntity(underlyingEntityId);
+					underlyingEntity = _model.GetEntity(underlyingEntityId);
 
 				bool disabled;
 				if (string.IsNullOrEmpty(disabledValue))
@@ -658,7 +654,7 @@ namespace WXML.Model
 				else
 					disabled = XmlConvert.ToBoolean(disabledValue);
 
-				EntityDefinition entity = _ormObjectsDef.GetEntity(entityId);
+				EntityDefinition entity = _model.GetEntity(entityId);
 
                 SelfRelationTarget directTarget = new SelfRelationTarget(directFieldName, directCascadeDelete, directAccessorName)
                 {
@@ -673,7 +669,7 @@ namespace WXML.Model
                 };
 
 				SelfRelationDescription relation = new SelfRelationDescription(entity, directTarget, reverseTarget, relationTable, underlyingEntity, disabled);
-				_ormObjectsDef.Relations.Add(relation);
+				_model.Relations.Add(relation);
 			}
 			#endregion
         }
@@ -689,23 +685,20 @@ namespace WXML.Model
 				string name = tableElement.GetAttribute("name");
 				string selector = tableElement.GetAttribute("selector");
 
-				_ormObjectsDef.SourceFragments.Add(new SourceFragmentDefinition(id, name, selector));
+				_model.AddSourceFragment(new SourceFragmentDefinition(id, name, selector));
 			}
 		}
 
         internal protected void FillEntityTables(EntityDefinition entity)
         {
-            XmlNodeList tableNodes;
-            XmlNode entityNode;
-
             if (entity == null)
                 throw new ArgumentNullException("entity");
 
             entity.ClearSourceFragments();
 
-            entityNode = _ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX, entity.Identifier), _nsMgr);
+            XmlNode entityNode = _ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX, entity.Identifier), _nsMgr);
 
-            tableNodes = entityNode.SelectNodes(string.Format("{0}:SourceFragments/{0}:SourceFragment", WXMLModel.NS_PREFIX), _nsMgr);
+            XmlNodeList tableNodes = entityNode.SelectNodes(string.Format("{0}:SourceFragments/{0}:SourceFragment", WXMLModel.NS_PREFIX), _nsMgr);
 
             foreach (XmlNode tableNode in tableNodes)
             {
@@ -745,30 +738,31 @@ namespace WXML.Model
 
         internal protected void Read()
         {
-            XmlSchemaSet schemaSet;
-            XmlSchema schema;
-            XmlReaderSettings xmlReaderSettings;
+            XmlSchemaSet schemaSet = new XmlSchemaSet(_nametable);
 
-            schemaSet = new XmlSchemaSet(_nametable);
-
-            schema = ResourceManager.GetXmlSchema("XInclude");
+            XmlSchema schema = ResourceManager.GetXmlSchema("XInclude");
             schemaSet.Add(schema);
             schema = ResourceManager.GetXmlSchema(SCHEMA_NAME);
             schemaSet.Add(schema);
             
 
-            xmlReaderSettings = new XmlReaderSettings();
-            xmlReaderSettings.CloseInput = false;
-            xmlReaderSettings.ConformanceLevel = ConformanceLevel.Document;
-            xmlReaderSettings.IgnoreComments = true;
-            xmlReaderSettings.IgnoreWhitespace = true;
-            xmlReaderSettings.Schemas = schemaSet;
-            xmlReaderSettings.ValidationFlags = XmlSchemaValidationFlags.ReportValidationWarnings | XmlSchemaValidationFlags.AllowXmlAttributes | XmlSchemaValidationFlags.ProcessIdentityConstraints;
-            xmlReaderSettings.ValidationType = ValidationType.Schema;
+            XmlReaderSettings xmlReaderSettings = new XmlReaderSettings
+            {
+                CloseInput = false,
+                ConformanceLevel = ConformanceLevel.Document,
+                IgnoreComments = true,
+                IgnoreWhitespace = true,
+                Schemas = schemaSet,
+                ValidationFlags =
+                    XmlSchemaValidationFlags.ReportValidationWarnings |
+                    XmlSchemaValidationFlags.AllowXmlAttributes |
+                    XmlSchemaValidationFlags.ProcessIdentityConstraints,
+                ValidationType = ValidationType.Schema
+            };
+
             xmlReaderSettings.ValidationEventHandler += xmlReaderSettings_ValidationEventHandler;
 
-            XmlDocument xml;
-            xml = new XmlDocument(_nametable);
+            XmlDocument xml = new XmlDocument(_nametable);
 
             _validationResult.Clear();
 
@@ -816,7 +810,7 @@ namespace WXML.Model
 
         internal protected WXMLModel Model
         {
-            get { return _ormObjectsDef; }
+            get { return _model; }
         }
 
     }

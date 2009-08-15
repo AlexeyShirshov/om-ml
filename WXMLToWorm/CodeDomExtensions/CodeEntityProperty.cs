@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using WXML.Model.Descriptors;
 using LinqToCodedom.CodeDomPatterns;
@@ -12,7 +13,7 @@ namespace WXMLToWorm.CodeDomExtensions
 {
 	public class CodeEntityProperty : CodeMemberProperty
 	{
-        private WXMLCodeDomGeneratorSettings _settings;
+        private readonly WXMLCodeDomGeneratorSettings _settings;
 
 		public CodeEntityProperty(WXMLCodeDomGeneratorSettings settings, PropertyDefinition property)
 		{
@@ -28,6 +29,11 @@ namespace WXMLToWorm.CodeDomExtensions
 			var fieldName = new WXMLCodeDomGeneratorNameHelper(_settings).GetPrivateMemberName(property.Name);
 			if (!property.FromBase)
 			{
+                if (property.Entity.GetPropertiesFromBase().Any(item=>!item.Disabled && item.Name==property.Name))
+                {
+                    
+                }
+
 				CodeMethodInvokeExpression getUsingExpression = new CodeMethodInvokeExpression(
 					new CodeMethodReferenceExpression(new CodeThisReferenceExpression(), "Read"),
 					WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(_settings, property)
@@ -46,7 +52,7 @@ namespace WXMLToWorm.CodeDomExtensions
 				                                       	};
 
                 if (property.Entity.HasPkFlatEntity)
-                    GetStatements.Add(new LinqToCodedom.CodeDomPatterns.CodeUsingStatement(
+                    GetStatements.Add(new CodeUsingStatement(
                         getUsingExpression,
                         getInUsingStatements)
                     );
@@ -122,31 +128,36 @@ namespace WXMLToWorm.CodeDomExtensions
 				else
 					HasSet = false;
 			}
-			else if( property.IsRefreshed)
+			else
 			{
-				Attributes |= MemberAttributes.New;
-				GetStatements.Add(
-				new CodeMethodReturnStatement(
-					new CodeCastExpression(
-                        property.PropertyType.ToCodeType(_settings),
-						new CodePropertyReferenceExpression(new CodeBaseReferenceExpression(), property.Name)
-					)
-				)
-				);
-				if (property.Entity.Model.EnableReadOnlyPropertiesSetter ||
-				    !property.HasAttribute(WXML.Model.Field2DbRelations.ReadOnly) || property.HasAttribute(WXML.Model.Field2DbRelations.PK))
-				{
-					SetStatements.Add(
-						new CodeAssignStatement(
-							new CodePropertyReferenceExpression(new CodeBaseReferenceExpression(), property.Name),
-							new CodePropertySetValueReferenceExpression()
-							)
-						);
-				}
-				else
-				{
-					HasSet = false;
-				}
+			    TypeDefinition td = property.NeedReplace();
+                if (td != null)
+                {
+                    Attributes |= MemberAttributes.New;
+                    GetStatements.Add(
+                        new CodeMethodReturnStatement(
+                            new CodeCastExpression(
+                                td.ToCodeType(_settings),
+                                new CodePropertyReferenceExpression(new CodeBaseReferenceExpression(), property.Name)
+                                )
+                            )
+                        );
+                    if (property.Entity.Model.EnableReadOnlyPropertiesSetter ||
+                        !property.HasAttribute(WXML.Model.Field2DbRelations.ReadOnly) ||
+                        property.HasAttribute(WXML.Model.Field2DbRelations.PK))
+                    {
+                        SetStatements.Add(
+                            new CodeAssignStatement(
+                                new CodePropertyReferenceExpression(new CodeBaseReferenceExpression(), property.Name),
+                                new CodePropertySetValueReferenceExpression()
+                                )
+                            );
+                    }
+                    else
+                    {
+                        HasSet = false;
+                    }
+                }
 			}
 			
 			CodeAttributeDeclaration declaration = new CodeAttributeDeclaration(new CodeTypeReference(typeof(EntityPropertyAttribute)));

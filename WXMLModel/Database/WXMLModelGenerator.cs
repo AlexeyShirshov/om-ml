@@ -308,7 +308,7 @@ namespace WXML.DatabaseConnector
 
             if (dropColumns)
             {
-                foreach (EntityDefinition ed in odef.Entities)
+                foreach (EntityDefinition ed in odef.GetEntities())
                 {
                     List<PropertyDefinition> col2remove = new List<PropertyDefinition>();
                     foreach (PropertyDefinition pd in ed.GetProperties())
@@ -329,18 +329,18 @@ namespace WXML.DatabaseConnector
                 }
             }
 
-            foreach (EntityDefinition e in odef.Entities)
+            foreach (EntityDefinition e in odef.GetEntities())
             {
                 //if (e.HasSinglePk)
                 {
                     foreach (EntityDefinition oe in
-                        from k in odef.ActiveEntities
+                        from k in odef.GetActiveEntities()
                         where k != e &&
                             e.EntityRelations.Count(er => !er.Disabled && er.Entity.Identifier == k.Identifier) == 0
                         select k)
                     {
-                        List<PropertyDefinition> entityProps = oe.ActiveProperties
-                            .FindAll(l => l.PropertyType.IsEntityType && l.PropertyType.Entity.Identifier == e.Identifier);
+                        IEnumerable<PropertyDefinition> entityProps = oe.GetActiveProperties()
+                            .Where(l => l.PropertyType.IsEntityType && l.PropertyType.Entity.Identifier == e.Identifier);
                         int idx = 1;
                         foreach (PropertyDefinition pd in entityProps)
                         {
@@ -349,7 +349,7 @@ namespace WXML.DatabaseConnector
                                 (r.Left.Entity.Identifier == e.Identifier && r.Right.Entity.Identifier == oe.Identifier));
 
                             string accName = null; string prop = null;
-                            if (entityProps.Count > 1 || cnt > 0)
+                            if (entityProps.Count() > 1 || cnt > 0)
                             {
                                 accName = WXMLCodeDomGeneratorNameHelper.GetMultipleForm(oe.Name + idx.ToString());
                                 prop = pd.Name;
@@ -850,7 +850,7 @@ namespace WXML.DatabaseConnector
                         schema = "[" + schema + "]";
                 }
                 t = new SourceFragmentDefinition(id, table, schema);
-                odef.SourceFragments.Add(t);
+                odef.AddSourceFragment(t);
             }
             return t;
         }
@@ -980,7 +980,7 @@ namespace WXML.DatabaseConnector
                                     bool cr;
                                     EntityDefinition e = GetEntity(odef, c.Schema, c.Table, out cr, escape);
                                     t = new TypeDefinition(id, e);
-                                    odef.Types.Add(t);
+                                    odef.AddType(t);
                                     if (cr)
                                     {
                                         Console.WriteLine("\tCreate class {0} ({1})", e.Name, e.Identifier);
@@ -1071,7 +1071,7 @@ namespace WXML.DatabaseConnector
                                             throw new InvalidDataException(String.Format("Entity for column {0} was referenced but not created.", c.ToString()));
                                         }
                                     }
-                                    odef.Types.Add(t);
+                                    odef.AddType(t);
                                 }
                                 return t;
                             }
@@ -1253,7 +1253,7 @@ namespace WXML.DatabaseConnector
                     type = String.Format("System.Nullable`1[{0}]", type);
 
                 t = new TypeDefinition(id, type);
-                odef.Types.Add(t);
+                odef.AddType(t);
             }
             return t;
         }

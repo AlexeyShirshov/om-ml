@@ -84,12 +84,11 @@ namespace WXML.CodeDom
             WXMLCodeDomGeneratorSettings settings = GetSettings();
             string en = entity.Name;
             
-            if (entity.Model.ActiveEntities.Count(e => e.Name == en && e.Identifier != entity.Identifier) > 0)
+            if (entity.Model.FileEntities.Any(e => e.Name == en && e.Identifier != entity.Identifier))
             {
                 if (string.IsNullOrEmpty(entity.GetSourceFragments().First().Selector))
                 {
-                    int idx = entity.Model.ActiveEntities
-                        .Count(e => e.Name == en && e.Identifier.CompareTo(entity.Identifier) > 0);
+                    int idx = entity.Model.FileEntities.Count(e => e.Name == en && e.Identifier != entity.Identifier);
                     en = en + idx;
                 }
                 else

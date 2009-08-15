@@ -35,14 +35,14 @@ namespace WXMLToWorm.CodeDomExtensions
 
         protected virtual void OnPopulateBaseTypes(object sender, EventArgs e)
         {
-            //if (ContextClassBehaviour == ContextClassBehaviourType.BaseClass || ContextClassBehaviour == ContextClassBehaviourType.BasePartialClass)
-            //{
-            //    BaseTypes.Add(new CodeTypeReference("Worm.Linq.WormDBContext"));
-            //}
-            //if (ContextClassBehaviour == ContextClassBehaviourType.PartialClass)
-            //{
+            if (!string.IsNullOrEmpty(LinqSettings.BaseContext))
+            {
+                BaseTypes.Add(LinqSettings.BaseContext);
+            }
+            else
+            {
                 BaseTypes.Add(new CodeTypeReference("Worm.Linq.WormLinqContext"));
-            //}
+            }
         }
 
         protected virtual void OnPopulateMembers(object sender, EventArgs e)
@@ -53,8 +53,7 @@ namespace WXMLToWorm.CodeDomExtensions
             }
             if(ContextClassBehaviour == ContextClassBehaviourType.BaseClass || ContextClassBehaviour == ContextClassBehaviourType.BasePartialClass)
             {
-                var ctor = new CodeConstructor();
-                ctor.Attributes = MemberAttributes.Public;
+                var ctor = new CodeConstructor {Attributes = MemberAttributes.Public};
                 ctor.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(string)), "conn"));
                 ctor.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(Worm.Cache.OrmCache)), "cache"));
                 ctor.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(ObjectMappingEngine)), "schema"));
@@ -64,8 +63,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 ctor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("schema"));
                 ctor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("gen"));
                 Members.Add(ctor);
-                ctor = new CodeConstructor();
-                ctor.Attributes = MemberAttributes.Public;
+                ctor = new CodeConstructor {Attributes = MemberAttributes.Public};
                 ctor.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(string)), "conn"));
                 ctor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("conn"));
                 Members.Add(ctor);

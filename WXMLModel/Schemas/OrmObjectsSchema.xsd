@@ -81,6 +81,11 @@
         <xs:documentation>Наименование сущности</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="familyName" type="Name_t" use="optional">
+      <xs:annotation>
+        <xs:documentation>Наименование иерархии сущности</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="description" type="xs:string" use="optional">
       <xs:annotation>
         <xs:documentation>Описание сущности</xs:documentation>
@@ -797,6 +802,11 @@
     <xs:attribute name="contextClassBehaviour" type="LinqClassContextBehaviour_t" use="optional" default="BaseClass">
       <xs:annotation>
         <xs:documentation>Context class generation behaviour</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="baseContext" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Base context class</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:complexType>
