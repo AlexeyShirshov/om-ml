@@ -45,12 +45,14 @@ namespace WXML.Model.Descriptors
             set;
         }
 
+        public MergeAction Action { get; set; }
+
         public PropertyDefinition Property
         {
             get
             {
                 PropertyDefinition res = null;
-                if(!string.IsNullOrEmpty(PropertyAlias))
+                if (!string.IsNullOrEmpty(PropertyAlias))
                 {
                     res = Entity.GetProperties().SingleOrDefault(p => p.PropertyAlias == PropertyAlias);
                 }

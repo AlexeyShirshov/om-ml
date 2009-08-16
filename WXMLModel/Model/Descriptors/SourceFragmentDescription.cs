@@ -9,7 +9,7 @@ namespace WXML.Model.Descriptors
 		public string Identifier { get; private set; }
 		public string Name { get; set; }
 		public string Selector { get; set; }
-        public MergeAction Action { get; set; }
+        //public MergeAction Action { get; set; }
 
 		public SourceFragmentDefinition(string id, string name) : this(id, name, null)
 		{

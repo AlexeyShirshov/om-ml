@@ -12,13 +12,14 @@
   </TestList>
   <TestList name="Merge" id="49d1a229-f670-48b8-884b-e7afc31de621" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">
     <TestLinks>
-      <TestLink id="147b4882-415c-5117-7d79-a4dd2ac2d102" name="TestAddEntity" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
+      <TestLink id="4328525b-3e82-1831-a508-99fa02afe571" name="TestAddType" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="b5ab7202-d4b2-fc83-a3fb-567bca1742d4" name="TestMergeExtension" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="08fa86da-90ad-440b-3294-453a030954c6" name="TestAlterEntity" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
-      <TestLink id="4328525b-3e82-1831-a508-99fa02afe571" name="TestAddType" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
+      <TestLink id="147b4882-415c-5117-7d79-a4dd2ac2d102" name="TestAddEntity" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="ec17a961-c154-743a-1824-8e244b44973a" name="TestAddProperty" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="f1ac229d-5c73-7719-855f-c13df870209e" name="TestAlterEntity_ChangeTable" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="55442576-05ae-4b4e-8980-e12249a4e3e7" name="TestAlterProperty" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
+      <TestLink id="9d0cdd36-1b43-e2cb-0fb5-9ca423c5433f" name="TestAlterEntity_ChangeTableWrong" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
     </TestLinks>
   </TestList>
   <TestList name="WXMLReader" id="7b9c5dd4-3703-4ee2-8777-bbdc61bef3cc" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">

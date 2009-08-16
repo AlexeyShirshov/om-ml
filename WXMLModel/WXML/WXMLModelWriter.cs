@@ -80,12 +80,15 @@ namespace WXML.Model
             }
         }
 
-        private void FillExtension(XmlElement extensionsContainer, KeyValuePair<string, XmlDocument> extension)
+        private void FillExtension(XmlElement extensionsContainer, KeyValuePair<Extension, XmlDocument> extension)
         {
             var extensionElement = CreateElement("extension");
             extensionsContainer.AppendChild(extensionElement);
 
-            extensionElement.SetAttribute("name", extension.Key);
+            extensionElement.SetAttribute("name", extension.Key.Name);
+            if (extension.Key.Action != MergeAction.Merge)
+                extensionElement.SetAttribute("action", extension.Key.Action.ToString());
+            
             extensionElement.InnerXml = extension.Value.InnerXml;
         }
 
@@ -310,6 +313,10 @@ namespace WXML.Model
                         constantElement.SetAttribute("value", constantDescriptor.Value);
                     }
                 }
+
+                if (rel.Action != MergeAction.Merge)
+                    relationElement.SetAttribute("action", rel.Action.ToString());
+
                 relationsNode.AppendChild(relationElement);
 			}
         }
@@ -339,39 +346,27 @@ namespace WXML.Model
                     entityElement.SetAttribute("baseEntity", entity.BaseEntity.Identifier);
 				if (entity.Disabled)
 					entityElement.SetAttribute("disabled", XmlConvert.ToString(entity.Disabled));
-                
+                if (entity.Action != MergeAction.Merge)
+                    entityElement.SetAttribute("action", entity.Action.ToString());
                 if (!string.IsNullOrEmpty(entity.FamilyName) && entity.FamilyName != entity.Name)
                     entityElement.SetAttribute("familyName", entity.FamilyName);
 
 				if (entity.CacheCheckRequired)
 					entityElement.SetAttribute("cacheCheckRequired", XmlConvert.ToString(entity.CacheCheckRequired));
-				
 
-                XmlNode tablesNode = CreateElement("SourceFragments");
-                foreach (SourceFragmentRefDefinition table in entity.GetSourceFragments())
-                {
-					XmlElement tableElement = CreateElement("SourceFragment");
-                    tableElement.SetAttribute("ref", table.Identifier);
-                    if (table.AnchorTable != null)
-                    {
-                        tableElement.SetAttribute("anchorTableRef", table.AnchorTable.Identifier);
-                        tableElement.SetAttribute("type", table.JoinType.ToString());
-                        foreach (SourceFragmentRefDefinition.Condition c in table.Conditions)
-                        {
-                            XmlElement join = CreateElement("join");
-                            join.SetAttribute("refColumn", c.LeftColumn);
-                            join.SetAttribute("anchorColumn", c.RightColumn);
-                            tableElement.AppendChild(join);
-                        }
-                    }
-                    tablesNode.AppendChild(tableElement);
-                }
+
+                XmlElement tablesElement = CreateElement("SourceFragments");
 				if(!entity.InheritsBaseTables)
 				{
-					((XmlElement)tablesNode).SetAttribute("inheritsBase", XmlConvert.ToString(entity.InheritsBaseTables));
+				    tablesElement.SetAttribute("inheritsBase", XmlConvert.ToString(entity.InheritsBaseTables));
+				    FillEntityTables(entity.GetSourceFragments(), tablesElement);
 				}
-				
-				entityElement.AppendChild(tablesNode);	
+				else
+				{
+                    FillEntityTables(entity.SelfSourceFragments, tablesElement);
+				}
+
+                entityElement.AppendChild(tablesElement);	
 
                 XmlNode propertiesNode = CreateElement("Properties");
                 IEnumerable<PropertyDefinition> properties = entity.SelfProperties.Where(p => p.Group == null);
@@ -425,6 +420,9 @@ namespace WXML.Model
                         if (!string.IsNullOrEmpty(entityRelation.AccessorDescription))
                             relationNode.SetAttribute("accessorDescription", entityRelation.AccessorDescription);
 
+                        if (entityRelation.Action != MergeAction.Merge)
+                            relationNode.SetAttribute("action", entityRelation.Action.ToString());
+
                         relationsNode.AppendChild(relationNode);
                     }
 
@@ -440,6 +438,34 @@ namespace WXML.Model
                 }
 
                 entitiesNode.AppendChild(entityElement);
+            }
+        }
+
+        private void FillEntityTables(IEnumerable<SourceFragmentRefDefinition> tables, XmlNode tablesElement)
+        {
+            foreach (SourceFragmentRefDefinition table in tables)
+            {
+                XmlElement tableElement = CreateElement("SourceFragment");
+                tableElement.SetAttribute("ref", table.Identifier);
+                if (table.Action != MergeAction.Merge)
+                    tableElement.SetAttribute("action", table.Action.ToString());
+
+                if (table.AnchorTable != null)
+                {
+                    tableElement.SetAttribute("anchorTableRef", table.AnchorTable.Identifier);
+                    tableElement.SetAttribute("type", table.JoinType.ToString());
+                    foreach (SourceFragmentRefDefinition.Condition c in table.Conditions)
+                    {
+                        XmlElement join = CreateElement("join");
+                        join.SetAttribute("refColumn", c.LeftColumn);
+                        join.SetAttribute("anchorColumn", c.RightColumn);
+                        if (c.Action != MergeAction.Merge)
+                            join.SetAttribute("action", c.Action.ToString());
+
+                        tableElement.AppendChild(join);
+                    }
+                }
+                tablesElement.AppendChild(tableElement);
             }
         }
 
@@ -484,6 +510,9 @@ namespace WXML.Model
 					propertyElement.SetAttribute("defferedLoadGroup", property.DefferedLoadGroup);
                 if (!string.IsNullOrEmpty(property.FieldAlias))
                     propertyElement.SetAttribute("fieldAlias", property.FieldAlias);
+                if (property.Action != MergeAction.Merge)
+                    propertyElement.SetAttribute("action", property.Action.ToString());
+
                 propertiesNode.AppendChild(propertyElement);
             }
         }

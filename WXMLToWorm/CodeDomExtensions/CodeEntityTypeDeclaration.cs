@@ -20,16 +20,18 @@ namespace WXMLToWorm.CodeDomExtensions
         private readonly CodeTypeReference m_typeReference;
         private CodeSchemaDefTypeDeclaration m_schema;
         private readonly Dictionary<string, CodePropertiesAccessorTypeDeclaration> m_propertiesAccessor;
-        private bool _useType;
-        private WXMLCodeDomGeneratorSettings _settings;
+        private readonly bool _useType;
+        private readonly WXMLCodeDomGeneratorSettings _settings;
+        private readonly WormCodeDomGenerator _gen;
 
-        public CodeEntityTypeDeclaration(WXMLCodeDomGeneratorSettings settings, bool useType)
+        public CodeEntityTypeDeclaration(WXMLCodeDomGeneratorSettings settings, bool useType, WormCodeDomGenerator gen)
         {
             m_typeReference = new CodeTypeReference();
             m_propertiesAccessor = new Dictionary<string, CodePropertiesAccessorTypeDeclaration>();
             PopulateMembers += OnPopulateMembers;
             _useType = useType;
             _settings = settings;
+            _gen = gen;
         }
 
         protected virtual void OnPopulateMembers(object sender, System.EventArgs e)
@@ -144,7 +146,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
                 Members.Add(memberProperty);
 
-                WormCodeDomGenerator.RaisePropertyCreated(null, this, memberProperty, null);
+                _gen.RaisePropertyCreated(null, this, memberProperty, null);
             }
 
             #endregion
@@ -221,7 +223,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
                     Members.Add(memberProperty);
 
-                    WormCodeDomGenerator.RaisePropertyCreated(null, this, memberProperty, null);
+                    _gen.RaisePropertyCreated(null, this, memberProperty, null);
                 }
 
                 accessorName = relation.Reverse.AccessorName;
@@ -291,7 +293,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
                     Members.Add(memberProperty);
 
-                    WormCodeDomGenerator.RaisePropertyCreated(null, this, memberProperty, null);
+                    _gen.RaisePropertyCreated(null, this, memberProperty, null);
                 }
             }
             
@@ -441,7 +443,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 );
                 Members.Add(memberProperty);
 
-                WormCodeDomGenerator.RaisePropertyCreated(null, this, memberProperty, null);
+                _gen.RaisePropertyCreated(null, this, memberProperty, null);
             }
         }
 
@@ -477,8 +479,8 @@ namespace WXMLToWorm.CodeDomExtensions
 
         }
 
-        public CodeEntityTypeDeclaration(WXMLCodeDomGeneratorSettings settings, EntityDefinition entity, bool useType)
-            : this(settings,useType)
+        public CodeEntityTypeDeclaration(WXMLCodeDomGeneratorSettings settings, EntityDefinition entity, bool useType, WormCodeDomGenerator gen)
+            : this(settings, useType, gen)
         {
             Entity = entity;
             m_typeReference.BaseType = FullName;

@@ -16,8 +16,8 @@ namespace WXML.Model.Descriptors
         private readonly List<string> _suppressedProperties;
         internal WXMLModel _model;
         private EntityDefinition _baseEntity;
-        private Dictionary<string, object> _items = new Dictionary<string, object>();
-        private Dictionary<string, XmlDocument> _extensions = new Dictionary<string, XmlDocument>();
+        private readonly Dictionary<string, object> _items = new Dictionary<string, object>();
+        private readonly Dictionary<Extension, XmlDocument> _extensions = new Dictionary<Extension, XmlDocument>();
 
         #endregion Private Fields
 
@@ -54,7 +54,7 @@ namespace WXML.Model.Descriptors
         #region Properties
         public MergeAction Action { get; set; }
 
-        public Dictionary<string, XmlDocument> Extensions
+        public Dictionary<Extension, XmlDocument> Extensions
         {
             get
             {
@@ -117,6 +117,13 @@ namespace WXML.Model.Descriptors
             {
                 return _accessor(obj).GetHashCode();
             }
+        }
+
+        public void RemoveSourceFragment(SourceFragmentRefDefinition sf)
+        {
+            int index = _sourceFragments.IndexOf(item=>item.Identifier == sf.Identifier);
+            if (index >= 0)
+                _sourceFragments.RemoveAt(index);
         }
 
         public void AddSourceFragment(SourceFragmentRefDefinition sf)
@@ -666,8 +673,12 @@ namespace WXML.Model.Descriptors
 
         public void RemoveProperty(PropertyDefinition pe)
         {
-            pe.Entity = null;
-            _properties.Remove(pe);
+            int index = _properties.IndexOf(item=>item.Identifier == pe.Identifier);
+            if (index >= 0)
+            {
+                pe.Entity = null;
+                _properties.RemoveAt(index);
+            }
         }
 
         public void InsertProperty(int pos, PropertyDefinition pe)
@@ -695,6 +706,23 @@ namespace WXML.Model.Descriptors
             {
                 _familyName = value;
             }
+        }
+
+        public IEnumerable<SourceFragmentRefDefinition> SelfSourceFragments
+        {
+            get
+            {
+                return _sourceFragments;
+            }
+        }
+
+        public void MarkAsDeleted(SourceFragmentRefDefinition sf)
+        {
+            int index = _sourceFragments.IndexOf(item => item.Identifier == sf.Identifier);
+            if (index >= 0)
+                _sourceFragments[index].Action = MergeAction.Delete;
+            else
+                throw new ArgumentException(string.Format("SourceFragment {0} not found among SelfSourceFragments. Probably InheritsBase is true. Consider remove table inheritance and copy base tables to entity.", sf.Identifier));
         }
     }
 }

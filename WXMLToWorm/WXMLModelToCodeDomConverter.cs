@@ -20,7 +20,7 @@ using WXML.CodeDom.CodeDomExtensions;
 
 namespace WXMLToWorm
 {
-    public partial class WormCodeDomGenerator
+    public class WormCodeDomGenerator
     {
         #region Events
 
@@ -102,76 +102,78 @@ namespace WXMLToWorm
             }
         }
 
-        protected event EventHandler<EntityClassCreatedEventArgs> EntityClassCreated
-        {
-            add
-            {
-                s_ctrl.EventDelegates.AddHandler(EntityGeneratorController.EntityClassCreatedKey, value);
-            }
-            remove
-            {
-                s_ctrl.EventDelegates.RemoveHandler(EntityGeneratorController.EntityClassCreatedKey, value);
-            }
-        }
-        protected event EventHandler<EntityPropertyCreatedEventArgs> PropertyCreated
-        {
-            add
-            {
-                s_ctrl.EventDelegates.AddHandler(EntityGeneratorController.PropertyCreatedKey, value);
-            }
-            remove
-            {
-                s_ctrl.EventDelegates.RemoveHandler(EntityGeneratorController.PropertyCreatedKey, value);
-            }
-        }
-        protected event EventHandler<EntityCtorCreatedEventArgs> EntityClassCtorCreated
-        {
-            add
-            {
-                s_ctrl.EventDelegates.AddHandler(EntityGeneratorController.EntityClassCtorCreatedKey, value);
-            }
-            remove
-            {
-                s_ctrl.EventDelegates.RemoveHandler(EntityGeneratorController.EntityClassCtorCreatedKey, value);
-            }
+        protected event EventHandler<EntityClassCreatedEventArgs> EntityClassCreated;
+        //{
+        //    add
+        //    {
+        //        s_ctrl.EventDelegates.AddHandler(EntityGeneratorController.EntityClassCreatedKey, value);
+        //    }
+        //    remove
+        //    {
+        //        s_ctrl.EventDelegates.RemoveHandler(EntityGeneratorController.EntityClassCreatedKey, value);
+        //    }
+        //}
 
-        }
+        protected event EventHandler<EntityPropertyCreatedEventArgs> PropertyCreated;
+        //{
+        //    add
+        //    {
+        //        s_ctrl.EventDelegates.AddHandler(EntityGeneratorController.PropertyCreatedKey, value);
+        //    }
+        //    remove
+        //    {
+        //        s_ctrl.EventDelegates.RemoveHandler(EntityGeneratorController.PropertyCreatedKey, value);
+        //    }
+        //}
+        
+        protected event EventHandler<EntityCtorCreatedEventArgs> EntityClassCtorCreated;
+        //{
+        //    add
+        //    {
+        //        s_ctrl.EventDelegates.AddHandler(EntityGeneratorController.EntityClassCtorCreatedKey, value);
+        //    }
+        //    remove
+        //    {
+        //        s_ctrl.EventDelegates.RemoveHandler(EntityGeneratorController.EntityClassCtorCreatedKey, value);
+        //    }
+
+        //}
 
         #endregion
 
-        protected internal class EntityGeneratorController : IDisposable
-        {
-            public WormCodeDomGenerator Current { get; private set; }
-            public EntityGeneratorController(WormCodeDomGenerator gen)
-            {
-                Current = gen;
-                if (WormCodeDomGenerator.s_ctrl == null)
-                    WormCodeDomGenerator.s_ctrl = this;
-            }
+        //protected internal class EntityGeneratorController : IDisposable
+        //{
+        //    public WormCodeDomGenerator Current { get; private set; }
+        //    public EntityGeneratorController(WormCodeDomGenerator gen)
+        //    {
+        //        Current = gen;
+        //        if (WormCodeDomGenerator.s_ctrl == null)
+        //            WormCodeDomGenerator.s_ctrl = this;
+        //    }
 
-            public System.ComponentModel.EventHandlerList EventDelegates = new System.ComponentModel.EventHandlerList();
+        //    public System.ComponentModel.EventHandlerList EventDelegates = new System.ComponentModel.EventHandlerList();
 
-            public static readonly object EntityClassCreatedKey = new object();
-            public static readonly object PropertyCreatedKey = new object();
-            public static readonly object EntityClassCtorCreatedKey = new object();
+        //    public static readonly object EntityClassCreatedKey = new object();
+        //    public static readonly object PropertyCreatedKey = new object();
+        //    public static readonly object EntityClassCtorCreatedKey = new object();
 
-            //public event EventHandler<EntityClassCreatedEventArgs> EntityClassCreated;
-            //public event EventHandler<EntityPropertyCreatedEventArgs> PropertyCreated;
-            //public event EventHandler<EntityCtorCreatedEventArgs> EntityClassCtorCreated;	
+        //    //public event EventHandler<EntityClassCreatedEventArgs> EntityClassCreated;
+        //    //public event EventHandler<EntityPropertyCreatedEventArgs> PropertyCreated;
+        //    //public event EventHandler<EntityCtorCreatedEventArgs> EntityClassCtorCreated;	
 
-            #region IDisposable Members
+        //    #region IDisposable Members
 
-            public void Dispose()
-            {
-                if (EventDelegates != null)
-                    EventDelegates.Dispose();
-            }
+        //    public void Dispose()
+        //    {
+        //        if (EventDelegates != null)
+        //            EventDelegates.Dispose();
+        //    }
 
-            #endregion
-        }
+        //    #endregion
+        //}
 
-        private WXMLModel _model;
-        private WXMLCodeDomGeneratorSettings _generatorSettings;
+        private readonly WXMLModel _model;
+        private readonly WXMLCodeDomGeneratorSettings _generatorSettings;
 
         public WormCodeDomGenerator(WXMLModel ormObjectsDefinition, WXMLCodeDomGeneratorSettings settings)
         {
@@ -205,8 +207,8 @@ namespace WXMLToWorm
             return result;
         }
 
-        [ThreadStatic]
-        internal static EntityGeneratorController s_ctrl;
+        //[ThreadStatic]
+        //internal static EntityGeneratorController s_ctrl;
 
         public CodeCompileFileUnit GetFullSingleUnit(LinqToCodedom.CodeDomGenerator.Language language)
         {
@@ -292,7 +294,7 @@ namespace WXMLToWorm
 
         public IList<CodeCompileFileUnit> GetEntityCompileUnits(string entityId, LinqToCodedom.CodeDomGenerator.Language language)
         {
-            using (new EntityGeneratorController(this))
+            //using (new EntityGeneratorController(this))
             {
                 //using (new SettingsManager(settings, null))
                 //{
@@ -344,7 +346,7 @@ namespace WXMLToWorm
                     entityUnit.Namespaces.Add(nameSpace);
 
                     // класс сущности
-                    CodeEntityTypeDeclaration entityClass = new CodeEntityTypeDeclaration(Settings, entity, Settings.UseTypeInProps);
+                    CodeEntityTypeDeclaration entityClass = new CodeEntityTypeDeclaration(Settings, entity, Settings.UseTypeInProps, this);
                     nameSpace.Types.Add(entityClass);
 
                     // параметры класса
@@ -1489,24 +1491,28 @@ namespace WXMLToWorm
 
         private void RaiseEntityCtorCreated(CodeEntityTypeDeclaration entityClass, CodeConstructor ctr)
         {
-            EventHandler<EntityCtorCreatedEventArgs> h =
-                s_ctrl.EventDelegates[EntityGeneratorController.EntityClassCtorCreatedKey] as EventHandler<EntityCtorCreatedEventArgs>;
-            if (h != null)
-            {
-                h(this, new EntityCtorCreatedEventArgs(entityClass, ctr));
-            }
+            if (EntityClassCtorCreated != null)
+                EntityClassCtorCreated(this, new EntityCtorCreatedEventArgs(entityClass, ctr));
+            //EventHandler<EntityCtorCreatedEventArgs> h =
+            //    s_ctrl.EventDelegates[EntityGeneratorController.EntityClassCtorCreatedKey] as EventHandler<EntityCtorCreatedEventArgs>;
+            //if (h != null)
+            //{
+            //    h(this, new EntityCtorCreatedEventArgs(entityClass, ctr));
+            //}
         }
 
         private void RaiseEntityClassCreated(CodeNamespace nameSpace, CodeEntityTypeDeclaration entityClass)
         {
-            EventHandler<EntityClassCreatedEventArgs> h = s_ctrl.EventDelegates[EntityGeneratorController.EntityClassCreatedKey] as EventHandler<EntityClassCreatedEventArgs>;
-            if (h != null)
-            {
-                h(this, new EntityClassCreatedEventArgs(nameSpace, entityClass));
-            }
+            //EventHandler<EntityClassCreatedEventArgs> h = s_ctrl.EventDelegates[EntityGeneratorController.EntityClassCreatedKey] as EventHandler<EntityClassCreatedEventArgs>;
+            //if (h != null)
+            //{
+            //    h(this, new EntityClassCreatedEventArgs(nameSpace, entityClass));
+            //}
+            if (EntityClassCreated != null)
+                EntityClassCreated(this, new EntityClassCreatedEventArgs(nameSpace, entityClass));
         }
 
-        void OnEntityCtorCustomPropEventsImplementationRequired(object sender, EntityCtorCreatedEventArgs e)
+        static void OnEntityCtorCustomPropEventsImplementationRequired(object sender, EntityCtorCreatedEventArgs e)
         {
             CodeConstructor con = e.CtorDeclaration;
 
@@ -1543,7 +1549,7 @@ namespace WXMLToWorm
                 CreatePropertyInInterface(entityPropertiesInterface, propertyMember);
         }
 
-        private void CreatePropertyInInterface(CodeEntityInterfaceDeclaration entityInterface, CodeMemberProperty propertyMember)
+        private static void CreatePropertyInInterface(CodeEntityInterfaceDeclaration entityInterface, CodeMemberProperty propertyMember)
         {
             if ((propertyMember.Attributes & MemberAttributes.Public) != MemberAttributes.Public)
                 return;
@@ -2255,22 +2261,24 @@ namespace WXMLToWorm
             }
         }
 
-        private void FilterPropertyName(PropertyDefinition propertyDesc)
+        private static void FilterPropertyName(PropertyDefinition propertyDesc)
         {
             if (propertyDesc.Name == "Identifier")
                 throw new ArgumentException("Used reserved property name 'Identifier'");
         }
 
-        public static void RaisePropertyCreated(PropertyDefinition propertyDesc, CodeEntityTypeDeclaration entityClass, CodeMemberProperty property, CodeMemberField field)
+        public void RaisePropertyCreated(PropertyDefinition propertyDesc, CodeEntityTypeDeclaration entityClass, CodeMemberProperty property, CodeMemberField field)
         {
-            EventHandler<EntityPropertyCreatedEventArgs> h = s_ctrl.EventDelegates[EntityGeneratorController.PropertyCreatedKey] as EventHandler<EntityPropertyCreatedEventArgs>;
-            if (h != null)
-            {
-                h(null, new EntityPropertyCreatedEventArgs(propertyDesc, entityClass, field, property));
-            }
+            //EventHandler<EntityPropertyCreatedEventArgs> h = s_ctrl.EventDelegates[EntityGeneratorController.PropertyCreatedKey] as EventHandler<EntityPropertyCreatedEventArgs>;
+            //if (h != null)
+            //{
+            //    h(null, new EntityPropertyCreatedEventArgs(propertyDesc, entityClass, field, property));
+            //}
+            if (PropertyCreated != null)
+                PropertyCreated(this, new EntityPropertyCreatedEventArgs(propertyDesc, entityClass, field, property));
         }
 
-        private void CheckPropertyObsoleteAttribute(CodeMemberProperty property, PropertyDefinition propertyDesc)
+        private static void CheckPropertyObsoleteAttribute(CodeMemberProperty property, PropertyDefinition propertyDesc)
         {
             if (propertyDesc.Obsolete != ObsoleteType.None)
             {
