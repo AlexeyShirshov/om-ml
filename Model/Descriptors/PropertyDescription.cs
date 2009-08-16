@@ -164,7 +164,8 @@ namespace WXML.Model.Descriptors
             if (FromBase && PropertyType.IsEntityType)
             {
                 var e = Entity.Model.GetDerived(PropertyType.Entity.Identifier).FirstOrDefault(item =>
-                     !item.Disabled && item.FamilyName == PropertyType.Entity.FamilyName
+                     !item.Disabled && item.Model.SchemaVersion == Entity.Model.SchemaVersion &&
+                     item.FamilyName == PropertyType.Entity.FamilyName
                 );
 
                 if (e != null)

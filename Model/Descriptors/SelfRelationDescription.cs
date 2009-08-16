@@ -97,6 +97,8 @@ namespace WXML.Model.Descriptors
 				return !string.IsNullOrEmpty(Left.AccessorName) || !string.IsNullOrEmpty(Right.AccessorName);
 			}
     	}
+
+        public MergeAction Action { get; set; }
     }
     
 	public class SelfRelationDescription : RelationDefinitionBase

@@ -117,11 +117,21 @@ namespace WXML.Model
             }
         }
 
-        private static void FillExtension(IDictionary<string, XmlDocument> dictionary, XmlNode extension)
+        private static void FillExtension(IDictionary<Extension, XmlDocument> dictionary, XmlElement extension)
         {
             XmlDocument xdoc = new XmlDocument();
             xdoc.LoadXml(extension.InnerXml);
-            dictionary.Add(extension.Attributes["name"].Value, xdoc);
+            Extension ext = new Extension()
+            {
+                Name = extension.Attributes["name"].Value
+            };
+
+            string mergeAction = extension.GetAttribute("action");
+
+            if (!string.IsNullOrEmpty(mergeAction))
+                ext.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
+
+            dictionary.Add(ext, xdoc);
         }
 
         private void FillLinqSettings()
@@ -248,11 +258,9 @@ namespace WXML.Model
             if (entity == null)
                 throw new ArgumentNullException("entity");
 
-            XmlNode entityNode;
-            entityNode = _ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX, entity.Identifier), _nsMgr);
+            XmlNode entityNode = _ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX, entity.Identifier), _nsMgr);
 
-            XmlNodeList relationsList;
-            relationsList = entityNode.SelectNodes(
+            XmlNodeList relationsList = entityNode.SelectNodes(
                 string.Format("{0}:Relations/{0}:Relation", WXMLModel.NS_PREFIX), _nsMgr);
 
             foreach(XmlElement relationNode in relationsList)
@@ -268,6 +276,7 @@ namespace WXML.Model
                 string accessorName = relationNode.GetAttribute("accessorName");
 
                 string disabledAttribute = relationNode.GetAttribute("disabled");
+                string mergeAction = relationNode.GetAttribute("action");
 
                 bool disabled = string.IsNullOrEmpty(disabledAttribute)
                                     ? false
@@ -276,15 +285,19 @@ namespace WXML.Model
                 string accessorDescription = relationNode.GetAttribute("accessorDescription");
 
                 EntityRelationDefinition relation = new EntityRelationDefinition
-                                                         {
-                                                             SourceEntity = entity,
-                                                             Entity = relationEntity,
-                                                             PropertyAlias = propertyAlias,
-                                                             Name = name,
-                                                             AccessorName = accessorName,
-                                                             Disabled = disabled,
-                                                             AccessorDescription = accessorDescription
-                                                         };
+                {
+                    SourceEntity = entity,
+                    Entity = relationEntity,
+                    PropertyAlias = propertyAlias,
+                    Name = name,
+                    AccessorName = accessorName,
+                    Disabled = disabled,
+                    AccessorDescription = accessorDescription
+                };
+
+                if (!string.IsNullOrEmpty(mergeAction))
+                    relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
+
                 entity.EntityRelations.Add(relation);
             }
         }
@@ -365,6 +378,7 @@ namespace WXML.Model
             	string makeInterfaceAttribute = entityElement.GetAttribute("makeInterface");
             	string disbledAttribute = entityElement.GetAttribute("disabled");
 				string cacheCheckRequiredAttribute = entityElement.GetAttribute("cacheCheckRequired");
+                string mergeAction = entityElement.GetAttribute("action");
 
 				bool useGenerics = !string.IsNullOrEmpty(useGenericsAttribute) && XmlConvert.ToBoolean(useGenericsAttribute);
             	bool makeInterface = !string.IsNullOrEmpty(makeInterfaceAttribute) &&
@@ -387,7 +401,9 @@ namespace WXML.Model
                     FamilyName = familyName
                 };
 
-                //_ormObjectsDef.AddEntity(entity);
+                if (!string.IsNullOrEmpty(mergeAction))
+                    entity.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
+
 
                 FillEntityTables(entity);
             }
@@ -443,7 +459,7 @@ namespace WXML.Model
                 string propertyObsoleteDescription = propertyElement.GetAttribute("obsoleteDescription");
                 string enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
                 string fieldAlias = propertyElement.GetAttribute("fieldAlias");
-
+                string mergeAction = propertyElement.GetAttribute("action");
                 string dbTypeNameAttribute = propertyElement.GetAttribute("dbTypeName");
                 string dbTypeSizeAttribute = propertyElement.GetAttribute("dbTypeSize");
                 string dbTypeNullableAttribute = propertyElement.GetAttribute("dbTypeNullable");
@@ -504,9 +520,14 @@ namespace WXML.Model
 
                 if (!string.IsNullOrEmpty(dbTypeSizeAttribute))
                     property.DbTypeSize = XmlConvert.ToInt32(dbTypeSizeAttribute);
+                
                 if (!string.IsNullOrEmpty(dbTypeNullableAttribute))
                     property.DbTypeNullable = XmlConvert.ToBoolean(dbTypeNullableAttribute);
-            	property.DefferedLoadGroup = defferedLoadGroup;
+
+                if (!string.IsNullOrEmpty(mergeAction))
+                    property.Action = (MergeAction)Enum.Parse(typeof (MergeAction), mergeAction);
+
+                property.DefferedLoadGroup = defferedLoadGroup;
 
                 entity.AddProperty(property);
             }
@@ -517,15 +538,15 @@ namespace WXML.Model
 			XmlNodeList relationNodes = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:EntityRelations/{0}:Relation", WXMLModel.NS_PREFIX), _nsMgr);
 
             #region Relations
-            foreach (XmlNode relationNode in relationNodes)
+            foreach (XmlElement relationElement in relationNodes)
 			{
-				XmlNode leftTargetNode = relationNode.SelectSingleNode(string.Format("{0}:Left", WXMLModel.NS_PREFIX), _nsMgr);
-				XmlNode rightTargetNode = relationNode.SelectSingleNode(string.Format("{0}:Right", WXMLModel.NS_PREFIX), _nsMgr);
+                XmlNode leftTargetNode = relationElement.SelectSingleNode(string.Format("{0}:Left", WXMLModel.NS_PREFIX), _nsMgr);
+                XmlNode rightTargetNode = relationElement.SelectSingleNode(string.Format("{0}:Right", WXMLModel.NS_PREFIX), _nsMgr);
 
-				XmlElement relationElement = (XmlElement)relationNode;
 				string relationTableId = relationElement.GetAttribute("table");
 				string underlyingEntityId = relationElement.GetAttribute("underlyingEntity");
 				string disabledValue = relationElement.GetAttribute("disabled");
+                string mergeAction = relationElement.GetAttribute("action");
 
 				XmlElement leftTargetElement = (XmlElement)leftTargetNode;
 				string leftLinkTargetEntityId = leftTargetElement.GetAttribute("entity");
@@ -564,7 +585,6 @@ namespace WXML.Model
 				else
 					disabled = XmlConvert.ToBoolean(disabledValue);
 
-
 				EntityDefinition leftLinkTargetEntity = _model.GetEntity(leftLinkTargetEntityId);
 
 				EntityDefinition rightLinkTargetEntity = _model.GetEntity(rightLinkTargetEntityId);
@@ -582,10 +602,14 @@ namespace WXML.Model
                 };
 
 				RelationDefinition relation = new RelationDefinition(leftLinkTarget, rightLinkTarget, relationTable, underlyingEntity, disabled);
-				_model.Relations.Add(relation);
+
+                if (!string.IsNullOrEmpty(mergeAction))
+                    relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
+                
+                _model.Relations.Add(relation);
 
 			    XmlNodeList constantsNodeList =
-			        relationNode.SelectNodes(string.Format("{0}:Constants/{0}:Constant", WXMLModel.NS_PREFIX), _nsMgr);
+			        relationElement.SelectNodes(string.Format("{0}:Constants/{0}:Constant", WXMLModel.NS_PREFIX), _nsMgr);
 
 			    foreach (XmlElement constantNode in constantsNodeList)
 			    {
@@ -596,28 +620,29 @@ namespace WXML.Model
                         continue;
 
 			        RelationConstantDescriptor con = new RelationConstantDescriptor
-			                                             {
-			                                                 Name = name,
-			                                                 Value = value
-			                                             };
+                    {
+                        Name = name,
+                        Value = value
+                    };
 
 			        relation.Constants.Add(con);
 			    }
 			} 
 			#endregion
+
 			#region SelfRelations
 			relationNodes = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:EntityRelations/{0}:SelfRelation", WXMLModel.NS_PREFIX), _nsMgr);
 
-			foreach (XmlNode relationNode in relationNodes)
+			foreach (XmlElement relationElement in relationNodes)
 			{
-				XmlNode directTargetNode = relationNode.SelectSingleNode(string.Format("{0}:Direct", WXMLModel.NS_PREFIX), _nsMgr);
-				XmlNode reverseTargetNode = relationNode.SelectSingleNode(string.Format("{0}:Reverse", WXMLModel.NS_PREFIX), _nsMgr);
+                XmlNode directTargetNode = relationElement.SelectSingleNode(string.Format("{0}:Direct", WXMLModel.NS_PREFIX), _nsMgr);
+                XmlNode reverseTargetNode = relationElement.SelectSingleNode(string.Format("{0}:Reverse", WXMLModel.NS_PREFIX), _nsMgr);
 
-				XmlElement relationElement = (XmlElement)relationNode;
-				string relationTableId = relationElement.GetAttribute("table");
+                string relationTableId = relationElement.GetAttribute("table");
 				string underlyingEntityId = relationElement.GetAttribute("underlyingEntity");
 				string disabledValue = relationElement.GetAttribute("disabled");
 				string entityId = relationElement.GetAttribute("entity");
+                string mergeAction = relationElement.GetAttribute("action");
 
 				XmlElement directTargetElement = (XmlElement)directTargetNode;
 				XmlElement reverseTargetElement = (XmlElement)reverseTargetNode;
@@ -642,17 +667,9 @@ namespace WXML.Model
 
 				var relationTable = _model.GetSourceFragment(relationTableId);
 
-				EntityDefinition underlyingEntity;
-				if (string.IsNullOrEmpty(underlyingEntityId))
-					underlyingEntity = null;
-				else
-					underlyingEntity = _model.GetEntity(underlyingEntityId);
+			    EntityDefinition underlyingEntity = string.IsNullOrEmpty(underlyingEntityId) ? null : _model.GetEntity(underlyingEntityId);
 
-				bool disabled;
-				if (string.IsNullOrEmpty(disabledValue))
-					disabled = false;
-				else
-					disabled = XmlConvert.ToBoolean(disabledValue);
+			    bool disabled = !string.IsNullOrEmpty(disabledValue) && XmlConvert.ToBoolean(disabledValue);
 
 				EntityDefinition entity = _model.GetEntity(entityId);
 
@@ -669,6 +686,10 @@ namespace WXML.Model
                 };
 
 				SelfRelationDescription relation = new SelfRelationDescription(entity, directTarget, reverseTarget, relationTable, underlyingEntity, disabled);
+
+                if (!string.IsNullOrEmpty(mergeAction))
+                    relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
+
 				_model.Relations.Add(relation);
 			}
 			#endregion
@@ -704,6 +725,8 @@ namespace WXML.Model
             {
                 XmlElement tableElement = (XmlElement)tableNode;
                 string tableId = tableElement.GetAttribute("ref");
+                string mergeAction = tableElement.GetAttribute("action");
+
                 var table = entity.Model.GetSourceFragment(tableId);
                 if (table == null)
                     throw new OrmXmlParserException(String.Format("Table {0} not found.", tableId));
@@ -721,12 +744,22 @@ namespace WXML.Model
                     var joinNodes = tableElement.SelectNodes(string.Format("{0}:join", WXMLModel.NS_PREFIX), _nsMgr);
                     foreach (XmlElement joinNode in joinNodes)
                     {
-                        tableRef.Conditions.Add(new SourceFragmentRefDefinition.Condition(
+                        string cmergeAction = joinNode.GetAttribute("action");
+
+                        SourceFragmentRefDefinition.Condition condition = new SourceFragmentRefDefinition.Condition(
                             joinNode.GetAttribute("refColumn"),
                             joinNode.GetAttribute("anchorColumn")
-                        ));
+                        );
+
+                        if (!string.IsNullOrEmpty(cmergeAction))
+                            condition.Action = (MergeAction)Enum.Parse(typeof(MergeAction), cmergeAction);
+
+                        tableRef.Conditions.Add(condition);
                     }
                 }
+
+                if (!string.IsNullOrEmpty(mergeAction))
+                    tableRef.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
 
                 entity.AddSourceFragment(tableRef);
             }

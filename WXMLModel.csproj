@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="CodeDom\CodeCompileFileUnit.cs" />
     <Compile Include="Model\DatabaseColumn.cs" />
+    <Compile Include="Model\Descriptors\Extension.cs" />
     <Compile Include="Model\Descriptors\SourceFragmentRefDescription.cs" />
     <Compile Include="Model\Descriptors\EntityRelationDescription.cs" />
     <Compile Include="Model\Descriptors\LinqSettingsDescriptor.cs" />

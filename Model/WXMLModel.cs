@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace WXML.Model
 {
-	[Serializable]
+    [Serializable]
     public class WXMLModel
     {
         public const string NS_PREFIX = "oos";
@@ -18,43 +18,43 @@ namespace WXML.Model
         #region Private Fields
 
         private readonly List<EntityDefinition> _entities;
-		private readonly List<SourceFragmentDefinition> _sourceFragments;
+        private readonly List<SourceFragmentDefinition> _sourceFragments;
         private readonly List<RelationDefinitionBase> _relations;
-    	//private readonly List<SelfRelationDescription> _selfRelations;
+        //private readonly List<SelfRelationDescription> _selfRelations;
         private readonly List<TypeDefinition> _types;
         private readonly IncludesCollection _includes;
 
-	    private readonly List<string> _userComments;
+        private readonly List<string> _userComments;
         private readonly List<string> _systemComments;
         private readonly string _appName;
         private readonly string _appVersion;
 
-	    private string _entityBaseTypeName;
-		private TypeDefinition _entityBaseType;
+        private string _entityBaseTypeName;
+        private TypeDefinition _entityBaseType;
 
-        private Dictionary<string, XmlDocument> _extensions = new Dictionary<string, XmlDocument>();
-	    #endregion Private Fields
+        private Dictionary<Extension, XmlDocument> _extensions = new Dictionary<Extension, XmlDocument>();
+        #endregion Private Fields
 
         public WXMLModel()
         {
             _entities = new List<EntityDefinition>();
             _relations = new List<RelationDefinitionBase>();
-        	//_selfRelations = new List<SelfRelationDescription>();
-        	_sourceFragments = new List<SourceFragmentDefinition>();
+            //_selfRelations = new List<SelfRelationDescription>();
+            _sourceFragments = new List<SourceFragmentDefinition>();
             _types = new List<TypeDefinition>();
             _userComments = new List<string>();
             _systemComments = new List<string>();
             _includes = new IncludesCollection(this);
 
             Assembly ass = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
-        	_appName = ass.GetName().Name;
+            _appName = ass.GetName().Name;
             _appVersion = ass.GetName().Version.ToString(4);
-        	EnableReadOnlyPropertiesSetter = false;
+            EnableReadOnlyPropertiesSetter = false;
             GenerateEntityName = true;
         }
 
         #region Properties
-        public Dictionary<string, XmlDocument> Extensions
+        public Dictionary<Extension, XmlDocument> Extensions
         {
             get
             {
@@ -121,15 +121,15 @@ namespace WXML.Model
         {
             get
             {
-                return _relations.FindAll(r=>!r.Disabled);
+                return _relations.FindAll(r => !r.Disabled);
             }
         }
 
-	    public string Namespace { get; set; }
+        public string Namespace { get; set; }
 
-	    public string SchemaVersion { get; set; }
+        public string SchemaVersion { get; set; }
 
-	    public List<string> UserComments
+        public List<string> UserComments
         {
             get { return _userComments; }
         }
@@ -144,49 +144,49 @@ namespace WXML.Model
             get { return _includes; }
         }
 
-	    public string FileUri { get; set; }
+        public string FileUri { get; set; }
 
-	    public string FileName { get; set; }
+        public string FileName { get; set; }
 
 
-	    public WXMLModel BaseSchema { get; protected internal set; }
+        public WXMLModel BaseSchema { get; protected internal set; }
 
-	    public TypeDefinition EntityBaseType
-		{
-			get
-			{
-				if (_entityBaseType == null && !string.IsNullOrEmpty(_entityBaseTypeName))
-					_entityBaseType = GetType(_entityBaseTypeName, false);
-				return _entityBaseType;
-			}
-			set 
-			{
-				_entityBaseType = value;
-				if (_entityBaseType != null)
-					_entityBaseTypeName = _entityBaseType.Identifier;
-			}
-		}
+        public TypeDefinition EntityBaseType
+        {
+            get
+            {
+                if (_entityBaseType == null && !string.IsNullOrEmpty(_entityBaseTypeName))
+                    _entityBaseType = GetType(_entityBaseTypeName, false);
+                return _entityBaseType;
+            }
+            set
+            {
+                _entityBaseType = value;
+                if (_entityBaseType != null)
+                    _entityBaseTypeName = _entityBaseType.Identifier;
+            }
+        }
 
-		protected internal string EntityBaseTypeName
-		{
-			get
-			{
-				if (!string.IsNullOrEmpty(_entityBaseTypeName))
-					_entityBaseType = GetType(_entityBaseTypeName, false);
-				return _entityBaseTypeName;
-			}
-			set
-			{
-				_entityBaseTypeName = value;
-				_entityBaseType = GetType(_entityBaseTypeName, false);
-			}
-		}
+        protected internal string EntityBaseTypeName
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_entityBaseTypeName))
+                    _entityBaseType = GetType(_entityBaseTypeName, false);
+                return _entityBaseTypeName;
+            }
+            set
+            {
+                _entityBaseTypeName = value;
+                _entityBaseType = GetType(_entityBaseTypeName, false);
+            }
+        }
 
-	    public bool EnableCommonPropertyChangedFire { get; set; }
+        public bool EnableCommonPropertyChangedFire { get; set; }
 
-	    public bool EnableReadOnlyPropertiesSetter { get; set; }
+        public bool EnableReadOnlyPropertiesSetter { get; set; }
 
-	    public LinqSettingsDescriptor LinqSettings { get; set; }
+        public LinqSettingsDescriptor LinqSettings { get; set; }
 
         public bool GenerateEntityName
         {
@@ -194,21 +194,21 @@ namespace WXML.Model
             set;
         }
 
-	    public IEnumerable<EntityDefinition> FileEntities
-	    {
-	        get
-	        {
-	            return _entities;
-	        }
-	    }
+        public IEnumerable<EntityDefinition> FileEntities
+        {
+            get
+            {
+                return _entities;
+            }
+        }
 
-	    //[XmlIgnore]
+        //[XmlIgnore]
         //public List<SelfRelationDescription> SelfRelations
         //{
         //    get { return _selfRelations; }
         //}
 
-    	#endregion Properties
+        #endregion Properties
 
         #region Methods
 
@@ -268,7 +268,7 @@ namespace WXML.Model
             return sf;
         }
 
-	    public EntityDefinition GetEntity(string entityId)
+        public EntityDefinition GetEntity(string entityId)
         {
             return GetEntity(entityId, false);
         }
@@ -277,8 +277,8 @@ namespace WXML.Model
         {
             EntityDefinition entity = GetActiveEntities()
                 .SingleOrDefault(match => match.Identifier == entityId);
-            
-            if(entity == null && Includes.Count != 0)
+
+            if (entity == null && Includes.Count != 0)
                 foreach (WXMLModel objectsDef in Includes)
                 {
                     entity = objectsDef.GetEntity(entityId);
@@ -290,27 +290,27 @@ namespace WXML.Model
             return entity;
         }
 
-	    public IEnumerable<EntityDefinition> GetEntities()
-	    {
-	        IEnumerable<EntityDefinition> e = _entities;
-	        foreach (WXMLModel objectsDef in Includes)
-	        {
-	            e = e.Union(objectsDef.GetEntities());
-	        }
-	        return e;
-	    }
+        public IEnumerable<EntityDefinition> GetEntities()
+        {
+            IEnumerable<EntityDefinition> e = _entities;
+            foreach (WXMLModel objectsDef in Includes)
+            {
+                e = e.Union(objectsDef.GetEntities());
+            }
+            return e;
+        }
 
-	    public IEnumerable<EntityDefinition> GetActiveEntities()
-	    {
-	        IEnumerable<EntityDefinition> e = _entities.Where(item => !item.Disabled);
-	        foreach (WXMLModel objectsDef in Includes)
-	        {
-	            e = e.Union(objectsDef.GetActiveEntities());
-	        }
-	        return e;
-	    }
+        public IEnumerable<EntityDefinition> GetActiveEntities()
+        {
+            IEnumerable<EntityDefinition> e = _entities.Where(item => !item.Disabled);
+            foreach (WXMLModel objectsDef in Includes)
+            {
+                e = e.Union(objectsDef.GetActiveEntities());
+            }
+            return e;
+        }
 
-	    public SourceFragmentDefinition GetSourceFragment(string tableId)
+        public SourceFragmentDefinition GetSourceFragment(string tableId)
         {
             return GetSourceFragment(tableId, false);
         }
@@ -318,7 +318,7 @@ namespace WXML.Model
         public SourceFragmentDefinition GetSourceFragment(string tableId, bool throwNotFoundException)
         {
             var table = _sourceFragments.Find(match => match.Identifier == tableId);
-            if(table == null && Includes.Count > 0)
+            if (table == null && Includes.Count > 0)
                 foreach (WXMLModel objectsDef in Includes)
                 {
                     table = objectsDef.GetSourceFragment(tableId, false);
@@ -330,22 +330,22 @@ namespace WXML.Model
             return table;
         }
 
-	    public IEnumerable<SourceFragmentDefinition> GetSourceFragments()
-	    {
-	        IEnumerable<SourceFragmentDefinition> sf = _sourceFragments;
-	        foreach (WXMLModel objectsDef in Includes)
-	        {
-	            sf = sf.Union(objectsDef.GetSourceFragments());
-	        }
-	        return sf;
-	    }
+        public IEnumerable<SourceFragmentDefinition> GetSourceFragments()
+        {
+            IEnumerable<SourceFragmentDefinition> sf = _sourceFragments;
+            foreach (WXMLModel objectsDef in Includes)
+            {
+                sf = sf.Union(objectsDef.GetSourceFragments());
+            }
+            return sf;
+        }
 
-	    public TypeDefinition GetType(string typeId, bool throwNotFoundException)
+        public TypeDefinition GetType(string typeId, bool throwNotFoundException)
         {
             TypeDefinition type = null;
             if (!string.IsNullOrEmpty(typeId))
             {
-                type = _types.Find(match=>match.Identifier == typeId);
+                type = _types.Find(match => match.Identifier == typeId);
                 if (type == null && Includes.Count != 0)
                     foreach (WXMLModel objectsDef in Includes)
                     {
@@ -359,17 +359,17 @@ namespace WXML.Model
             return type;
         }
 
-	    public IEnumerable<TypeDefinition> GetTypes()
-	    {
-	        IEnumerable<TypeDefinition> t = _types;
-	        foreach (WXMLModel objectsDef in Includes)
-	        {
-	            t = t.Union(objectsDef.GetTypes());
-	        }
-	        return t;
-	    }
+        public IEnumerable<TypeDefinition> GetTypes()
+        {
+            IEnumerable<TypeDefinition> t = _types;
+            foreach (WXMLModel objectsDef in Includes)
+            {
+                t = t.Union(objectsDef.GetTypes());
+            }
+            return t;
+        }
 
-	    #region Merge
+        #region Merge
 
         public void Merge(WXMLModel mergeWith)
         {
@@ -379,11 +379,13 @@ namespace WXML.Model
             MergeExtensions(Extensions, mergeWith.Extensions);
         }
 
-        private static void MergeExtensions(Dictionary<string, XmlDocument> extensions, Dictionary<string, XmlDocument> newExtensions)
+        private static void MergeExtensions(IDictionary<Extension, XmlDocument> extensions, Dictionary<Extension, XmlDocument> newExtensions)
         {
-            foreach (KeyValuePair<string, XmlDocument> extension in newExtensions)
+            foreach (KeyValuePair<Extension, XmlDocument> extension in newExtensions)
             {
-                if (!extensions.ContainsKey(extension.Key))
+                if (extension.Key.Action == MergeAction.Delete)
+                    extensions.Remove(extension.Key);
+                else if (!extensions.ContainsKey(extension.Key))
                     extensions.Add(extension.Key, extension.Value);
             }
         }
@@ -407,12 +409,12 @@ namespace WXML.Model
             }
         }
 
-	    private void MergeTypes(WXMLModel model)
-	    {
-	        foreach (TypeDefinition newType in model.GetTypes())
-	        {
-	            string newTypeIdentifier = newType.Identifier;
-	            TypeDefinition type = GetTypes().SingleOrDefault(item => item.Identifier == newTypeIdentifier);
+        private void MergeTypes(WXMLModel model)
+        {
+            foreach (TypeDefinition newType in model.GetTypes())
+            {
+                string newTypeIdentifier = newType.Identifier;
+                TypeDefinition type = GetTypes().SingleOrDefault(item => item.Identifier == newTypeIdentifier);
                 if (type != null)
                 {
                     if (type.ToString() != newType.ToString())
@@ -420,54 +422,78 @@ namespace WXML.Model
                 }
                 else
                     AddType(newType);
-	        }
-	    }
+            }
+        }
 
-	    private void MergeEntities(WXMLModel mergeWith)
-	    {
-	        foreach (EntityDefinition newEntity in mergeWith.GetEntities())
-	        {
-	            string newEntityIdentifier = newEntity.Identifier;
+        private void MergeEntities(WXMLModel mergeWith)
+        {
+            foreach (EntityDefinition newEntity in mergeWith.GetEntities())
+            {
+                string newEntityIdentifier = newEntity.Identifier;
 
-	            EntityDefinition entity = GetEntities().SingleOrDefault(item => item.Identifier == newEntityIdentifier);
-	            if (entity != null)
-	            {
+                EntityDefinition entity = GetEntities().SingleOrDefault(item => item.Identifier == newEntityIdentifier);
+                if (entity != null)
+                {
                     if (!string.IsNullOrEmpty(newEntity.Name))
                         entity.Name = newEntity.Name;
 
                     entity.Namespace = newEntity.Namespace;
                     entity.BaseEntity = newEntity.BaseEntity;
-	                entity.Behaviour = newEntity.Behaviour;
-	                entity.CacheCheckRequired = newEntity.CacheCheckRequired;
-	                entity.Description = newEntity.Description;
-	                entity.Disabled = newEntity.Disabled;
-	                entity.InheritsBaseTables = newEntity.InheritsBaseTables;
-	                entity.MakeInterface = newEntity.MakeInterface;
-	                entity.UseGenerics = newEntity.UseGenerics;
-	                entity.FamilyName = newEntity.FamilyName;
+                    entity.Behaviour = newEntity.Behaviour;
+                    entity.CacheCheckRequired = newEntity.CacheCheckRequired;
+                    entity.Description = newEntity.Description;
+                    entity.Disabled = newEntity.Disabled;
+                    entity.InheritsBaseTables = newEntity.InheritsBaseTables;
+                    entity.MakeInterface = newEntity.MakeInterface;
+                    entity.UseGenerics = newEntity.UseGenerics;
+                    entity.FamilyName = newEntity.FamilyName;
 
-	                foreach (SourceFragmentRefDefinition newsf in newEntity.GetSourceFragments())
-	                {
-	                    string newsfId = newsf.Identifier;
-	                    SourceFragmentRefDefinition sf =
-	                        entity.GetSourceFragments().SingleOrDefault(item => item.Identifier == newsfId);
+                    List<SourceFragmentRefDefinition> torem = new List<SourceFragmentRefDefinition>();
+                    foreach (SourceFragmentRefDefinition newsf in newEntity.GetSourceFragments())
+                    {
+                        string newsfId = newsf.Identifier;
+                        SourceFragmentRefDefinition sf =
+                            entity.GetSourceFragments().SingleOrDefault(item => item.Identifier == newsfId);
 
                         if (sf != null)
                         {
-                            if (newsf.AnchorTable != null)
+                            if (newsf.Action == MergeAction.Delete)
+                            {
+                                entity.RemoveSourceFragment(sf);
+                                torem.Add(newsf);
+                            }
+                            else if (newsf.AnchorTable != null)
                             {
                                 sf.AnchorTable = newsf.AnchorTable;
                                 sf.JoinType = newsf.JoinType;
                                 if (newsf.Conditions.Count > 0)
                                 {
-                                    sf.Conditions.Clear();
-                                    sf.Conditions.AddRange(newsf.Conditions);
+                                    foreach (SourceFragmentRefDefinition.Condition c in newsf.Conditions)
+                                    {
+                                        SourceFragmentRefDefinition.Condition ec =
+                                            sf.Conditions.SingleOrDefault(item =>
+                                                item.LeftColumn == c.LeftColumn &&
+                                                item.RightColumn == c.RightColumn
+                                            );
+                                        if (ec != null)
+                                        {
+                                            if (c.Action == MergeAction.Delete)
+                                                sf.Conditions.Remove(ec);
+                                        }
+                                        else
+                                            sf.Conditions.Add(c);
+                                    }
                                 }
                             }
                         }
                         else
                             entity.AddSourceFragment(newsf);
-	                }
+                    }
+
+                    foreach (SourceFragmentRefDefinition newsf in torem)
+                    {
+                        newEntity.RemoveSourceFragment(newsf);
+                    }
 
                     foreach (PropertyDefinition newProperty in newEntity.GetProperties())
                     {
@@ -478,55 +504,61 @@ namespace WXML.Model
 
                         if (property != null)
                         {
-                            property.DbTypeName = MergeString(property, newProperty, (item) => item.DbTypeName);
-                            property.DefferedLoadGroup = MergeString(property, newProperty, (item) => item.DefferedLoadGroup);
-                            property.Description = MergeString(property, newProperty, (item) => item.Description);
-                            property.FieldAlias = MergeString(property, newProperty, (item) => item.FieldAlias);
-                            property.FieldName = MergeString(property, newProperty, (item) => item.FieldName);
-                            property.Name = MergeString(property, newProperty, (item) => item.Name);
-                            property.ObsoleteDescripton = MergeString(property, newProperty, (item) => item.ObsoleteDescripton);
-
-                            //List<string> newAttributes = new List<string>();
-
-                            //if (property.Attributes != )
-                            //    newAttributes.AddRange(property.Attributes);
-                            if (newProperty.Attributes != Field2DbRelations.None)
+                            if (newProperty.Action == MergeAction.Delete)
                             {
-                                //newAttributes.AddRange(newProperty.Attributes.Where(item=>!newAttributes.Contains(item)));
-                                property.Attributes = newProperty.Attributes;
+                                entity.RemoveProperty(property);
                             }
+                            else
+                            {
+                                property.DbTypeName = MergeString(property, newProperty, (item) => item.DbTypeName);
+                                property.DefferedLoadGroup = MergeString(property, newProperty, (item) => item.DefferedLoadGroup);
+                                property.Description = MergeString(property, newProperty, (item) => item.Description);
+                                property.FieldAlias = MergeString(property, newProperty, (item) => item.FieldAlias);
+                                property.FieldName = MergeString(property, newProperty, (item) => item.FieldName);
+                                property.Name = MergeString(property, newProperty, (item) => item.Name);
+                                property.ObsoleteDescripton = MergeString(property, newProperty, (item) => item.ObsoleteDescripton);
 
-                            property.DbTypeNullable = newProperty.DbTypeNullable ?? property.DbTypeNullable;
-                            property.DbTypeSize = newProperty.DbTypeSize ?? property.DbTypeSize;
-                            property.Group = newProperty.Group ?? property.Group;
-                            property.PropertyType = newProperty.PropertyType ?? property.PropertyType;
-                            property.SourceFragment = newProperty.SourceFragment ?? property.SourceFragment;
+                                //List<string> newAttributes = new List<string>();
 
-                            property.Disabled = newProperty.Disabled;
-                            property.EnablePropertyChanged = newProperty.EnablePropertyChanged;
-                            //property.IsSuppressed = newProperty.IsSuppressed;
-                            //property.FromBase = newProperty.FromBase;
+                                //if (property.Attributes != )
+                                //    newAttributes.AddRange(property.Attributes);
+                                if (newProperty.Attributes != Field2DbRelations.None)
+                                {
+                                    //newAttributes.AddRange(newProperty.Attributes.Where(item=>!newAttributes.Contains(item)));
+                                    property.Attributes = newProperty.Attributes;
+                                }
 
-                            if (newProperty.FieldAccessLevel != default(AccessLevel))
-                                property.FieldAccessLevel = newProperty.FieldAccessLevel;
+                                property.DbTypeNullable = newProperty.DbTypeNullable ?? property.DbTypeNullable;
+                                property.DbTypeSize = newProperty.DbTypeSize ?? property.DbTypeSize;
+                                property.Group = newProperty.Group ?? property.Group;
+                                property.PropertyType = newProperty.PropertyType ?? property.PropertyType;
+                                property.SourceFragment = newProperty.SourceFragment ?? property.SourceFragment;
 
-                            if (newProperty.PropertyAccessLevel != default(AccessLevel))
-                                property.PropertyAccessLevel = newProperty.PropertyAccessLevel;
+                                property.Disabled = newProperty.Disabled;
+                                property.EnablePropertyChanged = newProperty.EnablePropertyChanged;
+                                //property.IsSuppressed = newProperty.IsSuppressed;
+                                //property.FromBase = newProperty.FromBase;
 
-                            if (newProperty.Obsolete != default(ObsoleteType))
-                                property.Obsolete = newProperty.Obsolete;
+                                if (newProperty.FieldAccessLevel != default(AccessLevel))
+                                    property.FieldAccessLevel = newProperty.FieldAccessLevel;
 
+                                if (newProperty.PropertyAccessLevel != default(AccessLevel))
+                                    property.PropertyAccessLevel = newProperty.PropertyAccessLevel;
+
+                                if (newProperty.Obsolete != default(ObsoleteType))
+                                    property.Obsolete = newProperty.Obsolete;
+                            }
                         }
                         else
                             entity.AddProperty(newProperty);
                     }
 
-                    MergeExtensions(entity.Extensions, entity.Extensions);
+                    MergeExtensions(entity.Extensions, newEntity.Extensions);
                 }
-	            else
-	                AddEntity(newEntity);
-	        }
-	    }
+                else
+                    AddEntity(newEntity);
+            }
+        }
 
         private static string MergeString(PropertyDefinition existingProperty, PropertyDefinition newProperty,
             Func<PropertyDefinition, string> accessor)
@@ -535,9 +567,9 @@ namespace WXML.Model
               ? accessor(existingProperty)
               : accessor(newProperty);
         }
-        
-	    #endregion
-        
+
+        #endregion
+
         public RelationDefinitionBase GetSimilarRelation(RelationDefinitionBase relation)
         {
             return _relations.Find(relation.Similar);
@@ -545,10 +577,10 @@ namespace WXML.Model
 
         public bool HasSimilarRelationM2M(RelationDefinition relation)
         {
-            return _relations.OfType<RelationDefinition>().Any((RelationDefinition match)=>
-                relation != match && (
-                (match.Left.Entity.Identifier == relation.Left.Entity.Identifier && match.Right.Entity.Identifier == relation.Right.Entity.Identifier) ||
-                (match.Left.Entity.Identifier == relation.Right.Entity.Identifier && match.Right.Entity.Identifier == relation.Left.Entity.Identifier))
+            return _relations.OfType<RelationDefinition>().Any(item =>
+                relation != item && (
+                (item.Left.Entity.Identifier == relation.Left.Entity.Identifier && item.Right.Entity.Identifier == relation.Right.Entity.Identifier) ||
+                (item.Left.Entity.Identifier == relation.Right.Entity.Identifier && item.Right.Entity.Identifier == relation.Left.Entity.Identifier))
             );
         }
 
@@ -675,7 +707,7 @@ namespace WXML.Model
 
             #region IEnumerable Members
 
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            IEnumerator IEnumerable.GetEnumerator()
             {
                 return m_list.GetEnumerator();
             }
@@ -703,7 +735,7 @@ namespace WXML.Model
             return -1;
         }
 
-        public static int IndexOf<T>(this IEnumerable<T> source, Func<T,bool> predicate) where T : class
+        public static int IndexOf<T>(this IEnumerable<T> source, Func<T, bool> predicate) where T : class
         {
             if (source == null)
                 return -1;

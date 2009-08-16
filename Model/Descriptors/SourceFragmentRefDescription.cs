@@ -10,6 +10,7 @@ namespace WXML.Model.Descriptors
         {
             public string LeftColumn { get; protected set; }
             public string RightColumn { get; protected set; }
+            public MergeAction Action { get; set; }
 
             public Condition(string leftColumn, string rightColumn)
             {
@@ -26,7 +27,8 @@ namespace WXML.Model.Descriptors
 
         public SourceFragmentDefinition AnchorTable { get; set; }
         public JoinTypeEnum JoinType { get; set; }
-        
+        public MergeAction Action { get; internal set; }
+
         public List<Condition> _c = new List<Condition>();
         public List<Condition> Conditions
         {
