@@ -391,9 +391,9 @@ namespace WXMLTests
 
                 Assert.IsNotNull(model);
 
-                Assert.IsNotNull(model.Extensions["x"]);
+                Assert.IsNotNull(model.Extensions[new Extension("x")]);
 
-                XmlDocument xdoc = model.Extensions["x"];
+                XmlDocument xdoc = model.Extensions[new Extension("x")];
 
                 Assert.IsNotNull(xdoc);
 
@@ -402,9 +402,9 @@ namespace WXMLTests
 
                 EntityDefinition e11 = model.GetEntities().Single(e => e.Identifier == "e11");
 
-                Assert.IsNotNull(e11.Extensions["x"]);
+                Assert.IsNotNull(e11.Extensions[new Extension("x")]);
 
-                xdoc = e11.Extensions["x"];
+                xdoc = e11.Extensions[new Extension("x")];
 
                 Assert.AreEqual("greeting", xdoc.DocumentElement.Name);
                 Assert.AreEqual("hi!", xdoc.DocumentElement.InnerText);
@@ -421,9 +421,8 @@ namespace WXMLTests
         private static Stream GetFile(string name)
         {
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            string resourceName;
 
-            resourceName = string.Format("{0}.{1}.xml", assembly.GetName().Name, name);
+            string resourceName = string.Format("{0}.{1}.xml", assembly.GetName().Name, name);
             return assembly.GetManifestResourceStream(resourceName);
         }
     }

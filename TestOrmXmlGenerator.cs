@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Xml;
 using System.IO;
 using WXML.Model;
+using WXML.Model.Descriptors;
 
 namespace TestsCodeGenLib
 {
@@ -38,7 +39,7 @@ namespace TestsCodeGenLib
                 XmlDocument xdoc = new XmlDocument();
                 xdoc.LoadXml("<greeting>hi!</greeting>");
 
-                model.Extensions["f"] = xdoc;
+                model.Extensions[new Extension("f")] = xdoc;
 
                 XmlDocument res = model.GetXmlDocument();
 
@@ -68,8 +69,7 @@ namespace TestsCodeGenLib
 
         private static void TestCodeGen(Stream stream)
         {
-            WXMLDocumentSet wxmlDocumentSet = null;
-            XmlDocument xmlDocument = null;
+            WXMLDocumentSet wxmlDocumentSet;
             using (XmlReader rdr = XmlReader.Create(stream))
             {
 
@@ -82,7 +82,7 @@ namespace TestsCodeGenLib
             XmlDocument doc = new XmlDocument();
             
             doc.Load(stream);
-            xmlDocument = wxmlDocumentSet[0].Document;
+            XmlDocument xmlDocument = wxmlDocumentSet[0].Document;
             xmlDocument.RemoveChild(xmlDocument.DocumentElement.PreviousSibling);
 
             Assert.AreEqual<string>(doc.OuterXml, xmlDocument.OuterXml);

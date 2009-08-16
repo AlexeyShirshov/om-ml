@@ -283,12 +283,40 @@ namespace WXMLTests
             XmlDocument xdoc = new XmlDocument();
             xdoc.LoadXml("<root/>");
 
-            newModel.Extensions.Add("dfdf", xdoc);
+            newModel.Extensions.Add(new Extension("dfdf"), xdoc);
             WXMLModel model = GetModel("extensions");
 
             model.Merge(Normalize(newModel));
 
             Assert.AreEqual(2, model.Extensions.Count);
+        }
+
+        [TestMethod, ExpectedException(typeof(ArgumentException))]
+        public void TestAlterEntity_ChangeTableWrong()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("suppressed"))
+            {
+                Assert.IsNotNull(stream);
+
+                WXMLModel newModel = WXMLModel.LoadFromXml(new XmlTextReader(stream));
+
+                Assert.IsNotNull(newModel);
+
+                Assert.AreEqual(2, newModel.GetActiveEntities().Count());
+
+                EntityDefinition e = newModel.GetActiveEntities().Single(item => item.Identifier == "e11");
+
+                Assert.AreEqual(1, e.GetSourceFragments().Count());
+                Assert.AreEqual(1, newModel.GetSourceFragments().Count());
+
+                Assert.AreEqual("tbl1", e.GetSourceFragments().First().Name);
+                Assert.IsTrue(string.IsNullOrEmpty(e.GetSourceFragments().First().Selector));
+
+                foreach (SourceFragmentRefDefinition rsf in e.GetSourceFragments())
+                {
+                    e.MarkAsDeleted(rsf);
+                }
+            }
         }
 
         [TestMethod]
@@ -314,7 +342,10 @@ namespace WXMLTests
 
                 SourceFragmentRefDefinition sf = new SourceFragmentRefDefinition(newModel.GetOrCreateSourceFragment("dbo", "table"));
 
-                e.ClearSourceFragments();
+                foreach (SourceFragmentRefDefinition rsf in e.GetSourceFragments())
+                {
+                    e.MarkAsDeleted(rsf);
+                }
 
                 e.AddSourceFragment(sf);
 
@@ -335,10 +366,15 @@ namespace WXMLTests
                 Assert.AreEqual("table", e.GetSourceFragments().First().Name);
                 Assert.AreEqual("dbo", e.GetSourceFragments().First().Selector);
 
+                e = model.GetActiveEntities().Single(item => item.Identifier == "e11");
+                
+                Assert.AreEqual(1, e.GetSourceFragments().Count());
+                Assert.AreEqual("table", e.GetSourceFragments().First().Name);
+                Assert.AreEqual("dbo", e.GetSourceFragments().First().Selector);
             }
         }
 
-        private WXMLModel GetModel(string fileName)
+        private static WXMLModel GetModel(string fileName)
         {
             using (Stream stream = Resources.GetXmlDocumentStream(fileName))
             {
