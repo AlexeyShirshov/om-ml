@@ -33,7 +33,6 @@ namespace WormCodeGenerator
             string[] skipEntities;
             string[] processEntities;
             WXMLCodeDomGeneratorSettings settings = new WXMLCodeDomGeneratorSettings();
-            bool validateOnly, testRun;
 
             if (cmdLine["?"] != null || cmdLine["h"] != null || cmdLine["help"] != null || args == null || args.Length == 0)
             {
@@ -69,8 +68,8 @@ namespace WormCodeGenerator
                 return;
             }
 
-            validateOnly = (cmdLine["v"] != null);
-            testRun = (cmdLine["t"] != null);
+            bool validateOnly = (cmdLine["v"] != null);
+            bool testRun = (cmdLine["t"] != null);
 
             if (cmdLine["l"] != null)
                 outputLanguage = cmdLine["l"];

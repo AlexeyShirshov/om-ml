@@ -17,6 +17,7 @@ using Worm.Cache;
 using Worm;
 using WXML.CodeDom;
 using WXML.CodeDom.CodeDomExtensions;
+using Field2DbRelations=WXML.Model.Field2DbRelations;
 
 namespace WXMLToWorm
 {
@@ -372,7 +373,11 @@ namespace WXMLToWorm
                             CodeTypeReference entityType;
                             if (_model.EntityBaseType == null)
                             {
-                                entityType = new CodeTypeReference(entity.HasSinglePk ? typeof(KeyEntity) : entity.HasPk ? typeof(CachedLazyLoad) : typeof(Entity));
+                                entityType = new CodeTypeReference(entity.GetPkProperties().Count() == 1 ? 
+                                    typeof(KeyEntity) : 
+                                    entity.GetPkProperties().Count() > 0 ? 
+                                        typeof(CachedLazyLoad) : 
+                                        typeof(Entity));
                             }
                             else
                             {
@@ -601,7 +606,7 @@ namespace WXMLToWorm
                         RaiseEntityCtorCreated(entityClass, ctr);
 
                         //if(
-                        if (entity.HasSinglePk)
+                        if (entity.GetPkProperties().Count() == 1)
                         {
                             PropertyDefinition pkProperty = entity.GetPkProperties().Single();
                             // параметризированный конструктор
@@ -646,11 +651,11 @@ namespace WXMLToWorm
 
                         //CodeMemberMethod createobjectMethod = null;
 
-                        if (entity.HasPk)
+                        if (entity.GetPkProperties().Count() > 0)
                         {
-                            if (entity.HasSinglePk)
+                            if (entity.GetPkProperties().Count() == 1)
                             {
-                                if (entity.BaseEntity == null || entity.GetPKCount(false) > 0)
+                                if (entity.BaseEntity == null)
                                 {
                                     OverrideIdentifierProperty(entityClass);
                                     CreateSetPKMethod(entityClass, false);
@@ -664,7 +669,7 @@ namespace WXMLToWorm
                             }
                             else
                             {
-                                if (entity.BaseEntity == null || entity.GetPKCount(false) > 0)
+                                if (entity.BaseEntity == null)
                                 {
                                     CreateGetKeyMethodCompositePK(entityClass);
                                     CreateGetPKValuesMethod(entityClass);
@@ -707,7 +712,7 @@ namespace WXMLToWorm
 
                         #region m2m relation methods
 
-                        if (!Settings.RemoveOldM2M && entity.HasSinglePk)
+                        if (!Settings.RemoveOldM2M && entity.GetPkProperties().Count() == 1)
                             CreateM2MMethodsSet(entity, entityClass);
 
                         #endregion
@@ -1040,10 +1045,10 @@ namespace WXMLToWorm
         private void OverrideEqualsMethodCompositePK(CodeEntityTypeDeclaration entityClass)
         {
             CodeMemberMethod method = new CodeMemberMethod
-                                          {
-                                              Name = "Equals",
-                                              Attributes = MemberAttributes.Override,
-                                          };
+            {
+                Name = "Equals",
+                Attributes = MemberAttributes.Override,
+            };
 
             method.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(object)), "obj"));
 
@@ -1068,19 +1073,18 @@ namespace WXMLToWorm
 
         }
 
-
-
         private void UpdateSetPKMethod(CodeEntityTypeDeclaration entityClass, bool composite)
         {
             EntityDefinition entity = entityClass.Entity;
-            if (entity.GetPkProperties().Count() == 0)
+            if (entity.SelfProperties.Where(item => item.HasAttribute(Field2DbRelations.PK)).Count() == 0)
                 return;
 
-            CodeMemberMethod meth = new CodeMemberMethod();
-            meth.Name = "SetPK";
-
-            // модификаторы доступа
-            meth.Attributes = MemberAttributes.Family | MemberAttributes.Override;
+            CodeMemberMethod meth = new CodeMemberMethod
+            {
+                Name = "SetPK",
+                // модификаторы доступа
+                Attributes = MemberAttributes.Family | MemberAttributes.Override
+            };
 
             entityClass.Members.Add(meth);
 
@@ -1155,17 +1159,19 @@ namespace WXMLToWorm
         private void UpdateGetPKValuesMethod(CodeEntityTypeDeclaration entityClass)
         {
             EntityDefinition entity = entityClass.Entity;
-            if (entity.GetPkProperties().Count() == 0)
+            if (entity.SelfProperties.Where(item=>item.HasAttribute(Field2DbRelations.PK)).Count() == 0)
                 return;
 
-            CodeMemberMethod meth = new CodeMemberMethod();
-            meth.Name = "GetPKValues";
             CodeTypeReference tr = new CodeTypeReference(typeof(PKDesc));
+            CodeMemberMethod meth = new CodeMemberMethod
+            {
+                Name = "GetPKValues",
+                ReturnType = new CodeTypeReference(tr, 1),
+                Attributes = MemberAttributes.Public | MemberAttributes.Override
+            };
             // тип возвращаемого значения
-            meth.ReturnType = new CodeTypeReference(tr, 1);
 
             // модификаторы доступа
-            meth.Attributes = MemberAttributes.Public | MemberAttributes.Override;
 
             entityClass.Members.Add(meth);
 
@@ -1218,15 +1224,17 @@ namespace WXMLToWorm
         {
             EntityDefinition entity = entityClass.Entity;
 
-            if (entity.GetPkProperties().Count() == 0)
+            if (entity.SelfProperties.Where(item => item.HasAttribute(Field2DbRelations.PK)).Count() == 0)
                 return;
 
-            CodeMemberMethod meth = new CodeMemberMethod();
-            meth.Name = "GetCacheKey";
+            CodeMemberMethod meth = new CodeMemberMethod
+            {
+                Name = "GetCacheKey",
+                ReturnType = new CodeTypeReference(typeof (Int32)),
+                Attributes = MemberAttributes.Family | MemberAttributes.Override
+            };
             // тип возвращаемого значения
-            meth.ReturnType = new CodeTypeReference(typeof(Int32));
             // модификаторы доступа
-            meth.Attributes = MemberAttributes.Family | MemberAttributes.Override;
 
             entityClass.Members.Add(meth);
 
@@ -1252,13 +1260,13 @@ namespace WXMLToWorm
         private void OverrideIdentifierProperty(CodeEntityTypeDeclaration entityClass)
         {
             var property = new CodeMemberProperty
-                               {
-                                   Name = "Identifier",
-                                   Type = new CodeTypeReference(typeof(object)),
-                                   HasGet = true,
-                                   HasSet = true,
-                                   Attributes = MemberAttributes.Public | MemberAttributes.Override
-                               };
+            {
+                Name = "Identifier",
+                Type = new CodeTypeReference(typeof(object)),
+                HasGet = true,
+                HasSet = true,
+                Attributes = MemberAttributes.Public | MemberAttributes.Override
+            };
             PropertyDefinition pkProperty = entityClass.Entity.GetPkProperties().Single();
             property.GetStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(),
                                                                            new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(pkProperty.Name))));
@@ -1282,11 +1290,12 @@ namespace WXMLToWorm
         private void CreateSetPKMethod(CodeEntityTypeDeclaration entityClass, bool composite)
         {
             EntityDefinition entity = entityClass.Entity;
-            CodeMemberMethod meth = new CodeMemberMethod();
-            meth.Name = "SetPK";
-
-            // модификаторы доступа
-            meth.Attributes = MemberAttributes.Family | MemberAttributes.Override;
+            CodeMemberMethod meth = new CodeMemberMethod
+            {
+                Name = "SetPK",
+                // модификаторы доступа
+                Attributes = MemberAttributes.Family | MemberAttributes.Override
+            };
 
             entityClass.Members.Add(meth);
 
@@ -1594,9 +1603,9 @@ namespace WXMLToWorm
             entityInterface.TypeAttributes = entityPropertiesInterface.TypeAttributes = TypeAttributes.Public | TypeAttributes.Interface;
 
             entityInterface.BaseTypes.Add(entityPropertiesInterface.TypeReference);
-            if (entityClass.Entity.HasSinglePk)
+            if (entityClass.Entity.GetPkProperties().Count() == 1)
                 entityInterface.BaseTypes.Add(new CodeTypeReference(typeof(_IKeyEntity)));
-            else if (entityClass.Entity.HasPk)
+            else if (entityClass.Entity.GetPkProperties().Count() > 0)
                 entityInterface.BaseTypes.Add(new CodeTypeReference(typeof(_ICachedEntity)));
             else
                 entityInterface.BaseTypes.Add(new CodeTypeReference(typeof(_IEntity)));
@@ -1616,7 +1625,7 @@ namespace WXMLToWorm
                 RelationDefinition rd = relation as RelationDefinition;
                 if (rd != null)
                     link = rd.Left.Entity == entity ? rd.Right : rd.Left;
-                if (!relation.HasAccessors || (link != null && !link.Entity.HasSinglePk))
+                if (!relation.HasAccessors || (link != null && link.Entity.GetPkProperties().Count() != 1))
                     continue;
                 CreateM2MGenMethods(CreateM2MAddMethod, entity, relation, entityClass);
                 CreateM2MGenMethods(CreateM2MRemoveMethod, entity, relation, entityClass);
@@ -1627,7 +1636,7 @@ namespace WXMLToWorm
 
         private delegate CodeMemberMethod CreateM2MMethodDelegate(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct);
 
-        private void CreateM2MGenMethods(CreateM2MMethodDelegate del, EntityDefinition entity, RelationDefinitionBase relation, CodeTypeDeclaration entityClass)
+        private static void CreateM2MGenMethods(CreateM2MMethodDelegate del, EntityDefinition entity, RelationDefinitionBase relation, CodeTypeDeclaration entityClass)
         {
             RelationDefinition rel = relation as RelationDefinition;
             if (rel != null)
@@ -2403,7 +2412,7 @@ namespace WXMLToWorm
                                                                        new CodeThisReferenceExpression(), fieldName))
                                                            };
 
-                if (entity.HasPkFlatEntity)
+                if (entity.GetPkProperties().Count() > 0)
                     property.GetStatements.Add(new CodeUsingStatement(getUsingExpression, getInUsingStatements));
                 else
                     property.GetStatements.AddRange(getInUsingStatements);
@@ -2432,7 +2441,7 @@ namespace WXMLToWorm
                                                                        )
                                                                };
 
-                    if (entity.HasPkFlatEntity)
+                    if (entity.GetPkProperties().Count() > 0)
                         property.SetStatements.Add(new CodeUsingStatement(setUsingExpression, setInUsingStatements));
                     else
                         property.SetStatements.AddRange(setInUsingStatements);

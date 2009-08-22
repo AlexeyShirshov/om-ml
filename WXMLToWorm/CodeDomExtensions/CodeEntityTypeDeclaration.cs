@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.Linq;
 using WXML.Model.Descriptors;
 using LinqToCodedom.Generator;
 using Worm.Entities.Meta;
@@ -39,7 +40,7 @@ namespace WXMLToWorm.CodeDomExtensions
             if (!m_entity.Model.GenerateSchemaOnly)
             {
                 OnPopulatePropertiesAccessors();
-                if (m_entity.HasSinglePk)
+                if (m_entity.GetPkProperties().Count() > 0)
                 {
                     OnPupulateEntityRelations();
                     OnPupulateM2MRelations();

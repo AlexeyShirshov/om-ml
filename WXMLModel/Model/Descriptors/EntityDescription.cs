@@ -46,7 +46,7 @@ namespace WXML.Model.Descriptors
             _baseEntity = baseEntity;
             Behaviour = behaviour;
 
-            if (!model.GetEntities().Any(item=>item.Identifier == id))
+            if (model != null && !model.GetEntities().Any(item=>item.Identifier == id))
                 model.AddEntity(this);
 
         }
@@ -169,55 +169,53 @@ namespace WXML.Model.Descriptors
             get { return _model; }
         }
 
-        public bool HasPk
-        {
-            get
-            {
-                return GetPKCount(false) > 0;
-            }
-        }
+        //public bool HasPk
+        //{
+        //    get
+        //    {
+        //        return GetPKCount(false) > 0;
+        //    }
+        //}
 
-        public bool HasPkFlatEntity
-        {
-            get
-            {
-                return GetPKCount() > 0;
-            }
-        }
+        //public bool HasPkFlatEntity
+        //{
+        //    get
+        //    {
+        //        return GetPKCount() > 0;
+        //    }
+        //}
 
-
-
-        public bool HasSinglePk
-        {
-            get
-            {
-                int s = GetPKCount();
-                return (BaseEntity == null && s == 1) || (BaseEntity != null && BaseEntity.HasSinglePk);
-            }
-        }
+        //public bool HasSinglePk
+        //{
+        //    get
+        //    {
+        //        int s = GetPKCount();
+        //        return (BaseEntity == null && s == 1) || (BaseEntity != null && BaseEntity.HasSinglePk);
+        //    }
+        //}
 
         #endregion
 
-        public int GetPKCount()
-        {
-            return GetPKCount(true);
-        }
+        //public int GetPKCount()
+        //{
+        //    return GetPKCount(true);
+        //}
 
-        public int GetPKCount(bool flatEntity)
-        {
-            var properties = flatEntity ? GetProperties() : SelfProperties;
-            //int s = 0;
-            //foreach (var propertyDescription in properties)
-            //{
-            //    if (propertyDescription.HasAttribute(Field2DbRelations.PK) 
-            //        //&& propertyDescription.PropertyType.IsClrType && propertyDescription.PropertyType.ClrType.IsAssignableFrom(typeof(Int32))
-            //        )
-            //        s++;
-            //}
-            //return s;
-            return properties.Count(propertyDescription =>
-                !propertyDescription.Disabled && propertyDescription.HasAttribute(Field2DbRelations.PK));
-        }
+        //public int GetPKCount(bool flatEntity)
+        //{
+        //    var properties = flatEntity ? GetProperties() : SelfProperties;
+        //    //int s = 0;
+        //    //foreach (var propertyDescription in properties)
+        //    //{
+        //    //    if (propertyDescription.HasAttribute(Field2DbRelations.PK) 
+        //    //        //&& propertyDescription.PropertyType.IsClrType && propertyDescription.PropertyType.ClrType.IsAssignableFrom(typeof(Int32))
+        //    //        )
+        //    //        s++;
+        //    //}
+        //    //return s;
+        //    return properties.Count(propertyDescription =>
+        //        !propertyDescription.Disabled && propertyDescription.HasAttribute(Field2DbRelations.PK));
+        //}
 
         public PropertyDefinition GetProperty(string propertyId)
         {
@@ -574,7 +572,7 @@ namespace WXML.Model.Descriptors
 
         public IEnumerable<PropertyDefinition> GetPkProperties()
         {
-            return GetProperties().Where(p => p.HasAttribute(Field2DbRelations.PK));
+            return GetProperties().Where(p => !p.Disabled && p.HasAttribute(Field2DbRelations.PK));
         }
 
         public bool HasDefferedLoadableProperties
@@ -652,9 +650,9 @@ namespace WXML.Model.Descriptors
 
         public void AddProperty(PropertyDefinition pe)
         {
-            pe.Entity = this;
-
             CheckProperty(pe);
+
+            pe.Entity = this;
 
             _properties.Add(pe);
         }
@@ -662,13 +660,19 @@ namespace WXML.Model.Descriptors
         private void CheckProperty(PropertyDefinition pe)
         {
             if (SelfProperties.Any(item => item.PropertyAlias == pe.PropertyAlias))
-                throw new ArgumentException(string.Format("Property with alias {0} already exists", pe.PropertyAlias));
+            {
+                string t = pe.Entity==null?"unknown":pe.Entity.Identifier;
+                
+                throw new ArgumentException(string.Format(
+                    "Property with alias {0} already exists in type {1}. Added from {2}", 
+                    pe.PropertyAlias, Identifier, t));
+            }
 
             if (pe.PropertyType != null && !Model.GetTypes().Any(item => item.Identifier == pe.PropertyType.Identifier))
                 throw new ArgumentException(string.Format("Property {0} has type {1} which is not found in Model.Types collection", pe.PropertyAlias, pe.PropertyType.Identifier));
 
             if (pe.SourceFragment != null && !GetSourceFragments().Any(item => item.Identifier == pe.SourceFragment.Identifier))
-                throw new ArgumentException(string.Format("Property {0} has SourceFragment {1} which is not found in Model.SourceFragments collection", pe.PropertyAlias, pe.SourceFragment.Identifier));
+                throw new ArgumentException(string.Format("Property {0} has SourceFragment {1} which is not found in SourceFragments collection", pe.PropertyAlias, pe.SourceFragment.Identifier));
         }
 
         public void RemoveProperty(PropertyDefinition pe)

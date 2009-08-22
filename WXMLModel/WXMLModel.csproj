@@ -72,15 +72,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeDom\CodeCompileFileUnit.cs" />
-    <Compile Include="Model\DatabaseColumn.cs" />
+    <Compile Include="Model\SourceModel\SourceReferences.cs" />
+    <Compile Include="Model\SourceModel\SourceView.cs" />
+    <Compile Include="Model\SourceModel\SourceFieldConstraint.cs" />
+    <Compile Include="Database\DatabaseProviders\DatabaseProvider.cs" />
+    <Compile Include="Database\DatabaseProviders\MSSQLProvider.cs" />
     <Compile Include="Model\Descriptors\Extension.cs" />
+    <Compile Include="Model\SourceModel\SourceFieldDefinition.cs" />
     <Compile Include="Model\Descriptors\SourceFragmentRefDescription.cs" />
     <Compile Include="Model\Descriptors\EntityRelationDescription.cs" />
     <Compile Include="Model\Descriptors\LinqSettingsDescriptor.cs" />
     <Compile Include="Model\Descriptors\RelationConstantDescriptor.cs" />
     <Compile Include="Model\Descriptors\SelfRelationDescription.cs" />
     <Compile Include="Model\Descriptors\SelfRelationTarget.cs" />
-    <Compile Include="Model\Descriptors\SourceFragmentDescription.cs" />
+    <Compile Include="Model\SourceModel\SourceFragmentDescription.cs" />
     <Compile Include="Model\Enums.cs" />
     <Compile Include="Database\WXMLModelGenerator.cs" />
     <Compile Include="CodeDom\WXMLCodeDomGenerator.cs" />

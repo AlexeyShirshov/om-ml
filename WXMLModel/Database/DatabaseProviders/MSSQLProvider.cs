@@ -1,0 +1,269 @@
+﻿using System;
+using System.Data;
+using System.Data.Common;
+using System.IO;
+using System.Linq;
+using WXML.Model.Descriptors;
+using System.Text;
+
+namespace WXML.Model.Database.Providers
+{
+    public class MSSQLProvider : DatabaseProvider
+    {
+        public MSSQLProvider(string server, string db, bool integratedSecurity, string user, string psw) :
+            base(server, db, integratedSecurity, user, psw)
+        {
+        }
+
+        public override SourceView GetDatabase(string schemas, string namelike)
+        {
+            SourceView database = new SourceView();
+            //List<Pair<string>> defferedCols = new List<Pair<string>>();
+
+            using (DbConnection conn = GetDBConn())
+            {
+                using (DbCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.CommandText = @"select t.table_schema,t.table_name,c.column_name,c.is_nullable,c.data_type,cc.constraint_type,cc.constraint_name, " + AppendIdentity() + @",c.column_default,c.character_maximum_length from INFORMATION_SCHEMA.TABLES t
+						join INFORMATION_SCHEMA.COLUMNS c on t.table_name = c.table_name and t.table_schema = c.table_schema
+                        left join (
+	                        select cc.table_name,cc.table_schema,cc.column_name,tc.constraint_type,cc.constraint_name from INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc 
+	                        join INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc on tc.table_name = cc.table_name and tc.table_schema = cc.table_schema and cc.constraint_name = tc.constraint_name --and tc.constraint_type is not null
+                        ) cc on t.table_name = cc.table_name and t.table_schema = cc.table_schema and c.column_name = cc.column_name
+						where t.TABLE_TYPE = 'BASE TABLE'
+						--and (
+						--((select count(*) from INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc 
+						--join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc on 
+						--tc.table_name = cc.table_name and tc.table_schema = cc.table_schema and cc.constraint_name = tc.constraint_name
+						--where t.table_name = tc.table_name and t.table_schema = tc.table_schema
+						--and tc.constraint_type = 'PRIMARY KEY'
+						--) > 0) or 
+						--((select count(*) from INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc 
+						--join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc on 
+						--tc.table_name = cc.table_name and tc.table_schema = cc.table_schema and cc.constraint_name = tc.constraint_name
+						--where t.table_name = tc.table_name and t.table_schema = tc.table_schema
+						--and tc.constraint_type = 'UNIQUE'
+						--) > 0))
+						--and (select count(*) from INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu 
+						--	where ccu.table_name = t.table_name and ccu.table_schema = t.table_schema and ccu.constraint_name = cc.constraint_name) < 2
+						--and (tc.constraint_type <> 'CHECK' or tc.constraint_type is null)
+						YYYYY
+						XXXXX
+						order by t.table_schema,t.table_name,c.ordinal_position";
+
+                    PrepareCmd(cmd, schemas, namelike, "t");
+
+                    RaiseOnDatabaseConnecting(conn.ConnectionString);
+
+                    conn.Open();
+
+                    RaiseOnStartLoadDatabase();
+                    using (DbDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            SourceFieldDefinition c = Create(database, reader);
+                            database._columns.Add(c);
+                        }
+                    }
+                    RaiseOnEndLoadDatabase();
+                }
+
+                FillReferencedColumns(schemas, namelike, database, conn);
+            }
+
+            return database;
+        }
+
+        private static void PrepareCmd(DbCommand cmd, string schemas, string namelike, params string[] aliases)
+        {
+            StringBuilder yyyyy = new StringBuilder();
+            foreach (string alias in aliases)
+            {
+                string slist = string.Empty;
+                if (schemas != null)
+                {
+                    if (schemas.StartsWith("(") && schemas.EndsWith(")"))
+                        slist = "and " + alias + ".table_schema not in ('" + schemas + "')";
+                    else
+                        slist = "and " + alias + ".table_schema in ('" + schemas + "')";
+                }
+                yyyyy.AppendLine(slist);
+            }
+            cmd.CommandText = cmd.CommandText.Replace("YYYYY", yyyyy.ToString());
+
+            StringBuilder sb = new StringBuilder();
+            foreach (string alias in aliases)
+            {
+                int i = 1;
+                foreach (string nl in namelike.Split(','))
+                {
+                    DbParameter tn = cmd.CreateParameter();
+                    tn.ParameterName = "tn" + i;
+                    string r = string.Empty;
+                    if (namelike.StartsWith("!"))
+                    {
+                        r = "not ";
+                        namelike = namelike.Substring(1);
+                    }
+                    tn.Value = nl;
+                    tn.Direction = ParameterDirection.Input;
+                    cmd.Parameters.Add(tn);
+
+                    sb.AppendFormat("and ({2}.table_schema+{2}.table_name {1}like @tn{0})", i, r, alias).AppendLine();
+                    i++;
+                }
+            }
+
+            cmd.CommandText = cmd.CommandText.Replace("XXXXX", sb.ToString());
+        }
+
+        protected override DbConnection GetDBConn()
+        {
+            System.Data.SqlClient.SqlConnectionStringBuilder cb = new System.Data.SqlClient.SqlConnectionStringBuilder();
+            string srv = _server;
+            string path = _server;
+            string[] ss = _server.Split(';');
+            if (ss.Length == 2)
+            {
+                srv = ss[0];
+                path = ss[1];
+            }
+
+            if (File.Exists(path))
+            {
+                if (path == srv)
+                    srv = @".\sqlexpress";
+                cb.AttachDBFilename = _server;
+                cb.UserInstance = true;
+            }
+
+            cb.DataSource = srv;
+            cb.InitialCatalog = _db;
+
+            if (_integratedSecurity)
+            {
+                cb.IntegratedSecurity = true;
+            }
+            else
+            {
+                cb.UserID = _user;
+                cb.Password = _psw;
+            }
+            return new System.Data.SqlClient.SqlConnection(cb.ConnectionString);
+        }
+
+        protected override string AppendIdentity()
+        {
+            return "columnproperty(object_id(c.table_schema + '.' + c.table_name),c.column_name,'isIdentity') [identity]";
+        }
+
+        public static SourceFieldDefinition Create(SourceView db, DbDataReader reader)
+        {
+            SourceFieldDefinition c = new SourceFieldDefinition();
+
+            c._tbl = db.GetOrCreateTable(
+                reader.GetString(reader.GetOrdinal("table_schema")),
+                reader.GetString(reader.GetOrdinal("table_name"))
+            );
+            c._column = reader.GetString(reader.GetOrdinal("column_name"));
+
+            string yn = reader.GetString(reader.GetOrdinal("is_nullable"));
+            if (yn == "YES")
+            {
+                c._isNullable = true;
+            }
+            c._type = reader.GetString(reader.GetOrdinal("data_type"));
+
+            int ct = reader.GetOrdinal("constraint_type");
+            int cn = reader.GetOrdinal("constraint_name");
+
+            if (!reader.IsDBNull(ct))
+            {
+                SourceFieldConstraint cns = db.GetConstraints(c.SourceFragment)
+                    .SingleOrDefault(item => item.ConstraintName == reader.GetString(ct));
+
+                if (cns == null)
+                    cns = new SourceFieldConstraint(reader.GetString(ct), reader.GetString(cn));
+
+                c._constraints.Add(cns);
+            }
+
+            c._identity = Convert.ToBoolean(reader.GetInt32(reader.GetOrdinal("identity")));
+
+            c._defaultValue = reader.GetString(reader.GetOrdinal("column_default"));
+
+            int sc = reader.GetOrdinal("character_maximum_length");
+            if (!reader.IsDBNull(sc))
+                c._sz = reader.GetInt32(sc);
+
+            db._columns.Add(c);
+            return c;
+        }
+
+        public void FillReferencedColumns(string schemas, string namelike, SourceView sv, DbConnection conn)
+        {
+            using (DbCommand cmd = conn.CreateCommand())
+            {
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandText =
+                    @"select cc.TABLE_SCHEMA, cc.TABLE_NAME, cc.COLUMN_NAME, 
+                    tc.TABLE_SCHEMA AS fkSchema, tc.TABLE_NAME AS fkTable, cc2.COLUMN_NAME AS fkColumn, 
+                    rc.DELETE_RULE, cc.CONSTRAINT_NAME, cc2.CONSTRAINT_NAME AS fkConstraint
+					from INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc
+					join INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc on rc.unique_constraint_name = cc.constraint_name
+					join INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc on tc.constraint_name = rc.constraint_name
+					join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc2 on cc2.constraint_name = tc.constraint_name and cc2.table_schema = tc.table_schema and cc2.table_name = tc.table_name
+					where tc.constraint_type = 'FOREIGN KEY'
+                    YYYYY
+                    XXXXX
+                ";
+
+                PrepareCmd(cmd, schemas, namelike, "cc", "tc");
+
+                using (DbDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        SourceFragmentDefinition pkTable = sv.GetTables()
+                            .SingleOrDefault(item => 
+                                item.Selector == reader.GetString(reader.GetOrdinal("TABLE_SCHEMA")) && 
+                                item.Name == reader.GetString(reader.GetOrdinal("TABLE_NAME")));
+
+                        if (pkTable == null)
+                            throw new InvalidOperationException(string.Format("Table {0}.{1} not found",
+                                reader.GetString(reader.GetOrdinal("TABLE_SCHEMA")),
+                                reader.GetString(reader.GetOrdinal("TABLE_NAME"))
+                            ));
+
+                        SourceFragmentDefinition fkTable = sv.GetTables()
+                            .SingleOrDefault(item => 
+                                item.Selector == reader.GetString(reader.GetOrdinal("fkSchema")) && 
+                                item.Name == reader.GetString(reader.GetOrdinal("fkTable")));
+
+                        if (fkTable == null)
+                            throw new InvalidOperationException(string.Format("Table {0}.{1} not found",
+                                reader.GetString(reader.GetOrdinal("fkSchema")),
+                                reader.GetString(reader.GetOrdinal("fkTable"))
+                            ));
+
+                        //SourceFieldDefinition pkCol = sv.GetColumns(pkTable)
+                        //    .Single(item => item.ColumnName == reader.GetString(reader.GetOrdinal("COLUMN_NAME")));
+                        
+                        //SourceFieldDefinition fkCol = sv.GetColumns(fkTable)
+                        //    .Single(item => item.ColumnName == reader.GetString(reader.GetOrdinal("fkColumn")));
+
+                        sv._references.Add(new SourceReferences(
+                            reader.GetString(reader.GetOrdinal("DELETE_RULE")),
+                            sv.GetConstraints(pkTable).Single(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"))),
+                            sv.GetConstraints(fkTable).Single(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("fkConstraint"))),
+                            sv.GetColumns(pkTable).Single(item => item.ColumnName == reader.GetString(reader.GetOrdinal("COLUMN_NAME"))),
+                            sv.GetColumns(fkTable).Single(item => item.ColumnName == reader.GetString(reader.GetOrdinal("fkColumn")))
+                        ));
+                    }
+                }
+            }
+        }
+    }
+}

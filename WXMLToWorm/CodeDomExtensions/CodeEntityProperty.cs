@@ -45,13 +45,13 @@ namespace WXMLToWorm.CodeDomExtensions
 				}
 
 				CodeStatement[] getInUsingStatements = new CodeStatement[]
-				                                       	{
-				                                       		new CodeMethodReturnStatement(
-				                                       			new CodeFieldReferenceExpression(new CodeThisReferenceExpression(),
-				                                       			                                 fieldName))
-				                                       	};
+               	{
+               		new CodeMethodReturnStatement(
+                        new CodeFieldReferenceExpression(new CodeThisReferenceExpression(),fieldName)
+                    )
+               	};
 
-                if (property.Entity.HasPkFlatEntity)
+                if (property.Entity.GetPkProperties().Count() > 0)
                     GetStatements.Add(new CodeUsingStatement(
                         getUsingExpression,
                         getInUsingStatements)
@@ -120,7 +120,7 @@ namespace WXMLToWorm.CodeDomExtensions
 						));
 					}
 
-                    if (property.Entity.HasPkFlatEntity)
+                    if (property.Entity.GetPkProperties().Count() > 0)
                         SetStatements.Add(new CodeUsingStatement(setUsingExpression,setInUsingStatements.ToArray()));
                     else
                         SetStatements.AddRange(setInUsingStatements.ToArray());
