@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using WXML.DatabaseConnector;
+using System.IO;
+using WXML.Model;
+using WXML.Model.Database;
+using WXML.Model.Database.Providers;
 
 namespace WXMLDatabase
 {
@@ -24,25 +28,8 @@ namespace WXMLDatabase
 				server = "(local)";
 			}
 
-			string m = null;
-			if (!param.TryGetParam("M", out m))
-			{
-				m = "msft";
-			}
-
-			switch (m)
-			{
-				case "msft":
-					//do nothing
-					break;
-				default:
-					Console.WriteLine("Invalid manufacturer parameter.");
-					ShowUsage();
-					return;
-			}
-
-			string db = null;
-			if (!param.TryGetParam("D", out db))
+			string dbName = null;
+			if (!param.TryGetParam("D", out dbName))
 			{
 				Console.WriteLine("Database is not specified");
 				ShowUsage();
@@ -90,7 +77,7 @@ namespace WXMLDatabase
 			string file = null;
 			if (!param.TryGetParam("O", out file))
 			{
-				file = db + ".xml";
+				file = dbName + ".xml";
 			}
 
 			string merge = null;
@@ -115,8 +102,8 @@ namespace WXMLDatabase
 				drop = "false";
 			bool dr = bool.Parse(drop);
 
-			string namesp = string.Empty;
-			param.TryGetParam("N", out namesp);
+            string namesp = dbName;
+            param.TryGetParam("N", out namesp);
 
             string u = "true";
 			if (!param.TryGetParam("Y", out u))
@@ -138,15 +125,86 @@ namespace WXMLDatabase
                 es = "false";
             bool escape = bool.Parse(es);
 
-            WXMLModelGenerator g = new WXMLModelGenerator(server, m, db, i, user, psw, transform);
+            DatabaseProvider dp = null;
+            string m = null;
+            if (!param.TryGetParam("M", out m))
+            {
+                m = "msft";
+            }
 
-			g.MakeWork(schemas, namelike, file, merge, dr, namesp, hie?relation1to1.Hierarchy:unify?relation1to1.Unify:relation1to1.Default, escape);
+            switch (m)
+            {
+                case "msft":
+                    dp = new MSSQLProvider(server, dbName, i, user, psw);
+                    break;
+                default:
+                    Console.WriteLine("Invalid manufacturer parameter.");
+                    ShowUsage();
+                    return;
+            }
+
+            dp.OnDatabaseConnecting += (sender, conn)=>Console.WriteLine("Connecting to \"{0}\"...", FilterPsw(conn));
+            dp.OnStartLoadDatabase += () => Console.WriteLine("Retriving tables...");
+
+		    SourceView db = dp.GetDatabase(schemas, namelike);
+
+            WXMLModel model = null;
+
+            if (File.Exists(file))
+            {
+                if (merge == "error")
+                {
+                    Console.WriteLine("The file " + file + " is already exists.");
+                    ShowUsage();
+                    return;
+                }
+
+                model = WXMLModel.LoadFromXml(new System.Xml.XmlTextReader(file));
+            }
+            else
+            {
+                model = new WXMLModel();
+                model.Namespace = namesp;
+                model.SchemaVersion = "1";
+                if (!Path.IsPathRooted(file))
+                    file = Path.Combine(Directory.GetCurrentDirectory(), file);
+                //File.Create(file);
+            }
+
+            WXMLModelGenerator g = new WXMLModelGenerator(db, model, transform);
+
+            Console.WriteLine("Generating xml...");
+
+			g.MergeModelWithDatabase(dr, hie?relation1to1.Hierarchy:unify?relation1to1.Unify:relation1to1.Default, escape);
+
+            using (System.Xml.XmlTextWriter writer = new System.Xml.XmlTextWriter(file, Encoding.UTF8))
+            {
+                writer.Formatting = System.Xml.Formatting.Indented;
+                model.GetXmlDocument().Save(writer);
+            }
 
 			Console.WriteLine("Done!");
 			//Console.ReadKey();
 		}
 
-		static void ShowUsage()
+	    private static string FilterPsw(string conn)
+	    {
+	        int pos = conn.IndexOf("Password=", StringComparison.InvariantCultureIgnoreCase);
+            if (pos >= 0)
+            {
+                int e = conn.IndexOf(';', pos);
+                if (e < 0) e = conn.Length;
+
+                pos += 9;
+
+                string psw = new string('*', e-pos);
+
+                conn = conn.Remove(pos, e - pos).Insert(pos, psw);
+            }
+	        return conn;
+	    }
+
+	    static void ShowUsage()
 		{
 			Console.WriteLine("Command line parameters");
 			Console.WriteLine("  -O=value\t-  Output file name. Example: -O=test.xml. Default is <database>.xml");
@@ -156,8 +214,14 @@ namespace WXMLDatabase
 			Console.WriteLine("  -P=value\t-  Password. Will requested if need.");
 			Console.WriteLine("  -D=value\t-  Initial catalog(database). Example: -D=test");
 			Console.WriteLine("  -M=[msft]\t-  Manufacturer. Example: -M=msft. Default is msft.");
-			Console.WriteLine("  -schemas=list\t-  Database schema filter. Example: -schemas=\"dbo,one\"");
-			Console.WriteLine("  -name=value\t-  Database table name filter. Example: -name=aspnet_%; -name=!aspnet_%");
+			Console.WriteLine(@"  -schemas=list\t-  Database schema filter.\n\t\t 
+                Example: -schemas=dbo,one\tInclude all tables in schemas dbo and one\n\t\t
+                Example: -schemas=(dbo,one)\tInclude all tables in all schemas except dbo and one
+            ");
+			Console.WriteLine(@"  -name=value\t-  Database table name filter.\n\t\t
+                Example: -name=aspnet_%,tbl%\tInclude all tables starts with aspnet_ and tbl
+                Example: -name=!aspnet_%\tInclude all tables except whose who starts with aspnet_
+            ");
 			Console.WriteLine("  -F=[error|merge]\t-  Existing file behavior. Example: -F=error. Default is merge.");
 			Console.WriteLine("  -R\t\t-  Drop deleted columns. Meaningfull only with merge behavior. Example: -R.");
 			Console.WriteLine("  -N=value\t-  Objects namespace. Example: -N=test.");
