@@ -91,62 +91,62 @@ namespace WXMLTests
 
             Assert.AreEqual<int>(8, entity.SelfProperties.Count());
 
-            PropertyDefinition prop = entity.GetProperty("ID");
+            ScalarPropertyDefinition prop = (ScalarPropertyDefinition) entity.GetProperty("ID");
             Assert.IsNotNull(prop);
             //Assert.AreEqual<int>(1, prop.Attributes.Length, "Attributes is undefined");
             Assert.AreEqual<string>("PK", prop.Attributes.ToString(), "Attributes is not correct defined");
             Assert.IsNotNull(prop.SourceFragment, "Table is undefined");
             Assert.AreEqual<string>("tblArtists", prop.SourceFragment.Identifier, "Table.Identifier is undefined");
-            Assert.AreEqual<string>("id", prop.FieldName, "FieldName is undefined");
+            Assert.AreEqual<string>("id", prop.SourceFieldExpression, "FieldName is undefined");
             Assert.AreEqual<string>("System.Int32", prop.PropertyType.GetTypeName(null), "PropertyTypeString is undefined");
             Assert.AreEqual<string>("Property ID Description", prop.Description, "Description is undefined");
             Assert.AreEqual<AccessLevel>(AccessLevel.Private, prop.FieldAccessLevel, "FieldAccessLevel");
             Assert.AreEqual<AccessLevel>(AccessLevel.Public, prop.PropertyAccessLevel, "PropertyAccessLevel");
             Assert.AreEqual<string>(prop.Name, prop.PropertyAlias, "PropertyAlias");
 
-            prop = entity.GetProperty("Title");
+            prop = (ScalarPropertyDefinition) entity.GetProperty("Title");
             Assert.IsNotNull(prop);
             //Assert.AreEqual<int>(0, prop.Attributes.Length, "Attributes is undefined");
             Assert.IsNotNull(prop.SourceFragment, "Table is undefined");
             Assert.AreEqual<string>("tblArtists", prop.SourceFragment.Identifier, "Table.Identifier is undefined");
-            Assert.AreEqual<string>("name", prop.FieldName, "FieldName is undefined");
+            Assert.AreEqual<string>("name", prop.SourceFieldExpression, "FieldName is undefined");
             Assert.AreEqual<string>("System.String", prop.PropertyType.GetTypeName(null), "PropertyTypeString is undefined");
             Assert.AreEqual<string>("Property Title Description", prop.Description, "Description");
             Assert.AreEqual<AccessLevel>(AccessLevel.Private, prop.FieldAccessLevel, "FieldAccessLevel");
             Assert.AreEqual<AccessLevel>(AccessLevel.Assembly, prop.PropertyAccessLevel, "PropertyAccessLevel");
             Assert.AreEqual<string>(prop.Name, prop.PropertyAlias, "PropertyAlias");
 
-            prop = entity.GetProperty("DisplayTitle");
+            prop = (ScalarPropertyDefinition) entity.GetProperty("DisplayTitle");
             Assert.IsNull(prop);
-            prop = entity.GetProperty("DisplayName");
+            prop = (ScalarPropertyDefinition) entity.GetProperty("DisplayName");
             Assert.IsNotNull(prop);
             Assert.AreEqual<string>("DisplayTitle", prop.Name, "Name is undefined");
             //Assert.AreEqual<int>(0, prop.Attributes.Length, "Attributes is undefined");
             Assert.IsNotNull(prop.SourceFragment, "Table is undefined");
             Assert.AreEqual<string>("tblArtists", prop.SourceFragment.Identifier, "Table.Identifier is undefined");
-            Assert.AreEqual<string>("display_name", prop.FieldName, "FieldName is undefined");
+            Assert.AreEqual<string>("display_name", prop.SourceFieldExpression, "FieldName is undefined");
             Assert.AreEqual<string>("System.String", prop.PropertyType.GetTypeName(null), "PropertyTypeString is undefined");
             Assert.AreEqual<string>("Property Title Description", prop.Description, "Property Title Description");
             Assert.AreEqual<AccessLevel>(AccessLevel.Family, prop.FieldAccessLevel, "FieldAccessLevel");
             Assert.AreEqual<AccessLevel>(AccessLevel.Family, prop.PropertyAccessLevel, "PropertyAccessLevel");
             Assert.AreEqual<string>("DisplayName", prop.PropertyAlias, "PropertyAlias");
 
-            prop = entity.GetProperty("Fact");
+            prop = (ScalarPropertyDefinition) entity.GetProperty("Fact");
 
             //Assert.AreEqual<int>(1, prop.Attributes.Length, "Attributes.Factory absent");
             Assert.AreEqual<string>("Factory", prop.Attributes.ToString(), "Attributes.Factory invalid");
 
-            prop = entity.GetProperty("TestInsDef");
+            prop = (ScalarPropertyDefinition) entity.GetProperty("TestInsDef");
 
             //Assert.AreEqual<int>(1, prop.Attributes.Length, "Attributes.Factory absent");
             Assert.AreEqual<string>("InsertDefault", prop.Attributes.ToString(), "Attributes.InsertDefault invalid");
 
-            prop = entity.GetProperty("TestNullabe");
+            prop = (ScalarPropertyDefinition) entity.GetProperty("TestNullabe");
 
             Assert.AreEqual<Type>(typeof(int?), prop.PropertyType.ClrType);
             Assert.IsFalse(prop.Disabled, "Disabled false");
 
-            prop = entity.GetProperty("TestDisabled");
+            prop = (ScalarPropertyDefinition) entity.GetProperty("TestDisabled");
             Assert.IsTrue(prop.Disabled, "Disabled true");
         }
 
@@ -175,7 +175,8 @@ namespace WXMLTests
 
             Assert.AreEqual<int>(1, entity.SuppressedProperties.Count, "SuppressedProperties.Count");
 
-            PropertyDefinition prop = entity.GetProperties().Single(item=>item.PropertyAlias==entity.SuppressedProperties[0]);
+            PropertyDefinition prop = entity.GetProperties()
+                .Single(item=>item.PropertyAlias==entity.SuppressedProperties[0]);
 
             Assert.AreEqual<string>("Prop1", prop.Name, "SuppressedPropertyName");
             Assert.IsTrue(prop.IsSuppressed, "SuppressedPropery.IsSuppressed");
@@ -409,6 +410,88 @@ namespace WXMLTests
                 Assert.AreEqual("greeting", xdoc.DocumentElement.Name);
                 Assert.AreEqual("hi!", xdoc.DocumentElement.InnerText);
 
+            }
+        }
+
+        [TestMethod]
+        public void TestSchemaBased()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("SchemaBased"))
+            {
+                TestFileEquality(stream);
+            }
+        }
+
+        [TestMethod]
+        public void TestExtensionSave()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("suppressed"))
+            {
+                Assert.IsNotNull(stream);
+
+                WXMLModel model = WXMLModel.LoadFromXml(new XmlTextReader(stream));
+
+                Assert.IsNotNull(model);
+
+                XmlDocument xdoc = new XmlDocument();
+                xdoc.LoadXml("<greeting>hi!</greeting>");
+
+                model.Extensions[new Extension("f")] = xdoc;
+
+                XmlDocument res = model.GetXmlDocument();
+
+                Assert.IsNotNull(res);
+
+                XmlNamespaceManager nsmgr = new XmlNamespaceManager(res.NameTable);
+                nsmgr.AddNamespace("x", WXMLModel.NS_URI);
+
+                XmlElement extension = res.SelectSingleNode("/x:WXMLModel/x:extensions/x:extension[@name='f']", nsmgr) as XmlElement;
+                Assert.IsNotNull(extension);
+
+                Assert.AreEqual("greeting", extension.ChildNodes[0].Name);
+                Assert.AreEqual("hi!", extension.ChildNodes[0].InnerText);
+
+            }
+        }
+
+        [TestMethod]
+        public void TestSchemaBasedNewVersion()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("SchemaBasedNewVersion"))
+            {
+                TestFileEquality(stream);
+            }
+        }
+
+        private static void TestFileEquality(Stream stream)
+        {
+            WXMLDocumentSet wxmlDocumentSet;
+            using (XmlReader rdr = XmlReader.Create(stream))
+            {
+
+                WXMLModel schemaDef = WXMLModel.LoadFromXml(rdr, new TestXmlUrlResolver());
+                wxmlDocumentSet = schemaDef.GetWXMLDocumentSet(new WXMLModelWriterSettings());
+
+            }
+
+            XmlDocument xmlDocument = wxmlDocumentSet[0].Document;
+            xmlDocument.RemoveChild(xmlDocument.DocumentElement.PreviousSibling);
+
+            Assert.AreEqual<string>(Resources.GetXmlDocument("SchemaBasedNewVersion").OuterXml, xmlDocument.OuterXml);
+        }
+
+
+        public class TestXmlUrlResolver : XmlUrlResolver
+        {
+            public override object GetEntity(Uri absoluteUri, string role, Type ofObjectToReturn)
+            {
+                if (absoluteUri.Segments[absoluteUri.Segments.Length - 1].EndsWith(".xml"))
+                {
+                    return
+                        File.OpenRead(@"C:\Projects\Framework\Worm\Worm-XMediaDependent\TestsCodeGenLib\" +
+                                      absoluteUri.Segments[absoluteUri.Segments.Length - 1]);
+                }
+                return base.GetEntity(absoluteUri, role, ofObjectToReturn);
             }
         }
 
