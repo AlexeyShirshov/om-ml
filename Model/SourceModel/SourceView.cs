@@ -22,6 +22,11 @@ namespace WXML.Model.Descriptors
                    select c;
         }
 
+        public IEnumerable<SourceFieldDefinition> GetColumns()
+        {
+            return _columns;
+        }
+
         public SourceFragmentDefinition GetOrCreateTable(string selector, string name)
         {
             SourceFragmentDefinition sf = GetTables().SingleOrDefault(item =>
@@ -33,13 +38,12 @@ namespace WXML.Model.Descriptors
             return sf;
         }
 
-        public IEnumerable<SourceFieldConstraint> GetConstraints(SourceFragmentDefinition sf)
-        {
-            return (from c in GetColumns(sf)
-                    select c).SelectMany(item => item.Constraints);
-        }
+        //public IEnumerable<SourceConstraint> GetConstraints(SourceFragmentDefinition sf)
+        //{
+        //    return sf.Constraints;
+        //}
 
-        public IEnumerable<SourceReferences> GetFKRelations(SourceFieldConstraint fkConstraint)
+        public IEnumerable<SourceReferences> GetFKRelations(SourceConstraint fkConstraint)
         {
             return from sr in _references
                    where sr.FKConstraint == fkConstraint

@@ -416,121 +416,225 @@ namespace WXML.Model
 
             XmlNode entityNode = _ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX, entity.Identifier), _nsMgr);
 
-            XmlNodeList propertiesList = entityNode.SelectNodes(string.Format("{0}:Properties/{0}:Property", WXMLModel.NS_PREFIX), _nsMgr);
-
-            FillEntityProperties(entity, propertiesList, null);
-
-            XmlNodeList groupsNodeList =
-                entityNode.SelectNodes(string.Format("{0}:Properties/{0}:Group", WXMLModel.NS_PREFIX), _nsMgr);
-            foreach (XmlElement groupNode in groupsNodeList)
+            foreach (XmlElement node in entityNode.SelectNodes(string.Format("{0}:Properties/*", WXMLModel.NS_PREFIX), _nsMgr))
             {
-                string hideValue = groupNode.GetAttribute("hide");
-                bool hide = string.IsNullOrEmpty(hideValue) ? true : XmlConvert.ToBoolean(hideValue);
-                PropertyGroup group = new PropertyGroup
-                                          {
-                                              Name = groupNode.GetAttribute("name"),
-                                              Hide =  hide
-                                          };
-                propertiesList = groupNode.SelectNodes(string.Format("{0}:Property", WXMLModel.NS_PREFIX), _nsMgr);
-                FillEntityProperties(entity, propertiesList, group);
+                if (node.LocalName == "Property")
+                    FillEntityProperties(entity, node, null);
+                else if (node.LocalName == "EntityProperty")
+                    FillEntityEProperties(entity, node, null);
+                else if (node.LocalName == "Group")
+                {
+                    string hideValue = node.GetAttribute("hide");
+
+                    PropertyGroup group = new PropertyGroup
+                    {
+                        Name = node.GetAttribute("name"),
+                        Hide = string.IsNullOrEmpty(hideValue) ? true : XmlConvert.ToBoolean(hideValue)
+                    };
+
+                    foreach (XmlElement groupNode in node.SelectNodes("*", _nsMgr))
+                    {
+                        if (groupNode.LocalName == "Property")
+                            FillEntityProperties(entity, groupNode, group);
+                        else if (groupNode.LocalName == "EntityProperty")
+                            FillEntityEProperties(entity, groupNode, group);
+                        else
+                            throw new NotSupportedException(groupNode.LocalName);
+                    }
+                }
+                else
+                    throw new NotSupportedException(node.LocalName);
             }
         }
 
-        private void FillEntityProperties(EntityDefinition entity, XmlNodeList propertiesList, PropertyGroup group)
+        private void FillEntityEProperties(EntityDefinition entity, XmlNode propertyNode, PropertyGroup group)
         {
-            foreach (XmlNode propertyNode in propertiesList)
+            AccessLevel fieldAccessLevel, propertyAccessLevel;
+            bool disabled = false, enablePropertyChanged = false;
+
+            XmlElement propertyElement = (XmlElement)propertyNode;
+            string description = propertyElement.GetAttribute("description");
+            string name = propertyElement.GetAttribute("propertyName");
+            string typeId = propertyElement.GetAttribute("typeRef");
+            string sAttributes = propertyElement.GetAttribute("attributes");
+            string tableId = propertyElement.GetAttribute("table");
+            string fieldAccessLevelName = propertyElement.GetAttribute("classfieldAccessLevel");
+            string propertyAccessLevelName = propertyElement.GetAttribute("propertyAccessLevel");
+            string propertyAlias = propertyElement.GetAttribute("propertyAlias");
+            string propertyDisabled = propertyElement.GetAttribute("disabled");
+            string propertyObsolete = propertyElement.GetAttribute("obsolete");
+            string propertyObsoleteDescription = propertyElement.GetAttribute("obsoleteDescription");
+            string enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
+            string mergeAction = propertyElement.GetAttribute("action");
+            string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
+
+            string[] attrString = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            Field2DbRelations attributes = Field2DbRelations.None;
+            foreach (string attr in attrString)
             {
-                AccessLevel fieldAccessLevel, propertyAccessLevel;
-                bool disabled = false, enablePropertyChanged = false;
-                ObsoleteType obsolete;
-
-                XmlElement propertyElement = (XmlElement) propertyNode;
-                string description = propertyElement.GetAttribute("description");
-                string name = propertyElement.GetAttribute("propertyName");
-                string fieldname = propertyElement.GetAttribute("fieldName");
-                string typeId = propertyElement.GetAttribute("typeRef");
-                string sAttributes = propertyElement.GetAttribute("attributes");
-                string tableId = propertyElement.GetAttribute("table");
-                string fieldAccessLevelName = propertyElement.GetAttribute("classfieldAccessLevel");
-                string propertyAccessLevelName = propertyElement.GetAttribute("propertyAccessLevel");
-                string propertyAlias = propertyElement.GetAttribute("propertyAlias");
-                string propertyDisabled = propertyElement.GetAttribute("disabled");
-                string propertyObsolete = propertyElement.GetAttribute("obsolete");
-                string propertyObsoleteDescription = propertyElement.GetAttribute("obsoleteDescription");
-                string enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
-                string fieldAlias = propertyElement.GetAttribute("fieldAlias");
-                string mergeAction = propertyElement.GetAttribute("action");
-                string dbTypeNameAttribute = propertyElement.GetAttribute("dbTypeName");
-                string dbTypeSizeAttribute = propertyElement.GetAttribute("dbTypeSize");
-                string dbTypeNullableAttribute = propertyElement.GetAttribute("dbTypeNullable");
-
-            	string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
-
-                string[] attrString = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                Field2DbRelations attributes = Field2DbRelations.None;
-                foreach (string attr in attrString)
-                {
-                    attributes |= (Field2DbRelations)Enum.Parse(typeof(Field2DbRelations), attr);
-                }
-
-                if (!string.IsNullOrEmpty(propertyAccessLevelName))
-                    propertyAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), propertyAccessLevelName);
-                else
-                    propertyAccessLevel = AccessLevel.Public;
-
-                if (!string.IsNullOrEmpty(fieldAccessLevelName))
-                    fieldAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), fieldAccessLevelName);
-                else
-                    fieldAccessLevel = AccessLevel.Private;
-
-                SourceFragmentDefinition table = entity.GetSourceFragment(tableId);
-
-                if (!String.IsNullOrEmpty(propertyDisabled))
-                    disabled = XmlConvert.ToBoolean(propertyDisabled);
-
-                //if (table == null)
-                //    throw new OrmXmlParserException(
-                //        string.Format("SourceFragment '{0}' for property '{1}' of entity '{2}' not found.", tableId, name,
-                //                      entity.Identifier));
-
-                TypeDefinition typeDesc = _model.GetType(typeId, true);
-                
-                if(!string.IsNullOrEmpty(propertyObsolete))
-                {
-                    obsolete = (ObsoleteType) Enum.Parse(typeof (ObsoleteType), propertyObsolete);
-                }
-                else
-                {
-                    obsolete = ObsoleteType.None;
-                }
-
-                if (!string.IsNullOrEmpty(enablePropertyChangedAttribute))
-                    enablePropertyChanged = XmlConvert.ToBoolean(enablePropertyChangedAttribute);
-
-                PropertyDefinition property = new PropertyDefinition(entity, name, propertyAlias, attributes, description, typeDesc, fieldname, table, fieldAccessLevel, propertyAccessLevel)
-                {
-                    Disabled = disabled,
-                    Obsolete = obsolete,
-                    ObsoleteDescripton = propertyObsoleteDescription,
-                    EnablePropertyChanged = enablePropertyChanged,
-                    Group = group,
-                    FieldAlias = fieldAlias,
-                    DbTypeName = dbTypeNameAttribute
-                };
-
-                if (!string.IsNullOrEmpty(dbTypeSizeAttribute))
-                    property.DbTypeSize = XmlConvert.ToInt32(dbTypeSizeAttribute);
-                
-                if (!string.IsNullOrEmpty(dbTypeNullableAttribute))
-                    property.DbTypeNullable = XmlConvert.ToBoolean(dbTypeNullableAttribute);
-
-                if (!string.IsNullOrEmpty(mergeAction))
-                    property.Action = (MergeAction)Enum.Parse(typeof (MergeAction), mergeAction);
-
-                property.DefferedLoadGroup = defferedLoadGroup;
-
-                entity.AddProperty(property);
+                attributes |= (Field2DbRelations)Enum.Parse(typeof(Field2DbRelations), attr);
             }
+
+            if (!string.IsNullOrEmpty(propertyAccessLevelName))
+                propertyAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), propertyAccessLevelName);
+            else
+                propertyAccessLevel = AccessLevel.Public;
+
+            if (!string.IsNullOrEmpty(fieldAccessLevelName))
+                fieldAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), fieldAccessLevelName);
+            else
+                fieldAccessLevel = AccessLevel.Private;
+
+            SourceFragmentDefinition table = entity.GetSourceFragment(tableId);
+
+            if (!String.IsNullOrEmpty(propertyDisabled))
+                disabled = XmlConvert.ToBoolean(propertyDisabled);
+
+            TypeDefinition typeDesc = _model.GetType(typeId, true);
+
+            ObsoleteType obsolete = ObsoleteType.None;
+            if (!string.IsNullOrEmpty(propertyObsolete))
+            {
+                obsolete = (ObsoleteType)Enum.Parse(typeof(ObsoleteType), propertyObsolete);
+            }
+
+            if (!string.IsNullOrEmpty(enablePropertyChangedAttribute))
+                enablePropertyChanged = XmlConvert.ToBoolean(enablePropertyChangedAttribute);
+
+            EntityPropertyDefinition property = new EntityPropertyDefinition(name, propertyAlias, attributes, description, fieldAccessLevel, propertyAccessLevel, typeDesc, table, entity)
+            {
+                Disabled = disabled,
+                Obsolete = obsolete,
+                ObsoleteDescripton = propertyObsoleteDescription,
+                EnablePropertyChanged = enablePropertyChanged,
+                Group = group,
+                DefferedLoadGroup = defferedLoadGroup,
+            };
+
+            if (!string.IsNullOrEmpty(mergeAction))
+                property.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
+
+            entity.AddProperty(property);
+
+            foreach (XmlElement fieldMap in propertyNode.SelectNodes(string.Format("{0}:fields", WXMLModel.NS_PREFIX), _nsMgr))
+            {
+                string fieldAlias = fieldMap.GetAttribute("fieldAlias");
+                string dbTypeNameAttribute = fieldMap.GetAttribute("dbTypeName");
+                string dbTypeSizeAttribute = fieldMap.GetAttribute("dbTypeSize");
+                string dbTypeNullableAttribute = fieldMap.GetAttribute("dbTypeNullable");
+                string dbTypeDefault = fieldMap.GetAttribute("sourceFieldDefault");
+                string fieldname = fieldMap.GetAttribute("fieldName");
+                string propAlias = fieldMap.GetAttribute("relatedProperty");
+
+                int? sz = null;
+                if (!string.IsNullOrEmpty(dbTypeSizeAttribute))
+                    sz = XmlConvert.ToInt32(dbTypeSizeAttribute);
+
+                bool isNullable = true;
+                if (!string.IsNullOrEmpty(dbTypeNullableAttribute))
+                    isNullable = XmlConvert.ToBoolean(dbTypeNullableAttribute);
+
+                property.AddSourceField(propAlias, fieldname, fieldAlias, dbTypeNameAttribute,
+                    sz, isNullable, dbTypeDefault);
+
+            }
+        }
+
+        private void FillEntityProperties(EntityDefinition entity, XmlNode propertyNode, PropertyGroup group)
+        {
+            AccessLevel fieldAccessLevel, propertyAccessLevel;
+            bool disabled = false, enablePropertyChanged = false;
+            ObsoleteType obsolete;
+
+            XmlElement propertyElement = (XmlElement) propertyNode;
+            string description = propertyElement.GetAttribute("description");
+            string name = propertyElement.GetAttribute("propertyName");
+            string fieldname = propertyElement.GetAttribute("fieldName");
+            string typeId = propertyElement.GetAttribute("typeRef");
+            string sAttributes = propertyElement.GetAttribute("attributes");
+            string tableId = propertyElement.GetAttribute("table");
+            string fieldAccessLevelName = propertyElement.GetAttribute("classfieldAccessLevel");
+            string propertyAccessLevelName = propertyElement.GetAttribute("propertyAccessLevel");
+            string propertyAlias = propertyElement.GetAttribute("propertyAlias");
+            string propertyDisabled = propertyElement.GetAttribute("disabled");
+            string propertyObsolete = propertyElement.GetAttribute("obsolete");
+            string propertyObsoleteDescription = propertyElement.GetAttribute("obsoleteDescription");
+            string enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
+            string fieldAlias = propertyElement.GetAttribute("fieldAlias");
+            string mergeAction = propertyElement.GetAttribute("action");
+            string dbTypeNameAttribute = propertyElement.GetAttribute("dbTypeName");
+            string dbTypeSizeAttribute = propertyElement.GetAttribute("dbTypeSize");
+            string dbTypeNullableAttribute = propertyElement.GetAttribute("dbTypeNullable");
+            string dbTypeDefault = propertyElement.GetAttribute("sourceFieldDefault");
+
+        	string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
+
+            string[] attrString = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            Field2DbRelations attributes = Field2DbRelations.None;
+            foreach (string attr in attrString)
+            {
+                attributes |= (Field2DbRelations)Enum.Parse(typeof(Field2DbRelations), attr);
+            }
+
+            if (!string.IsNullOrEmpty(propertyAccessLevelName))
+                propertyAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), propertyAccessLevelName);
+            else
+                propertyAccessLevel = AccessLevel.Public;
+
+            if (!string.IsNullOrEmpty(fieldAccessLevelName))
+                fieldAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), fieldAccessLevelName);
+            else
+                fieldAccessLevel = AccessLevel.Private;
+
+            SourceFragmentDefinition table = entity.GetSourceFragment(tableId);
+
+            if (!String.IsNullOrEmpty(propertyDisabled))
+                disabled = XmlConvert.ToBoolean(propertyDisabled);
+
+            TypeDefinition typeDesc = _model.GetType(typeId, true);
+            
+            if(!string.IsNullOrEmpty(propertyObsolete))
+            {
+                obsolete = (ObsoleteType) Enum.Parse(typeof (ObsoleteType), propertyObsolete);
+            }
+            else
+            {
+                obsolete = ObsoleteType.None;
+            }
+
+            if (!string.IsNullOrEmpty(enablePropertyChangedAttribute))
+                enablePropertyChanged = XmlConvert.ToBoolean(enablePropertyChangedAttribute);
+
+            SourceFieldDefinition sf = new SourceFieldDefinition(table, fieldname)
+            {
+                SourceType = dbTypeNameAttribute,
+                DefaultValue = dbTypeDefault
+            };
+
+            if (!string.IsNullOrEmpty(dbTypeSizeAttribute))
+                sf.SourceTypeSize = XmlConvert.ToInt32(dbTypeSizeAttribute);
+
+            if (!string.IsNullOrEmpty(dbTypeNullableAttribute))
+                sf.IsNullable = XmlConvert.ToBoolean(dbTypeNullableAttribute);
+
+            ScalarPropertyDefinition property = new ScalarPropertyDefinition(entity, name, propertyAlias, attributes, description, typeDesc, sf, fieldAccessLevel, propertyAccessLevel)
+            {
+                Disabled = disabled,
+                Obsolete = obsolete,
+                ObsoleteDescripton = propertyObsoleteDescription,
+                EnablePropertyChanged = enablePropertyChanged,
+                Group = group,
+                SourceFieldAlias = fieldAlias,
+                DefferedLoadGroup = defferedLoadGroup
+            };
+
+            if (!string.IsNullOrEmpty(mergeAction))
+                property.Action = (MergeAction)Enum.Parse(typeof (MergeAction), mergeAction);
+
+            if (typeDesc.IsEntityType)
+                entity.AddProperty(new EntityPropertyDefinition(property));
+            else
+                entity.AddProperty(property);
         }
 
         internal protected void FillRelations()
@@ -589,13 +693,13 @@ namespace WXML.Model
 
 				EntityDefinition rightLinkTargetEntity = _model.GetEntity(rightLinkTargetEntityId);
 
-                LinkTarget leftLinkTarget = new LinkTarget(leftLinkTargetEntity, leftFieldName, leftCascadeDelete, leftAccessorName) 
+                LinkTarget leftLinkTarget = new LinkTarget(leftLinkTargetEntity, leftFieldName.Split(' '), leftCascadeDelete, leftAccessorName) 
                 { 
                     AccessorDescription = leftAccessorDescription,
                     AccessedEntityType = leftAccessedEntityType
                 };
 
-                LinkTarget rightLinkTarget = new LinkTarget(rightLinkTargetEntity, rightFieldName, rightCascadeDelete, rightAccessorName) 
+                LinkTarget rightLinkTarget = new LinkTarget(rightLinkTargetEntity, rightFieldName.Split(' '), rightCascadeDelete, rightAccessorName) 
                 { 
                     AccessorDescription = rightAccessorDescription,
                     AccessedEntityType = rightAccessedEntityType
@@ -673,13 +777,13 @@ namespace WXML.Model
 
 				EntityDefinition entity = _model.GetEntity(entityId);
 
-                SelfRelationTarget directTarget = new SelfRelationTarget(directFieldName, directCascadeDelete, directAccessorName)
+                SelfRelationTarget directTarget = new SelfRelationTarget(directFieldName.Split(' '), directCascadeDelete, directAccessorName)
                 {
                     AccessorDescription = directAccessorDescription,
                     AccessedEntityType = directAccessedEntityType
                 };
 
-                SelfRelationTarget reverseTarget = new SelfRelationTarget(reverseFieldName, reverseCascadeDelete, reverseAccessorName)
+                SelfRelationTarget reverseTarget = new SelfRelationTarget(reverseFieldName.Split(' '), reverseCascadeDelete, reverseAccessorName)
                 {
                     AccessorDescription = reverseAccessorDescription,
                     AccessedEntityType = reverseAccessedEntityType
@@ -725,7 +829,7 @@ namespace WXML.Model
             {
                 XmlElement tableElement = (XmlElement)tableNode;
                 string tableId = tableElement.GetAttribute("ref");
-                string mergeAction = tableElement.GetAttribute("action");
+                //string mergeAction = tableElement.GetAttribute("action");
 
                 var table = entity.Model.GetSourceFragment(tableId);
                 if (table == null)
@@ -744,22 +848,22 @@ namespace WXML.Model
                     var joinNodes = tableElement.SelectNodes(string.Format("{0}:join", WXMLModel.NS_PREFIX), _nsMgr);
                     foreach (XmlElement joinNode in joinNodes)
                     {
-                        string cmergeAction = joinNode.GetAttribute("action");
+                        //string cmergeAction = joinNode.GetAttribute("action");
 
                         SourceFragmentRefDefinition.Condition condition = new SourceFragmentRefDefinition.Condition(
                             joinNode.GetAttribute("refColumn"),
                             joinNode.GetAttribute("anchorColumn")
                         );
 
-                        if (!string.IsNullOrEmpty(cmergeAction))
-                            condition.Action = (MergeAction)Enum.Parse(typeof(MergeAction), cmergeAction);
+                        //if (!string.IsNullOrEmpty(cmergeAction))
+                        //    condition.Action = (MergeAction)Enum.Parse(typeof(MergeAction), cmergeAction);
 
                         tableRef.Conditions.Add(condition);
                     }
                 }
 
-                if (!string.IsNullOrEmpty(mergeAction))
-                    tableRef.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
+                //if (!string.IsNullOrEmpty(mergeAction))
+                //    tableRef.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
 
                 entity.AddSourceFragment(tableRef);
             }

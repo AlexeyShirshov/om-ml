@@ -47,18 +47,19 @@ namespace WXML.Model.Descriptors
 
         public MergeAction Action { get; set; }
 
-        public PropertyDefinition Property
+        public EntityPropertyDefinition Property
         {
             get
             {
-                PropertyDefinition res = null;
+                EntityPropertyDefinition res = null;
                 if (!string.IsNullOrEmpty(PropertyAlias))
                 {
-                    res = Entity.GetProperties().SingleOrDefault(p => p.PropertyAlias == PropertyAlias);
+                    res = (EntityPropertyDefinition) Entity.GetProperties().SingleOrDefault(p => p.PropertyAlias == PropertyAlias);
                 }
                 else
                 {
-                    var lst = Entity.GetProperties().Where(p => p.PropertyType.IsEntityType && p.PropertyType.Entity == SourceEntity);
+                    var lst = Entity.GetProperties()
+                        .Where(p => p.PropertyType.IsEntityType && p.PropertyType.Entity == SourceEntity);
                     if (lst.Count() > 1)
                     {
                         throw new OrmCodeGenException(
@@ -75,7 +76,7 @@ namespace WXML.Model.Descriptors
                     }
                     else if (lst.Count() > 0)
                     {
-                        res = lst.First();
+                        res = (EntityPropertyDefinition) lst.First();
                     }
                 }
                 return res;

@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Xml;
-using System.Xml.Serialization;
 using WXML.Model.Descriptors;
 using System.Linq;
 
@@ -448,105 +447,142 @@ namespace WXML.Model
                     entity.UseGenerics = newEntity.UseGenerics;
                     entity.FamilyName = newEntity.FamilyName;
 
-                    List<SourceFragmentRefDefinition> torem = new List<SourceFragmentRefDefinition>();
-                    foreach (SourceFragmentRefDefinition newsf in newEntity.GetSourceFragments())
+                    entity.ClearSourceFragments();
+                    foreach (SourceFragmentRefDefinition newsf in newEntity.SelfSourceFragments)
                     {
-                        string newsfId = newsf.Identifier;
-                        SourceFragmentRefDefinition sf =
-                            entity.GetSourceFragments().SingleOrDefault(item => item.Identifier == newsfId);
+                        //string newsfId = newsf.Identifier;
+                        //SourceFragmentRefDefinition sf =
+                        //    entity.GetSourceFragments().SingleOrDefault(item => item.Identifier == newsfId);
+                        
+                        //foreach (PropertyDefinition rp in entity.GetProperties()
+                        //    .Where(item=>item.SourceFragment == sf))
+                        //{
+                        //    if (rp is ScalarPropertyDefinition)
+                        //    {
+                        //        ScalarPropertyDefinition property = rp as ScalarPropertyDefinition;
+                        //        property.SourceField.SourceFragment = newsf;
+                        //    }
+                        //    else if (rp is EntityPropertyDefinition)
+                        //    {
+                        //        EntityPropertyDefinition property = rp as EntityPropertyDefinition;
+                        //        property.SourceFragment = newsf;
+                        //    }
+                        //}
 
-                        if (sf != null)
-                        {
-                            if (newsf.Action == MergeAction.Delete)
-                            {
-                                entity.RemoveSourceFragment(sf);
-                                torem.Add(newsf);
-                            }
-                            else if (newsf.AnchorTable != null)
-                            {
-                                sf.AnchorTable = newsf.AnchorTable;
-                                sf.JoinType = newsf.JoinType;
-                                if (newsf.Conditions.Count > 0)
-                                {
-                                    foreach (SourceFragmentRefDefinition.Condition c in newsf.Conditions)
-                                    {
-                                        SourceFragmentRefDefinition.Condition ec =
-                                            sf.Conditions.SingleOrDefault(item =>
-                                                item.LeftColumn == c.LeftColumn &&
-                                                item.RightColumn == c.RightColumn
-                                            );
-                                        if (ec != null)
-                                        {
-                                            if (c.Action == MergeAction.Delete)
-                                                sf.Conditions.Remove(ec);
-                                        }
-                                        else
-                                            sf.Conditions.Add(c);
-                                    }
-                                }
-                            }
-                        }
-                        else
-                            entity.AddSourceFragment(newsf);
+                        //entity.RemoveSourceFragment(sf);
+                        entity.AddSourceFragment(newsf);
                     }
+                    //List<SourceFragmentRefDefinition> torem = new List<SourceFragmentRefDefinition>();
+                    //foreach (SourceFragmentRefDefinition newsf in newEntity.GetSourceFragments())
+                    //{
+                    //    string newsfId = newsf.Identifier;
+                    //    SourceFragmentRefDefinition sf =
+                    //        entity.GetSourceFragments().SingleOrDefault(item => item.Identifier == newsfId);
 
-                    foreach (SourceFragmentRefDefinition newsf in torem)
-                    {
-                        newEntity.RemoveSourceFragment(newsf);
-                    }
+                    //    if (sf != null)
+                    //    {
+                    //        if (newsf.Action == MergeAction.Delete)
+                    //        {
+                    //            entity.RemoveSourceFragment(sf);
+                    //            torem.Add(newsf);
+                    //        }
+                    //        else if (newsf.AnchorTable != null)
+                    //        {
+                    //            sf.AnchorTable = newsf.AnchorTable;
+                    //            sf.JoinType = newsf.JoinType;
+                    //            if (newsf.Conditions.Count > 0)
+                    //            {
+                    //                foreach (SourceFragmentRefDefinition.Condition c in newsf.Conditions)
+                    //                {
+                    //                    SourceFragmentRefDefinition.Condition ec =
+                    //                        sf.Conditions.SingleOrDefault(item =>
+                    //                            item.LeftColumn == c.LeftColumn &&
+                    //                            item.RightColumn == c.RightColumn
+                    //                        );
+                    //                    if (ec != null)
+                    //                    {
+                    //                        if (c.Action == MergeAction.Delete)
+                    //                            sf.Conditions.Remove(ec);
+                    //                    }
+                    //                    else
+                    //                        sf.Conditions.Add(c);
+                    //                }
+                    //            }
+                    //        }
+                    //    }
+                    //    else
+                    //        entity.AddSourceFragment(newsf);
+                    //}
+
+                    //foreach (SourceFragmentRefDefinition newsf in torem)
+                    //{
+                    //    newEntity.RemoveSourceFragment(newsf);
+                    //}
 
                     foreach (PropertyDefinition newProperty in newEntity.GetProperties())
                     {
                         string newPropertyName = newProperty.PropertyAlias;
 
-                        PropertyDefinition property =
+                        PropertyDefinition rp =
                             entity.GetProperties().SingleOrDefault(item => item.PropertyAlias == newPropertyName);
 
-                        if (property != null)
+                        if (rp != null)
                         {
                             if (newProperty.Action == MergeAction.Delete)
                             {
-                                entity.RemoveProperty(property);
+                                entity.RemoveProperty(rp);
                             }
                             else
                             {
-                                property.DbTypeName = MergeString(property, newProperty, (item) => item.DbTypeName);
-                                property.DefferedLoadGroup = MergeString(property, newProperty, (item) => item.DefferedLoadGroup);
-                                property.Description = MergeString(property, newProperty, (item) => item.Description);
-                                property.FieldAlias = MergeString(property, newProperty, (item) => item.FieldAlias);
-                                property.FieldName = MergeString(property, newProperty, (item) => item.FieldName);
-                                property.Name = MergeString(property, newProperty, (item) => item.Name);
-                                property.ObsoleteDescripton = MergeString(property, newProperty, (item) => item.ObsoleteDescripton);
-
-                                //List<string> newAttributes = new List<string>();
-
-                                //if (property.Attributes != )
-                                //    newAttributes.AddRange(property.Attributes);
+                                rp.Name = MergeString(rp, newProperty, item => item.Name);
+                                rp.ObsoleteDescripton = MergeString(rp, newProperty, item => item.ObsoleteDescripton);
+                                rp.DefferedLoadGroup = MergeString(rp, newProperty, item => item.DefferedLoadGroup);
+                                rp.Description = MergeString(rp, newProperty, item => item.Description);
                                 if (newProperty.Attributes != Field2DbRelations.None)
                                 {
-                                    //newAttributes.AddRange(newProperty.Attributes.Where(item=>!newAttributes.Contains(item)));
-                                    property.Attributes = newProperty.Attributes;
+                                    rp.Attributes = newProperty.Attributes;
                                 }
-
-                                property.DbTypeNullable = newProperty.DbTypeNullable ?? property.DbTypeNullable;
-                                property.DbTypeSize = newProperty.DbTypeSize ?? property.DbTypeSize;
-                                property.Group = newProperty.Group ?? property.Group;
-                                property.PropertyType = newProperty.PropertyType ?? property.PropertyType;
-                                property.SourceFragment = newProperty.SourceFragment ?? property.SourceFragment;
-
-                                property.Disabled = newProperty.Disabled;
-                                property.EnablePropertyChanged = newProperty.EnablePropertyChanged;
-                                //property.IsSuppressed = newProperty.IsSuppressed;
-                                //property.FromBase = newProperty.FromBase;
+                                rp.Group = newProperty.Group ?? rp.Group;
+                                rp.PropertyType = newProperty.PropertyType ?? rp.PropertyType;
+                                rp.Disabled = newProperty.Disabled;
+                                rp.EnablePropertyChanged = newProperty.EnablePropertyChanged;
+                                rp.SourceFragment = newProperty.SourceFragment ?? rp.SourceFragment;
 
                                 if (newProperty.FieldAccessLevel != default(AccessLevel))
-                                    property.FieldAccessLevel = newProperty.FieldAccessLevel;
+                                    rp.FieldAccessLevel = newProperty.FieldAccessLevel;
 
                                 if (newProperty.PropertyAccessLevel != default(AccessLevel))
-                                    property.PropertyAccessLevel = newProperty.PropertyAccessLevel;
+                                    rp.PropertyAccessLevel = newProperty.PropertyAccessLevel;
 
                                 if (newProperty.Obsolete != default(ObsoleteType))
-                                    property.Obsolete = newProperty.Obsolete;
+                                    rp.Obsolete = newProperty.Obsolete;
+
+                                if (rp.GetType() != newProperty.GetType())
+                                {
+                                    PropertyDefinition newProp = null;
+                                    if (rp is EntityPropertyDefinition && newProperty is ScalarPropertyDefinition)
+                                    {
+                                        newProp = new ScalarPropertyDefinition(entity, newPropertyName);
+                                        rp.CopyTo(newProp);
+                                    }
+                                    else if (rp is ScalarPropertyDefinition && newProperty is EntityPropertyDefinition)
+                                    {
+                                        newProp = new EntityPropertyDefinition(rp as ScalarPropertyDefinition);
+                                    }
+                                    entity.RemoveProperty(rp);
+                                    entity.AddProperty(newProp);
+                                    rp = newProp;
+                                }
+
+                                if (rp is ScalarPropertyDefinition)
+                                {
+                                    ScalarPropertyDefinition property = rp as ScalarPropertyDefinition;
+                                    property.SourceField.SourceType = MergeString(property, newProperty as ScalarPropertyDefinition, item => item.SourceType);
+                                    property.SourceFieldAlias = MergeString(property, newProperty as ScalarPropertyDefinition, item => item.SourceFieldAlias);
+                                    property.SourceField.SourceFieldExpression = MergeString(property, newProperty as ScalarPropertyDefinition, item => item.SourceFieldExpression);
+                                    property.SourceField.IsNullable = ((ScalarPropertyDefinition) newProperty).IsNullable;
+                                    property.SourceField.SourceTypeSize = ((ScalarPropertyDefinition) newProperty).SourceTypeSize ?? property.SourceTypeSize;
+                                }
                             }
                         }
                         else
@@ -560,8 +596,9 @@ namespace WXML.Model
             }
         }
 
-        private static string MergeString(PropertyDefinition existingProperty, PropertyDefinition newProperty,
-            Func<PropertyDefinition, string> accessor)
+        private static string MergeString<T>(T existingProperty, T newProperty,
+            Func<T, string> accessor)
+            where T : PropertyDefinition
         {
             return string.IsNullOrEmpty(accessor(newProperty))
               ? accessor(existingProperty)

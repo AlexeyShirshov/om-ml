@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace WXML.Model.Descriptors
 {
@@ -46,12 +44,12 @@ namespace WXML.Model.Descriptors
             get { return _disabled; }
         }
 
-        public RelationDefinitionBase(SourceFragmentDefinition table, EntityDefinition underlyingEntity, SelfRelationTarget left, SelfRelationTarget right)
+        protected RelationDefinitionBase(SourceFragmentDefinition table, EntityDefinition underlyingEntity, SelfRelationTarget left, SelfRelationTarget right)
             : this(table, underlyingEntity, left, right, false)
         {
         }
 
-        public RelationDefinitionBase(SourceFragmentDefinition table, EntityDefinition underlyingEntity, SelfRelationTarget left, SelfRelationTarget right, bool disabled)
+        protected RelationDefinitionBase(SourceFragmentDefinition table, EntityDefinition underlyingEntity, SelfRelationTarget left, SelfRelationTarget right, bool disabled)
         {
             _table = table;
             _underlyingEntity = underlyingEntity;

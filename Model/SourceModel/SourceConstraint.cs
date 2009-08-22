@@ -1,6 +1,8 @@
-﻿namespace WXML.Model.Descriptors
+﻿using System.Collections.Generic;
+
+namespace WXML.Model.Descriptors
 {
-    public class SourceFieldConstraint
+    public class SourceConstraint
     {
         private readonly string _constraintType;
         private readonly string _constraintName;
@@ -12,7 +14,7 @@
         public const string CascadeAction = "CASCADE";
         public const string NoAction = "NO ACTION";
 
-        public SourceFieldConstraint(string constraintType, string constraintName)
+        public SourceConstraint(string constraintType, string constraintName)
         {
             _constraintType = constraintType;
             _constraintName = constraintName;
@@ -28,5 +30,6 @@
             get { return _constraintName; }
         }
 
+        public List<SourceFieldDefinition> SourceFields { get; set; }
     }
 }

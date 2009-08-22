@@ -216,7 +216,7 @@ namespace WXML.Model
 
                     XmlElement leftElement = CreateElement("Left");
                     leftElement.SetAttribute("entity", relation.Left.Entity.Identifier);
-                    leftElement.SetAttribute("fieldName", relation.Left.FieldName);
+                    leftElement.SetAttribute("fieldName", string.Join(" ", relation.Left.FieldName));
                     leftElement.SetAttribute("cascadeDelete", XmlConvert.ToString(relation.Left.CascadeDelete));
 					
                     if (!string.IsNullOrEmpty(relation.Left.AccessorName))
@@ -230,7 +230,7 @@ namespace WXML.Model
 
                     XmlElement rightElement = CreateElement("Right");
                     rightElement.SetAttribute("entity", relation.Right.Entity.Identifier);
-                    rightElement.SetAttribute("fieldName", relation.Right.FieldName);
+                    rightElement.SetAttribute("fieldName", string.Join(" ", relation.Right.FieldName));
                     rightElement.SetAttribute("cascadeDelete", XmlConvert.ToString(relation.Right.CascadeDelete));
 					
                     if (!string.IsNullOrEmpty(relation.Right.AccessorName))
@@ -266,7 +266,7 @@ namespace WXML.Model
 
                     XmlElement directElement = CreateElement("Direct");
 
-                    directElement.SetAttribute("fieldName", relation.Direct.FieldName);
+                    directElement.SetAttribute("fieldName", string.Join(" ", relation.Direct.FieldName));
                     directElement.SetAttribute("cascadeDelete", XmlConvert.ToString(relation.Direct.CascadeDelete));
 					
                     if (!string.IsNullOrEmpty(relation.Direct.AccessorName))
@@ -279,7 +279,7 @@ namespace WXML.Model
                         directElement.SetAttribute("accessedEntityType", relation.Direct.AccessedEntityType.Identifier);
 
                     XmlElement reverseElement = CreateElement("Reverse");
-                    reverseElement.SetAttribute("fieldName", relation.Reverse.FieldName);
+                    reverseElement.SetAttribute("fieldName", string.Join(" ", relation.Reverse.FieldName));
                     reverseElement.SetAttribute("cascadeDelete", XmlConvert.ToString(relation.Reverse.CascadeDelete));
 					
                     if (!string.IsNullOrEmpty(relation.Reverse.AccessorName))
@@ -373,19 +373,11 @@ namespace WXML.Model
                 FillEntityProperties(properties, propertiesNode);
                 entityElement.AppendChild(propertiesNode);
 
-                List<PropertyGroup> groups = new List<PropertyGroup>();
-                properties = entity.SelfProperties.Where(p => p.Group != null);
-
-                foreach (var property in properties)
-                {
-                    if (!groups.Contains(property.Group))
-                        groups.Add(property.Group);
-                }
-
-                foreach (var propertyGroup in groups)
+                foreach (var propertyGroup in (from p in entity.SelfProperties
+                    where p.Group != null 
+                    select p.Group).Distinct())
                 {
                     PropertyGroup propertyGroup1 = propertyGroup;
-                    var props = properties.Where(p => p.Group == propertyGroup1);
 
                     XmlElement groupNode = CreateElement("Group");
                     groupNode.SetAttribute("name", propertyGroup.Name);
@@ -393,8 +385,9 @@ namespace WXML.Model
                     if (!propertyGroup.Hide)
                         groupNode.SetAttribute("hide", XmlConvert.ToString(propertyGroup.Hide));
 
-                    FillEntityProperties(props, groupNode);
+                    FillEntityProperties(properties.Where(p => p.Group == propertyGroup1), groupNode);
                 }
+
                 if (entity.EntityRelations.Count > 0)
                 {
                     XmlNode relationsNode = CreateElement("Relations");
@@ -447,8 +440,8 @@ namespace WXML.Model
             {
                 XmlElement tableElement = CreateElement("SourceFragment");
                 tableElement.SetAttribute("ref", table.Identifier);
-                if (table.Action != MergeAction.Merge)
-                    tableElement.SetAttribute("action", table.Action.ToString());
+                //if (table.Action != MergeAction.Merge)
+                //    tableElement.SetAttribute("action", table.Action.ToString());
 
                 if (table.AnchorTable != null)
                 {
@@ -459,8 +452,8 @@ namespace WXML.Model
                         XmlElement join = CreateElement("join");
                         join.SetAttribute("refColumn", c.LeftColumn);
                         join.SetAttribute("anchorColumn", c.RightColumn);
-                        if (c.Action != MergeAction.Merge)
-                            join.SetAttribute("action", c.Action.ToString());
+                        //if (c.Action != MergeAction.Merge)
+                        //    join.SetAttribute("action", c.Action.ToString());
 
                         tableElement.AppendChild(join);
                     }
@@ -471,47 +464,114 @@ namespace WXML.Model
 
         private void FillEntityProperties(IEnumerable<PropertyDefinition> properties, XmlNode propertiesNode)
         {
-            foreach (PropertyDefinition property in properties)
+            foreach (PropertyDefinition rp in properties)
             {
-                XmlElement propertyElement = CreateElement("Property");
-                propertyElement.SetAttribute("propertyName", property.Name);
-                if(property.Attributes != Field2DbRelations.None /*null && property.Attributes.Length > 0*/)
+                XmlElement propertyElement = null;
+                if (rp is ScalarPropertyDefinition)
+                    propertyElement = CreateElement("Property");
+                else if (rp is EntityPropertyDefinition)
+                    propertyElement = CreateElement("EntityProperty");
+                else
+                    throw new NotSupportedException(rp.GetType().ToString());
+
+                propertyElement.SetAttribute("propertyName", rp.Name);
+                if(rp.Attributes != Field2DbRelations.None)
                 {
-                    propertyElement.SetAttribute("attributes", Enum.GetName(typeof(Field2DbRelations), property.Attributes) /*string.Join(" ", property.Attributes)*/);
+                    propertyElement.SetAttribute("attributes", 
+                        Enum.GetName(typeof(Field2DbRelations), rp.Attributes));
                 }
-                if (property.SourceFragment != null)
-                    propertyElement.SetAttribute("table", property.SourceFragment.Identifier);
-                propertyElement.SetAttribute("fieldName", property.FieldName);
-                if (property.PropertyType != null)
-                    propertyElement.SetAttribute("typeRef", property.PropertyType.Identifier);
-                if (!string.IsNullOrEmpty(property.Description))
-                    propertyElement.SetAttribute("description", property.Description);
-                if (property.FieldAccessLevel != AccessLevel.Private)
-                    propertyElement.SetAttribute("classfieldAccessLevel", property.FieldAccessLevel.ToString());
-                if (property.PropertyAccessLevel != AccessLevel.Public)
-                    propertyElement.SetAttribute("propertyAccessLevel", property.PropertyAccessLevel.ToString());
-                if (property.PropertyAlias != property.Name)
-                    propertyElement.SetAttribute("propertyAlias", property.PropertyAlias);
-                if (property.Disabled)
+
+                if (rp.SourceFragment != null)
+                    propertyElement.SetAttribute("table", rp.SourceFragment.Identifier);
+
+                if (rp.PropertyType != null)
+                    propertyElement.SetAttribute("typeRef", rp.PropertyType.Identifier);
+                
+                if (!string.IsNullOrEmpty(rp.Description))
+                    propertyElement.SetAttribute("description", rp.Description);
+                
+                if (rp.FieldAccessLevel != AccessLevel.Private)
+                    propertyElement.SetAttribute("classfieldAccessLevel", rp.FieldAccessLevel.ToString());
+                
+                if (rp.PropertyAccessLevel != AccessLevel.Public)
+                    propertyElement.SetAttribute("propertyAccessLevel", rp.PropertyAccessLevel.ToString());
+                
+                if (rp.PropertyAlias != rp.Name)
+                    propertyElement.SetAttribute("propertyAlias", rp.PropertyAlias);
+                
+                if (rp.Disabled)
                     propertyElement.SetAttribute("disabled", XmlConvert.ToString(true));
-                if (property.Obsolete != ObsoleteType.None)
-                    propertyElement.SetAttribute("obsolete", property.Obsolete.ToString());
-                if(!string.IsNullOrEmpty(property.ObsoleteDescripton))
-                    propertyElement.SetAttribute("obsoleteDescription", property.ObsoleteDescripton);
-                if (property.EnablePropertyChanged)
-                    propertyElement.SetAttribute("enablePropertyChanged", XmlConvert.ToString(property.EnablePropertyChanged));
-                if (!string.IsNullOrEmpty(property.DbTypeName))
-                    propertyElement.SetAttribute("dbTypeName", property.DbTypeName);
-                if (property.DbTypeSize.HasValue)
-                    propertyElement.SetAttribute("dbTypeSize", XmlConvert.ToString(property.DbTypeSize.Value));
-                if (property.DbTypeNullable.HasValue)
-                    propertyElement.SetAttribute("dbTypeNullable", XmlConvert.ToString(property.DbTypeNullable.Value));
-				if (!string.IsNullOrEmpty(property.DefferedLoadGroup))
-					propertyElement.SetAttribute("defferedLoadGroup", property.DefferedLoadGroup);
-                if (!string.IsNullOrEmpty(property.FieldAlias))
-                    propertyElement.SetAttribute("fieldAlias", property.FieldAlias);
-                if (property.Action != MergeAction.Merge)
-                    propertyElement.SetAttribute("action", property.Action.ToString());
+                
+                if (rp.Obsolete != ObsoleteType.None)
+                    propertyElement.SetAttribute("obsolete", rp.Obsolete.ToString());
+                
+                if(!string.IsNullOrEmpty(rp.ObsoleteDescripton))
+                    propertyElement.SetAttribute("obsoleteDescription", rp.ObsoleteDescripton);
+                
+                if (rp.EnablePropertyChanged)
+                    propertyElement.SetAttribute("enablePropertyChanged", XmlConvert.ToString(rp.EnablePropertyChanged));
+
+                if (rp.Action != MergeAction.Merge)
+                    propertyElement.SetAttribute("action", rp.Action.ToString());
+
+                if (!string.IsNullOrEmpty(rp.DefferedLoadGroup))
+                    propertyElement.SetAttribute("defferedLoadGroup", rp.DefferedLoadGroup);
+
+                if (rp is ScalarPropertyDefinition)
+                {
+                    ScalarPropertyDefinition property = rp as ScalarPropertyDefinition;
+
+                    if (!string.IsNullOrEmpty(property.SourceFieldAlias))
+                        propertyElement.SetAttribute("fieldAlias", property.SourceFieldAlias);
+
+                    if (property.SourceField != null)
+                    {
+                        propertyElement.SetAttribute("fieldName", property.SourceFieldExpression);
+
+                        if (!string.IsNullOrEmpty(property.SourceType))
+                            propertyElement.SetAttribute("dbTypeName", property.SourceType);
+
+                        if (property.SourceTypeSize.HasValue)
+                            propertyElement.SetAttribute("dbTypeSize", XmlConvert.ToString(property.SourceTypeSize.Value));
+
+                        if (!property.IsNullable)
+                            propertyElement.SetAttribute("dbTypeNullable", XmlConvert.ToString(property.IsNullable));
+
+                        if (!string.IsNullOrEmpty(property.SourceField.DefaultValue))
+                            propertyElement.SetAttribute("sourceFieldDefault", property.SourceField.DefaultValue);
+                    }
+
+                }
+                else
+                {
+                    EntityPropertyDefinition property = rp as EntityPropertyDefinition;
+                    foreach (EntityPropertyDefinition.SourceField field in property.SourceFields)
+                    {
+                        XmlElement fields = CreateElement("fields");
+
+                        fields.SetAttribute("relatedProperty", field.PropertyAlias);
+
+                        if (!string.IsNullOrEmpty(field.SourceFieldExpression))
+                            fields.SetAttribute("fieldName", field.SourceFieldExpression);
+
+                        if (!string.IsNullOrEmpty(field.SourceType))
+                            fields.SetAttribute("dbTypeName", field.SourceType);
+
+                        if (field.SourceTypeSize.HasValue)
+                            fields.SetAttribute("dbTypeSize", XmlConvert.ToString(field.SourceTypeSize.Value));
+
+                        if (!field.IsNullable)
+                            fields.SetAttribute("dbTypeNullable", XmlConvert.ToString(field.IsNullable));
+
+                        if (!string.IsNullOrEmpty(field.Alias))
+                            fields.SetAttribute("fieldAlias", field.Alias);
+
+                        if (!string.IsNullOrEmpty(field.DefaultValue))
+                            fields.SetAttribute("sourceFieldDefault", field.DefaultValue);
+
+                        propertyElement.AppendChild(fields);
+                    }
+                }
 
                 propertiesNode.AppendChild(propertyElement);
             }

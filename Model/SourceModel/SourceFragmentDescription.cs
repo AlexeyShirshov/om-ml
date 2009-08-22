@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace WXML.Model.Descriptors
 {
@@ -9,7 +8,7 @@ namespace WXML.Model.Descriptors
 		public string Identifier { get; private set; }
 		public string Name { get; set; }
 		public string Selector { get; set; }
-        //public MergeAction Action { get; set; }
+        internal readonly List<SourceConstraint> _constraints = new List<SourceConstraint>();
 
 		public SourceFragmentDefinition(string id, string name) : this(id, name, null)
 		{
@@ -26,5 +25,11 @@ namespace WXML.Model.Descriptors
 			Name = name;
 			Selector = selector;
 		}
+
+        public IEnumerable<SourceConstraint> Constraints
+        {
+            get { return _constraints; }
+        }
+
 	}
 }

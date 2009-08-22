@@ -570,9 +570,11 @@ namespace WXML.Model.Descriptors
         //    }
         //}
 
-        public IEnumerable<PropertyDefinition> GetPkProperties()
+        public IEnumerable<ScalarPropertyDefinition> GetPkProperties()
         {
-            return GetProperties().Where(p => !p.Disabled && p.HasAttribute(Field2DbRelations.PK));
+            return GetProperties()
+                .Where(p => !p.Disabled && p.HasAttribute(Field2DbRelations.PK))
+                .Cast<ScalarPropertyDefinition>();
         }
 
         public bool HasDefferedLoadableProperties
@@ -720,13 +722,13 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public void MarkAsDeleted(SourceFragmentRefDefinition sf)
-        {
-            int index = _sourceFragments.IndexOf(item => item.Identifier == sf.Identifier);
-            if (index >= 0)
-                _sourceFragments[index].Action = MergeAction.Delete;
-            else
-                throw new ArgumentException(string.Format("SourceFragment {0} not found among SelfSourceFragments. Probably InheritsBase is true. Consider remove table inheritance and copy base tables to entity.", sf.Identifier));
-        }
+        //public void MarkAsDeleted(SourceFragmentRefDefinition sf)
+        //{
+        //    int index = _sourceFragments.IndexOf(item => item.Identifier == sf.Identifier);
+        //    if (index >= 0)
+        //        _sourceFragments[index].Action = MergeAction.Delete;
+        //    else
+        //        throw new ArgumentException(string.Format("SourceFragment {0} not found among SelfSourceFragments. Probably InheritsBase is true. Consider remove table inheritance and copy base tables to entity.", sf.Identifier));
+        //}
     }
 }

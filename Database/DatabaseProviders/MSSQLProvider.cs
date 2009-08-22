@@ -15,7 +15,7 @@ namespace WXML.Model.Database.Providers
         {
         }
 
-        public override SourceView GetDatabase(string schemas, string namelike)
+        public override SourceView GetDatabase(string schemas, string namelike, bool escapeTableNames, bool escapeColumnNames)
         {
             SourceView database = new SourceView();
             //List<Pair<string>> defferedCols = new List<Pair<string>>();
@@ -63,14 +63,14 @@ namespace WXML.Model.Database.Providers
                     {
                         while (reader.Read())
                         {
-                            SourceFieldDefinition c = Create(database, reader);
+                            SourceFieldDefinition c = Create(database, reader, escapeTableNames, escapeColumnNames);
                             database._columns.Add(c);
                         }
                     }
                     RaiseOnEndLoadDatabase();
                 }
 
-                FillReferencedColumns(schemas, namelike, database, conn);
+                FillReferencedColumns(schemas, namelike, escapeTableNames, escapeColumnNames, database, conn);
             }
 
             return database;
@@ -159,50 +159,65 @@ namespace WXML.Model.Database.Providers
             return "columnproperty(object_id(c.table_schema + '.' + c.table_name),c.column_name,'isIdentity') [identity]";
         }
 
-        public static SourceFieldDefinition Create(SourceView db, DbDataReader reader)
+        public static SourceFieldDefinition Create(SourceView db, DbDataReader reader, bool escapeTableNames, bool escapeColumnNames)
         {
             SourceFieldDefinition c = new SourceFieldDefinition();
 
-            c._tbl = db.GetOrCreateTable(
-                reader.GetString(reader.GetOrdinal("table_schema")),
-                reader.GetString(reader.GetOrdinal("table_name"))
-            );
+            string table = reader.GetString(reader.GetOrdinal("table_name"));
+            string schema = reader.GetString(reader.GetOrdinal("table_schema"));
+
+            if (escapeTableNames)
+            {
+                if (!(table.StartsWith("[") || table.EndsWith("]")))
+                    table = "[" + table + "]";
+
+                if (!(schema.StartsWith("[") || schema.EndsWith("]")))
+                    schema = "[" + schema + "]";
+            }
+
+            c.SourceFragment = db.GetOrCreateTable(schema, table);
+            
             c._column = reader.GetString(reader.GetOrdinal("column_name"));
+            if (escapeColumnNames && !c._column.StartsWith("[") && !c._column.EndsWith("]"))
+                c._column = "[" + c._column + "]";
 
             string yn = reader.GetString(reader.GetOrdinal("is_nullable"));
             if (yn == "YES")
             {
-                c._isNullable = true;
+                c.IsNullable = true;
             }
-            c._type = reader.GetString(reader.GetOrdinal("data_type"));
+            c.SourceType = reader.GetString(reader.GetOrdinal("data_type"));
 
             int ct = reader.GetOrdinal("constraint_type");
             int cn = reader.GetOrdinal("constraint_name");
 
             if (!reader.IsDBNull(ct))
             {
-                SourceFieldConstraint cns = db.GetConstraints(c.SourceFragment)
+                SourceConstraint cns = c.SourceFragment.Constraints
                     .SingleOrDefault(item => item.ConstraintName == reader.GetString(ct));
 
                 if (cns == null)
-                    cns = new SourceFieldConstraint(reader.GetString(ct), reader.GetString(cn));
+                    cns = new SourceConstraint(reader.GetString(ct), reader.GetString(cn));
 
-                c._constraints.Add(cns);
+                c.SourceFragment._constraints.Add(cns);
+
+                cns.SourceFields.Add(c);
             }
 
-            c._identity = Convert.ToBoolean(reader.GetInt32(reader.GetOrdinal("identity")));
+            c.IsAutoIncrement = Convert.ToBoolean(reader.GetInt32(reader.GetOrdinal("identity")));
 
             c._defaultValue = reader.GetString(reader.GetOrdinal("column_default"));
 
             int sc = reader.GetOrdinal("character_maximum_length");
             if (!reader.IsDBNull(sc))
-                c._sz = reader.GetInt32(sc);
+                c.SourceTypeSize = reader.GetInt32(sc);
 
             db._columns.Add(c);
             return c;
         }
 
-        public void FillReferencedColumns(string schemas, string namelike, SourceView sv, DbConnection conn)
+        public void FillReferencedColumns(string schemas, string namelike, 
+            bool escapeTableNames, bool escapeColumnNames, SourceView sv, DbConnection conn)
         {
             using (DbCommand cmd = conn.CreateCommand())
             {
@@ -226,27 +241,42 @@ namespace WXML.Model.Database.Providers
                 {
                     while (reader.Read())
                     {
+                        string pkSchema = reader.GetString(reader.GetOrdinal("TABLE_SCHEMA"));
+                        string pkName = reader.GetString(reader.GetOrdinal("TABLE_NAME"));
+
+                        if (escapeTableNames)
+                        {
+                            if (!(pkName.StartsWith("[") || pkName.EndsWith("]")))
+                                pkName = "[" + pkName + "]";
+
+                            if (!(pkSchema.StartsWith("[") || pkSchema.EndsWith("]")))
+                                pkSchema = "[" + pkSchema + "]";
+                        }
+
                         SourceFragmentDefinition pkTable = sv.GetTables()
-                            .SingleOrDefault(item => 
-                                item.Selector == reader.GetString(reader.GetOrdinal("TABLE_SCHEMA")) && 
-                                item.Name == reader.GetString(reader.GetOrdinal("TABLE_NAME")));
+                            .SingleOrDefault(item => item.Selector == pkSchema && item.Name == pkName);
 
                         if (pkTable == null)
                             throw new InvalidOperationException(string.Format("Table {0}.{1} not found",
-                                reader.GetString(reader.GetOrdinal("TABLE_SCHEMA")),
-                                reader.GetString(reader.GetOrdinal("TABLE_NAME"))
-                            ));
+                                pkSchema, pkName ));
+
+                        string fkSchema = reader.GetString(reader.GetOrdinal("fkSchema"));
+                        string fkName = reader.GetString(reader.GetOrdinal("fkTable"));
+                        if (escapeTableNames)
+                        {
+                            if (!(fkName.StartsWith("[") || fkName.EndsWith("]")))
+                                fkName = "[" + fkName + "]";
+
+                            if (!(fkSchema.StartsWith("[") || fkSchema.EndsWith("]")))
+                                fkSchema = "[" + fkSchema + "]";
+                        }
 
                         SourceFragmentDefinition fkTable = sv.GetTables()
-                            .SingleOrDefault(item => 
-                                item.Selector == reader.GetString(reader.GetOrdinal("fkSchema")) && 
-                                item.Name == reader.GetString(reader.GetOrdinal("fkTable")));
+                            .SingleOrDefault(item => item.Selector == fkSchema && item.Name == fkName);
 
                         if (fkTable == null)
                             throw new InvalidOperationException(string.Format("Table {0}.{1} not found",
-                                reader.GetString(reader.GetOrdinal("fkSchema")),
-                                reader.GetString(reader.GetOrdinal("fkTable"))
-                            ));
+                                fkSchema,fkName ));
 
                         //SourceFieldDefinition pkCol = sv.GetColumns(pkTable)
                         //    .Single(item => item.ColumnName == reader.GetString(reader.GetOrdinal("COLUMN_NAME")));
@@ -254,12 +284,20 @@ namespace WXML.Model.Database.Providers
                         //SourceFieldDefinition fkCol = sv.GetColumns(fkTable)
                         //    .Single(item => item.ColumnName == reader.GetString(reader.GetOrdinal("fkColumn")));
 
+                        string pkCol = reader.GetString(reader.GetOrdinal("COLUMN_NAME"));
+                        if (escapeColumnNames && !pkCol.StartsWith("[") && !pkCol.EndsWith("]"))
+                            pkCol = "[" + pkCol + "]";
+
+                        string fkCol = reader.GetString(reader.GetOrdinal("fkColumn"));
+                        if (escapeColumnNames && !fkCol.StartsWith("[") && !fkCol.EndsWith("]"))
+                            fkCol = "[" + fkCol + "]";
+
                         sv._references.Add(new SourceReferences(
                             reader.GetString(reader.GetOrdinal("DELETE_RULE")),
-                            sv.GetConstraints(pkTable).Single(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"))),
-                            sv.GetConstraints(fkTable).Single(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("fkConstraint"))),
-                            sv.GetColumns(pkTable).Single(item => item.ColumnName == reader.GetString(reader.GetOrdinal("COLUMN_NAME"))),
-                            sv.GetColumns(fkTable).Single(item => item.ColumnName == reader.GetString(reader.GetOrdinal("fkColumn")))
+                            pkTable.Constraints.Single(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"))),
+                            fkTable.Constraints.Single(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("fkConstraint"))),
+                            sv.GetColumns(pkTable).Single(item => item.SourceFieldExpression == pkCol),
+                            sv.GetColumns(fkTable).Single(item => item.SourceFieldExpression == fkCol)
                         ));
                     }
                 }
