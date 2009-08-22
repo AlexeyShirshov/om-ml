@@ -110,7 +110,7 @@ namespace LinqCodeGenerator
             cls.AddField(typeof(System.ComponentModel.PropertyChangingEventArgs), MemberAttributes.Private | MemberAttributes.Static,
                 "emptyChangingEventArgs", () => new System.ComponentModel.PropertyChangingEventArgs(string.Empty));
 
-            foreach (PropertyDefinition p in e.GetActiveProperties())
+            foreach (ScalarPropertyDefinition p in e.GetActiveProperties())
             {
                 cls.AddField(p.PropertyType.ToCodeType(_settings),
                     WXMLCodeDomGenerator.GetMemberAttribute(p.FieldAccessLevel), 
@@ -124,7 +124,7 @@ namespace LinqCodeGenerator
             cls.AddCtor(Emit.stmt(() => CodeDom.Call(null, "OnCreated")))
                 .Base();
 
-            foreach (PropertyDefinition p in e.GetActiveProperties())
+            foreach (ScalarPropertyDefinition p in e.GetActiveProperties())
             {
                 var fieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name);
 
@@ -177,19 +177,19 @@ namespace LinqCodeGenerator
             );
         }
 
-        private static CodeAttributeDeclaration AddPropertyAttribute(PropertyDefinition p, string fieldName)
+        private static CodeAttributeDeclaration AddPropertyAttribute(ScalarPropertyDefinition p, string fieldName)
         {
             var attr = Define.Attribute(typeof(System.Data.Linq.Mapping.ColumnAttribute));
             string nullable = " NULL";
-            if (p.DbTypeNullable.HasValue && p.DbTypeNullable.Value)
+            if (!p.IsNullable)
                 nullable = " NOT NULL";
 
             if (p.HasAttribute(Field2DbRelations.PrimaryKey))
                 nullable += " IDENTITY";
 
             string size = string.Empty;
-            if (p.DbTypeSize.HasValue)
-                size = "(" + p.DbTypeSize.Value.ToString() + ")";
+            if (p.SourceTypeSize.HasValue)
+                size = "(" + p.SourceTypeSize.Value.ToString() + ")";
 
             bool insertDefault = false;
             if (p.HasAttribute(Field2DbRelations.InsertDefault))
@@ -206,11 +206,11 @@ namespace LinqCodeGenerator
 
             if (p.HasAttribute(Field2DbRelations.PK))
             {
-                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.FieldName, DbType = p.DbTypeName + size + nullable, IsPrimaryKey = true, AutoSync = async, IsDbGenerated = insertDefault}, attr);
+                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.SourceFieldExpression, DbType = p.SourceType + size + nullable, IsPrimaryKey = true, AutoSync = async, IsDbGenerated = insertDefault}, attr);
             }
             else
             {
-                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.FieldName, DbType = p.DbTypeName + size + nullable, AutoSync = async, IsDbGenerated = insertDefault }, attr);
+                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.SourceFieldExpression, DbType = p.SourceType + size + nullable, AutoSync = async, IsDbGenerated = insertDefault }, attr);
             }
 
             return attr;
@@ -221,7 +221,7 @@ namespace LinqCodeGenerator
             cls.AddMethod(MemberAttributes.Private, () => "OnLoaded");
             cls.AddMethod(MemberAttributes.Private, (System.Data.Linq.ChangeAction action) => "OnValidate");
             cls.AddMethod(MemberAttributes.Private, () => "OnCreated");
-            foreach (PropertyDefinition p in e.GetActiveProperties())
+            foreach (ScalarPropertyDefinition p in e.GetActiveProperties())
             {
                 cls.AddMethod(MemberAttributes.Private, (DynType value) => "On" + p.Name + "Changing" + value.SetType(p.PropertyType.ToCodeType(Settings)));
                 cls.AddMethod(MemberAttributes.Private, () => "On" + p.Name + "Changed");
