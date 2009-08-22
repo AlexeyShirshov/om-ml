@@ -38,7 +38,7 @@ namespace WXML.CodeDom
             return new CodeTypeOfExpression(GetEntityClassTypeReference(settings, entityDesc));
         }
 
-        public static CodeExpression GetPropertyReferenceExpression(WXMLCodeDomGeneratorSettings settings, PropertyDefinition propertyDesc)
+        public static CodeExpression GetPropertyReferenceExpression(WXMLCodeDomGeneratorSettings settings, ScalarPropertyDefinition propertyDesc)
         {
             return new CodePropertyReferenceExpression(GetEntityClassReferenceExpression(settings, propertyDesc.Entity), propertyDesc.Name);
         }

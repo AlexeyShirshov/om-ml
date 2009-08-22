@@ -72,9 +72,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeDom\CodeCompileFileUnit.cs" />
+    <Compile Include="Model\Descriptors\EntityProperty.cs" />
     <Compile Include="Model\SourceModel\SourceReferences.cs" />
     <Compile Include="Model\SourceModel\SourceView.cs" />
-    <Compile Include="Model\SourceModel\SourceFieldConstraint.cs" />
+    <Compile Include="Model\SourceModel\SourceConstraint.cs" />
     <Compile Include="Database\DatabaseProviders\DatabaseProvider.cs" />
     <Compile Include="Database\DatabaseProviders\MSSQLProvider.cs" />
     <Compile Include="Model\Descriptors\Extension.cs" />

@@ -6,13 +6,13 @@ namespace WXML.Model.Descriptors
         //private string _fieldName;
         //private bool _cascadeDelete;
 
-    	public LinkTarget(EntityDefinition entity, string fieldName, bool cascadeDelete)
+    	public LinkTarget(EntityDefinition entity, string[] fieldName, bool cascadeDelete)
     		: base(fieldName, cascadeDelete)
     	{
 			_entity = entity;
     	}
 
-    	public LinkTarget(EntityDefinition entity, string fieldName, bool cascadeDelete, string accessorName)
+    	public LinkTarget(EntityDefinition entity, string[] fieldName, bool cascadeDelete, string accessorName)
             : base(fieldName, cascadeDelete, accessorName)
         {
             _entity = entity;
@@ -63,7 +63,7 @@ namespace WXML.Model.Descriptors
 
         public override string ToString()
         {
-            return FieldName + "$" + Entity.Name;
+            return string.Join("-", FieldName) + "$" + Entity.Name;
         }
     }
 }

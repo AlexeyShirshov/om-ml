@@ -10,7 +10,7 @@ namespace WXMLToWorm.CodeDomExtensions
 {
 	public class CodeEntityPropertyField : CodeMemberField
 	{
-		public CodeEntityPropertyField(WXMLCodeDomGeneratorSettings settings, PropertyDefinition property)
+		public CodeEntityPropertyField(WXMLCodeDomGeneratorSettings settings, ScalarPropertyDefinition property)
 		{
             Type = property.PropertyType.ToCodeType(settings);
 			Name = new WXMLCodeDomGeneratorNameHelper(settings).GetPrivateMemberName(property.Name);

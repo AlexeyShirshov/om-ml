@@ -1,12 +1,8 @@
 ﻿using System;
 using System.CodeDom;
 using System.CodeDom.Compiler;
-using System.IO;
-using System.Text;
 using System.Collections.Generic;
-using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Worm.CodeGen.Core;
 using WXML.Model;
 using WXMLToWorm;
 using WXML.CodeDom;

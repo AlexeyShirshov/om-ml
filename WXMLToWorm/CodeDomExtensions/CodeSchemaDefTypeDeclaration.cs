@@ -416,13 +416,13 @@ namespace WXMLToWorm.CodeDomExtensions
                 );
         }
 
-        private CodeObjectCreateExpression GetMapField2ColumObjectCreationExpression(PropertyDefinition prop)
+        private CodeObjectCreateExpression GetMapField2ColumObjectCreationExpression(ScalarPropertyDefinition prop)
         {
             CodeObjectCreateExpression expression = new CodeObjectCreateExpression(
                 new CodeTypeReference(
                     typeof(MapField2Column)));
             expression.Parameters.Add(new CodePrimitiveExpression(prop.PropertyAlias));
-            expression.Parameters.Add(new CodePrimitiveExpression(prop.FieldName));
+            expression.Parameters.Add(new CodePrimitiveExpression(prop.SourceFieldExpression));
             //(SourceFragment)this.GetTables().GetValue((int)(XMedia.Framework.Media.Objects.ArtistBase.ArtistBaseSchemaDef.TablesLink.tblArtists)))
 
             if (m_entityClass.Entity.GetSourceFragments().Count() > 1)
@@ -460,13 +460,13 @@ namespace WXMLToWorm.CodeDomExtensions
             //                                         Worm.Entities.Meta.Field2DbRelations.None.ToString()));
             expression.Parameters.Add(GetPropAttributesEnumValues(prop.Attributes));
 
-            if (!string.IsNullOrEmpty(prop.DbTypeName))
+            if (!string.IsNullOrEmpty(prop.SourceType))
             {
-                expression.Parameters.Add(new CodePrimitiveExpression(prop.DbTypeName));
-                if (prop.DbTypeSize.HasValue)
-                    expression.Parameters.Add(new CodePrimitiveExpression(prop.DbTypeSize.Value));
-                if (prop.DbTypeNullable.HasValue)
-                    expression.Parameters.Add(new CodePrimitiveExpression(prop.DbTypeNullable.Value));
+                expression.Parameters.Add(new CodePrimitiveExpression(prop.SourceType));
+                if (prop.SourceTypeSize.HasValue)
+                    expression.Parameters.Add(new CodePrimitiveExpression(prop.SourceTypeSize.Value));
+                if (!prop.IsNullable)
+                    expression.Parameters.Add(new CodePrimitiveExpression(prop.IsNullable));
             }
             return expression;
         }

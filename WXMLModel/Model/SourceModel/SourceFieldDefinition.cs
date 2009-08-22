@@ -1,30 +1,37 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace WXML.Model.Descriptors
 {
     public class SourceFieldDefinition
     {
-        protected internal SourceFragmentDefinition _tbl;
+        private SourceFragmentDefinition _tbl;
         protected internal string _column;
 
-        protected internal bool _isNullable;
-        protected internal string _type;
-        protected internal bool _identity;
-        protected internal int? _sz;
+        private bool _isNotNullable;
+        private string _type;
+        private bool _identity;
+        private int? _sz;
         protected internal string _defaultValue;
-        internal readonly List<SourceFieldConstraint> _constraints = new List<SourceFieldConstraint>();
 
         protected internal SourceFieldDefinition()
         {
         }
 
-        public SourceFieldDefinition(SourceFragmentDefinition sf, string column,
+        public SourceFieldDefinition(SourceFragmentDefinition sf, string column)
+            :this(sf, column, null, true, null, false, null)
+        {
+            
+        }
+
+        public SourceFieldDefinition(SourceFragmentDefinition sf, string column, int? sourceTypeSize,
             bool isNullable, string type, bool identity, string defaultValue)
         {
             _tbl = sf;
             _column = column;
-
-            _isNullable = isNullable;
+            _sz = sourceTypeSize;
+            _isNotNullable = !isNullable;
             _type = type;
             _identity = identity;
             _defaultValue = defaultValue;
@@ -56,48 +63,50 @@ namespace WXML.Model.Descriptors
         public SourceFragmentDefinition SourceFragment
         {
             get { return _tbl; }
+            set { _tbl = value; }
         }
 
-        public string ColumnName
+        public string SourceFieldExpression
         {
             get { return _column; }
+            set { _column = value; }
         }
 
         public bool IsAutoIncrement
         {
             get { return _identity; }
+            set { _identity = value; }
         }
 
         public bool IsNullable
         {
-            get { return _isNullable; }
+            get { return !_isNotNullable; }
+            set { _isNotNullable = !value; }
         }
 
-        public int? DbSize
+        public int? SourceTypeSize
         {
             get { return _sz; }
+            set { _sz = value; }
         }
 
-        public string DbType
+        public string SourceType
         {
             get { return _type; }
+            set { _type = value; }
         }
 
         public string DefaultValue
         {
             get { return _defaultValue; }
-        }
-
-        public IEnumerable<SourceFieldConstraint> Constraints
-        {
-            get { return _constraints; }
+            set { _defaultValue = value; }
         }
 
         public bool IsPK
         {
             get
             {
-                return _constraints.Find((c) => c.ConstraintType == SourceFieldConstraint.PrimaryKeyConstraintTypeName) != null;
+                return Constraints.Any(c => c.ConstraintType == SourceConstraint.PrimaryKeyConstraintTypeName);
             }
         }
 
@@ -105,15 +114,17 @@ namespace WXML.Model.Descriptors
         {
             get
             {
-                return _constraints.Find((c) => c.ConstraintType == SourceFieldConstraint.ForeignKeyConstraintTypeName) != null;
+                return Constraints.Any(c => c.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName);
             }
         }
 
-        public string FKName
+        public IEnumerable<SourceConstraint> Constraints
         {
             get
             {
-                return _constraints.Find((c) => c.ConstraintType == SourceFieldConstraint.ForeignKeyConstraintTypeName).ConstraintName;
+                return SourceFragment.Constraints.Where(c =>
+                    c.SourceFields.Contains(this)
+                );
             }
         }
 

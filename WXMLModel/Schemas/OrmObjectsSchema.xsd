@@ -188,14 +188,14 @@
         <xs:complexType>
           <xs:attribute name="refColumn" type="xs:string" use="required" />
           <xs:attribute name="anchorColumn" type="xs:string" use="required" />
-          <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />
+          <!--<xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />-->
         </xs:complexType>
       </xs:element>
     </xs:sequence>
     <xs:attribute name="ref" type="xs:Name" use="required" />
     <xs:attribute name="anchorTableRef" type="xs:Name" />
     <xs:attribute name="type" type="JoinTypeEnum_t" use="optional" default="inner" />
-    <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />
+    <!--<xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />-->
   </xs:complexType>
   <xs:complexType name="EntitiesCollection_t">
     <xs:annotation>
@@ -259,9 +259,14 @@
         <xs:documentation>Тип поля БД является nullable</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="sourceFieldDefault" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>Значение поля по умолчанию</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="fieldName" type="xs:string" use="optional">
       <xs:annotation>
-        <xs:documentation>Наименование колонки из БД</xs:documentation>
+        <xs:documentation>Наименование колонки из БД или выражение</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="table" type="xs:Name" use="optional">
@@ -315,6 +320,122 @@
     </xs:attribute>
     <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />
   </xs:complexType>
+  <xs:complexType name="EntityProperty_t">
+    <xs:annotation>
+      <xs:documentation>Свойство сущности</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="fields" minOccurs="1" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="relatedProperty" type="Name_t" use="required">
+            <xs:annotation>
+              <xs:documentation>Имя свойства</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          <xs:attribute name="dbTypeName" type="xs:Name" use="optional">
+            <xs:annotation>
+              <xs:documentation>Имя типа поля БД</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          <xs:attribute name="dbTypeSize" type="xs:integer" use="optional">
+            <xs:annotation>
+              <xs:documentation>Размер типа поля БД</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          <xs:attribute name="dbTypeNullable" type="xs:boolean" use="optional">
+            <xs:annotation>
+              <xs:documentation>Тип поля БД является nullable</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          <xs:attribute name="sourceFieldDefault" type="xs:string" use="optional">
+            <xs:annotation>
+              <xs:documentation>Значение поля по умолчанию</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          <xs:attribute name="fieldName" type="xs:string" use="optional">
+            <xs:annotation>
+              <xs:documentation>Наименование колонки из БД или выражение</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          <xs:attribute name="fieldAlias" type="xs:string" use="optional">
+            <xs:annotation>
+              <xs:documentation>Алиас колонки из БД</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="propertyName" type="Name_t" use="required">
+      <xs:annotation>
+        <xs:documentation>Имя свойства</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="propertyAlias" type="Name_t" use="optional">
+      <xs:annotation>
+        <xs:documentation></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="attributes" type="PropertyAttributeEnum_t" use="optional">
+      <xs:annotation>
+        <xs:documentation>Атрибуты свойства</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="description" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>Описание свойства</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="typeRef" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Тип свойства (возможна ссылка на сущность)</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="table" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Ссылка на таблицу БД</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="classfieldAccessLevel" type="AccessLevel_t" use="optional" default="Private">
+      <xs:annotation>
+        <xs:documentation>Уровень доступа к полю класса</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="propertyAccessLevel" type="AccessLevel_t" use="optional" default="Public">
+      <xs:annotation>
+        <xs:documentation>Уровень доступа к полю класса</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="disabled" type="xs:boolean" use="optional" default="false">
+      <xs:annotation>
+        <xs:documentation>Признак отключения проперти</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="obsolete" type="ObsoleteType_t" use="optional" default="None">
+      <xs:annotation>
+        <xs:documentation>Make property obsolete.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="obsoleteDescription" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>Description for obsolete property.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="enablePropertyChanged" type="xs:boolean" use="optional" default="false">
+      <xs:annotation>
+        <xs:documentation>
+          Включает для свойства поднятие события PropertyChanged, при этом реализация идет на уровне конкретной сущности. При этом в целом для сущности отключается общий механизм этого события.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="defferedLoadGroup" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Группа свойства для отложенной загрузки.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />    
+  </xs:complexType>
   <xs:complexType name="PropertiesCollection_t">
     <xs:annotation>
       <xs:documentation>Коллекция свойств сущности</xs:documentation>
@@ -330,20 +451,20 @@
     </xs:annotation>
     <xs:sequence minOccurs="0" maxOccurs="unbounded">
       <xs:choice minOccurs="0" maxOccurs="unbounded">
-        <xs:choice minOccurs="0" maxOccurs="unbounded">
-          <xs:element name="Property" type="Property_t" />
-        </xs:choice>
-        <xs:choice minOccurs="0" maxOccurs="unbounded">
-          <xs:element name="Group">
-            <xs:complexType>
-              <xs:sequence>
+        <xs:element name="Property" type="Property_t" minOccurs="0" maxOccurs="unbounded" />
+        <xs:element name="Group">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:choice minOccurs="0" maxOccurs="unbounded">
                 <xs:element name="Property" type="Property_t" minOccurs="0" maxOccurs="unbounded" />
-              </xs:sequence>
-              <xs:attribute name="name" type="Name_t" use="required" />
-              <xs:attribute name="hide" type="xs:boolean" use="optional" default="true" />
-            </xs:complexType>
-          </xs:element>
-        </xs:choice>
+                <xs:element name="EntityProperty" type="EntityProperty_t" minOccurs="0" maxOccurs="unbounded" />
+              </xs:choice>
+            </xs:sequence>
+            <xs:attribute name="name" type="Name_t" use="required" />
+            <xs:attribute name="hide" type="xs:boolean" use="optional" default="true" />
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="EntityProperty" type="EntityProperty_t" minOccurs="0" maxOccurs="unbounded" />
       </xs:choice>
     </xs:sequence>
   </xs:complexType>
@@ -518,10 +639,13 @@
     <xs:annotation>
       <xs:documentation>Точка ссылки</xs:documentation>
     </xs:annotation>
-    <xs:attribute name="fieldName" type="xs:string" use="required">
+    <xs:attribute name="fieldName" use="required">
       <xs:annotation>
         <xs:documentation>Имя поля таблицы связи</xs:documentation>
       </xs:annotation>
+      <xs:simpleType>
+        <xs:list itemType="xs:string"/>
+      </xs:simpleType>
     </xs:attribute>
     <xs:attribute name="cascadeDelete" type="xs:Name" use="required">
       <xs:annotation>
@@ -553,10 +677,13 @@
         <xs:documentation>Сущность</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="fieldName" type="xs:string" use="required">
+    <xs:attribute name="fieldName" use="required">
       <xs:annotation>
         <xs:documentation>Имя поля таблицы связи</xs:documentation>
       </xs:annotation>
+      <xs:simpleType>
+        <xs:list itemType="xs:string"/>
+      </xs:simpleType>
     </xs:attribute>
     <xs:attribute name="cascadeDelete" type="xs:Name" use="required">
       <xs:annotation>

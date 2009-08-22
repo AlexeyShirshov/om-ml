@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.Common;
 using WXML.Model.Descriptors;
 
@@ -27,7 +26,7 @@ namespace WXML.Model.Database.Providers
             _psw = psw;
         }
 
-        public abstract SourceView GetDatabase(string schemas, string namelike);
+        public abstract SourceView GetDatabase(string schemas, string namelike, bool escapeTableNames, bool escapeColumnNames);
 
         protected abstract DbConnection GetDBConn();
 

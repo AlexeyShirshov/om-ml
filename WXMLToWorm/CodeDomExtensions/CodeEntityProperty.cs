@@ -128,9 +128,9 @@ namespace WXMLToWorm.CodeDomExtensions
 				else
 					HasSet = false;
 			}
-			else
+			else if (property is EntityPropertyDefinition)
 			{
-			    TypeDefinition td = property.NeedReplace();
+			    TypeDefinition td = (property as EntityPropertyDefinition).NeedReplace();
                 if (td != null)
                 {
                     Attributes |= MemberAttributes.New;

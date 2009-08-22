@@ -3,17 +3,17 @@ namespace WXML.Model.Descriptors
 {
 	public class SelfRelationTarget
 	{
-		private string _fieldName;
+		private string[] _fieldName;
 		private bool _cascadeDelete;
 		private string _accessorName;
 		private TypeDefinition _accessedEntityType;
 
-        public SelfRelationTarget(string fieldName, bool cascadeDelete)
+        public SelfRelationTarget(string[] fieldName, bool cascadeDelete)
             : this(fieldName, cascadeDelete, null)
         {
         }
 
-		public SelfRelationTarget(string fieldName, bool cascadeDelete, string accessorName)
+		public SelfRelationTarget(string[] fieldName, bool cascadeDelete, string accessorName)
         {
             _fieldName = fieldName;
             _cascadeDelete = cascadeDelete;
@@ -22,7 +22,7 @@ namespace WXML.Model.Descriptors
 
         public string AccessorDescription { get; set; }
 
-        public string FieldName
+        public string[] FieldName
         {
             get { return _fieldName; }
 			set { _fieldName = value; }
@@ -89,9 +89,9 @@ namespace WXML.Model.Descriptors
         public override string ToString()
         {
             if (_accessedEntityType == null)
-                return FieldName;
+                return string.Join("-", FieldName);
             else
-                return FieldName + "$" + _accessedEntityType.ToString();
+                return string.Join("-", FieldName) + "$" + _accessedEntityType;
         }
 	}
 }

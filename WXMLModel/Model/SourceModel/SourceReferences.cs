@@ -2,21 +2,21 @@
 {
     public struct SourceReferences
     {
-        public readonly SourceFieldConstraint PKConstraint;
-        public readonly SourceFieldConstraint FKConstraint;
+        public readonly SourceConstraint PKConstraint;
+        public readonly SourceConstraint FKConstraint;
 
         public readonly SourceFieldDefinition PKField;
         public readonly SourceFieldDefinition FKField;
 
-        public readonly string Action;
+        public readonly string DeleteAction;
 
         public SourceReferences(string action,
-            SourceFieldConstraint pkConstarint,
-            SourceFieldConstraint fkConstarint,
+            SourceConstraint pkConstarint,
+            SourceConstraint fkConstarint,
             SourceFieldDefinition pkField,
             SourceFieldDefinition fkField)
         {
-            Action = action;
+            DeleteAction = action;
             PKConstraint = pkConstarint;
             FKConstraint = fkConstarint;
             PKField = pkField;

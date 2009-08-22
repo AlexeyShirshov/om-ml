@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace WXML.Model.Descriptors
 {
@@ -20,61 +18,29 @@ namespace WXML.Model.Descriptors
         }
     }
 
-    public class PropertyDefinition : ICloneable
+    public abstract class PropertyDefinition : ICloneable
     {
+        private TypeDefinition _type;
         private string _name;
         private string _propertyAlias;
-        //private string[] _attributes;
         private Field2DbRelations _attributes;
         private string _description;
-        private TypeDefinition _type;
-        private string _fieldName;
-        private SourceFragmentDefinition _table;
-        //private bool _fromBase;
         private AccessLevel _fieldAccessLevel;
         private AccessLevel _propertyAccessLevel;
-        //private bool _isSuppressed;
+        
+        protected PropertyDefinition() {}
 
-        public PropertyDefinition(EntityDefinition entity, string name)
-            : this(entity, name, name, Field2DbRelations.None, null, null, null, null, AccessLevel.Private, AccessLevel.Public)
+        public PropertyDefinition(string propertyName, string propertyAlias, TypeDefinition type, Field2DbRelations attributes, 
+            string description, AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel, 
+            EntityDefinition entity)
         {
-        }
-
-        public PropertyDefinition(string name)
-            : this(null, name, name, Field2DbRelations.None, null, null, null, null, AccessLevel.Private, AccessLevel.Public)
-        {
-        }
-
-        //public PropertyDefinition(EntityDefinition entity, string name, string alias, Field2DbRelations attributes,
-        //    string description, TypeDefinition type, string fieldname, SourceFragmentDefinition table,
-        //    AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
-        //    : this(entity, name, alias, attributes, description, type, fieldname, table, fieldAccessLevel, propertyAccessLevel)
-        //{
-        //}
-
-        public PropertyDefinition(string name, string alias, Field2DbRelations attributes, string description,
-            TypeDefinition type, string fieldname, SourceFragmentDefinition table,
-            AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
-            : this(null, name, alias, attributes, description, type, fieldname, table, fieldAccessLevel, propertyAccessLevel)
-        {
-        }
-
-        public PropertyDefinition(EntityDefinition entity, string name, string alias, Field2DbRelations attributes, 
-            string description, TypeDefinition type, string fieldname, SourceFragmentDefinition table, 
-            AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
-        {
-            _name = name;
-            _propertyAlias = string.IsNullOrEmpty(alias) ? name : alias;
+            _name = propertyName;
+            _type = type;
+            _propertyAlias = string.IsNullOrEmpty(propertyAlias) ? propertyName : propertyAlias;
             _attributes = attributes;
             _description = description;
-            _type = type;
-            _fieldName = fieldname;
-            _table = table;
-            //_fromBase = fromBase;
             _fieldAccessLevel = fieldAccessLevel;
             _propertyAccessLevel = propertyAccessLevel;
-            //_isSuppressed = isSuppressed;
-            //NeedReplace = isRefreshed;
             Entity = entity;
         }
 
@@ -104,33 +70,6 @@ namespace WXML.Model.Descriptors
             set { _description = value; }
         }
 
-        public TypeDefinition PropertyType
-        {
-            get { return _type; }
-            set { _type = value; }
-        }
-
-        public string FieldName
-        {
-            get { return _fieldName; }
-            set { _fieldName = value; }
-        }
-
-        public SourceFragmentDefinition SourceFragment
-        {
-            get { return _table; }
-            set { _table = value; }
-        }
-
-        public bool FromBase
-        {
-            get
-            {
-                return !Entity.SelfProperties.Any(item=>!item.Disabled && item.Identifier == Identifier);
-            }
-            //set { _fromBase = value; }
-        }
-
         public string PropertyAlias
         {
             get { return string.IsNullOrEmpty(_propertyAlias) ? _name : _propertyAlias; }
@@ -149,6 +88,12 @@ namespace WXML.Model.Descriptors
             set { _propertyAccessLevel = value; }
         }
 
+        public TypeDefinition PropertyType
+        {
+            get { return _type; }
+            set { _type = value; }
+        }
+
         public bool IsSuppressed
         {
             get
@@ -157,24 +102,8 @@ namespace WXML.Model.Descriptors
             }
             //set { _isSuppressed = value; }
         }
+
         public MergeAction Action { get; set; }
-
-        public TypeDefinition NeedReplace()
-        {
-            if (FromBase && PropertyType.IsEntityType)
-            {
-                var e = Entity.Model.GetDerived(PropertyType.Entity.Identifier).FirstOrDefault(item =>
-                     !item.Disabled && item.Model.SchemaVersion == Entity.Model.SchemaVersion &&
-                     item.FamilyName == PropertyType.Entity.FamilyName
-                );
-
-                if (e != null)
-                    return Entity.Model.GetTypes().SingleOrDefault(
-                        item => item.IsEntityType && item.Entity.Identifier == e.Identifier) ??
-                        new TypeDefinition(e.Identifier, e);
-            }
-            return null;
-        }
 
         public EntityDefinition Entity { get; set; }
 
@@ -186,71 +115,173 @@ namespace WXML.Model.Descriptors
 
         public bool EnablePropertyChanged { get; set; }
 
-        public string DbTypeName { get; set; }
-
-        public int? DbTypeSize { get; set; }
-
-        public bool? DbTypeNullable { get; set; }
-
         public PropertyGroup Group { get; set; }
-
-        public string FieldAlias { get; set; }
 
         public string DefferedLoadGroup { get; set; }
 
-        object ICloneable.Clone()
-        {
-            PropertyDefinition prop = new PropertyDefinition(Entity, Name)
-            {
-                Disabled = Disabled,
-                Obsolete = Obsolete,
-                ObsoleteDescripton = ObsoleteDescripton,
-                EnablePropertyChanged = EnablePropertyChanged,
-                DbTypeName = DbTypeName,
-                DbTypeSize = DbTypeSize,
-                DbTypeNullable = DbTypeNullable,
-                Group = Group,
-                FieldAlias = FieldAlias,
-                DefferedLoadGroup = DefferedLoadGroup
-            };
-            prop._attributes = this._attributes;
-            prop._description = this._description;
-            prop._fieldAccessLevel = this._fieldAccessLevel;
-            prop._fieldName = _fieldName;
-            //prop._fromBase = _fromBase;
-            //prop._isSuppressed = _isSuppressed;
-            prop._propertyAccessLevel = _propertyAccessLevel;
-            prop._propertyAlias = _propertyAlias;
-            prop._table = _table;
-            prop._type = _type;
-            return prop;
-        }
-
-        public PropertyDefinition Clone()
-        {
-            return (PropertyDefinition)(this as ICloneable).Clone();
-        }
-
         public bool HasAttribute(Field2DbRelations attribute)
         {
-            //bool hasIt = false;
-            //foreach (string s in _attributes)
-            //{
-            //    if (((Field2DbRelations)Enum.Parse(typeof(Field2DbRelations), s, true) & attribute) == attribute)
-            //    {
-            //        hasIt = true;
-            //        break;
-            //    }
-            //}
-            //return hasIt;
             return (_attributes & attribute) == attribute;
+        }
+
+        public bool FromBase
+        {
+            get
+            {
+                return !Entity.SelfProperties.Any(item => !item.Disabled && item.Identifier == Identifier);
+            }
+            //set { _fromBase = value; }
+        }
+
+        public abstract SourceFragmentDefinition SourceFragment { get; set; }
+
+        public virtual void CopyTo(PropertyDefinition to)
+        {
+            to.Entity = Entity;
+            to.Action = Action;
+            to.DefferedLoadGroup = DefferedLoadGroup;
+            to.Disabled = Disabled;
+            to.EnablePropertyChanged = EnablePropertyChanged;
+            to.Group = Group;
+            to.Obsolete = Obsolete;
+            to.ObsoleteDescripton = ObsoleteDescripton;
+            to._attributes = _attributes;
+            to._description = _description;
+            to._fieldAccessLevel = _fieldAccessLevel;
+            to._propertyAccessLevel = _propertyAccessLevel;
+            to._propertyAlias = _propertyAlias;
+            to._type = _type;
+            to._name = _name;
+        }
+
+        protected abstract PropertyDefinition _Clone();
+
+        object ICloneable.Clone()
+        {
+            return _Clone();
         }
 
         internal PropertyDefinition Clone(EntityDefinition entityDescription)
         {
-            PropertyDefinition p = Clone();
+            PropertyDefinition p = _Clone();
             p.Entity = entityDescription;
             return p;
+        }
+    }
+
+    public class ScalarPropertyDefinition : PropertyDefinition
+    {
+        private SourceFieldDefinition _sf;
+
+        protected ScalarPropertyDefinition() {}
+
+        public ScalarPropertyDefinition(EntityDefinition entity, string name)
+            : this(entity, name, name, Field2DbRelations.None, null, null, null, AccessLevel.Private, AccessLevel.Public)
+        {
+        }
+
+        public ScalarPropertyDefinition(string name)
+            : this(null, name, name, Field2DbRelations.None, null, null, null, AccessLevel.Private, AccessLevel.Public)
+        {
+        }
+
+        public ScalarPropertyDefinition(string name, string alias, Field2DbRelations attributes, string description,
+            TypeDefinition type, SourceFieldDefinition sf,
+            AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
+            : this(null, name, alias, attributes, description, type, sf, fieldAccessLevel, propertyAccessLevel)
+        {
+        }
+
+        public ScalarPropertyDefinition(EntityDefinition entity, string name, string alias, Field2DbRelations attributes,
+            string description, TypeDefinition type, SourceFieldDefinition sf,
+            AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
+            : base(name, alias, type, attributes, description, fieldAccessLevel, propertyAccessLevel, entity)
+        {
+            _sf = sf;
+        }
+
+        public SourceFieldDefinition SourceField
+        {
+            get
+            {
+                return _sf;
+            }
+            set
+            {
+                _sf = value;
+            }
+        }
+
+        public string SourceFieldExpression
+        {
+            get
+            {
+                if (_sf != null) return _sf.SourceFieldExpression;
+                return null;
+            }
+        }
+
+        public override SourceFragmentDefinition SourceFragment
+        {
+            get
+            {
+                if (_sf != null) return _sf.SourceFragment;
+                return null;
+            }
+            set { _sf.SourceFragment = value; }
+        }
+
+        public string SourceType
+        {
+            get
+            {
+                if (_sf != null) return _sf.SourceType;
+                return null;
+            }
+        }
+
+        public int? SourceTypeSize 
+        {
+            get
+            {
+                if (_sf != null) return _sf.SourceTypeSize;
+                return null;
+            }
+        }
+
+        public bool IsNullable
+        {
+            get
+            {
+                if (_sf != null) return _sf.IsNullable;
+                return true;
+            }
+        }
+
+        public string SourceFieldAlias { get; set; }
+
+        public override void CopyTo(PropertyDefinition to)
+        {
+            base.CopyTo(to);
+            ScalarPropertyDefinition definition = (to as ScalarPropertyDefinition);
+
+            if (definition != null)
+            {
+                definition._sf = _sf;
+                definition.SourceFieldAlias = SourceFieldAlias;
+            }
+        }
+
+        protected override PropertyDefinition _Clone()
+        {
+            ScalarPropertyDefinition prop = new ScalarPropertyDefinition();
+            CopyTo(prop);
+            return prop;
+        }
+
+        public ScalarPropertyDefinition Clone()
+        {
+            return _Clone() as ScalarPropertyDefinition;
         }
     }
 
@@ -261,3 +292,4 @@ namespace WXML.Model.Descriptors
         Error
     }
 }
+
