@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WXML.DatabaseConnector;
 using System.IO;
 using WXML.Model;
-using WXML.Model.Database;
 using WXML.Model.Database.Providers;
 using WXML.Model.Descriptors;
+using WXML.SourceConnector;
 
 namespace WXMLDatabase
 {
@@ -152,7 +151,7 @@ namespace WXMLDatabase
             dp.OnDatabaseConnecting += (sender, conn) => Console.WriteLine("Connecting to \"{0}\"...", FilterPsw(conn));
             dp.OnStartLoadDatabase += () => Console.WriteLine("Retriving tables...");
 
-            SourceView db = dp.GetDatabase(schemas, namelike, escapeTables, escapeColumns);
+            SourceView db = dp.GetSourceView(schemas, namelike, escapeTables, escapeColumns);
 
             WXMLModel model = null;
 
@@ -177,7 +176,7 @@ namespace WXMLDatabase
                 //File.Create(file);
             }
 
-            WXMLModelGenerator g = new WXMLModelGenerator(db, model, transform);
+            SourceToModelConnector g = new SourceToModelConnector(db, model);
 
             Console.WriteLine("Generating xml...");
             HashSet<EntityDefinition> ents = new HashSet<EntityDefinition>();
@@ -200,7 +199,7 @@ namespace WXMLDatabase
 
             g.OnPropertyRemoved += (sender, prop) => Console.WriteLine("Remove: {0}.{1}", prop.Entity.Name, prop.Name);
 
-            g.MergeModelWithDatabase(dr, hie ? relation1to1.Hierarchy : unify ? relation1to1.Unify : relation1to1.Default);
+            g.ApplySourceViewToModel(dr, hie ? relation1to1.Hierarchy : unify ? relation1to1.Unify : relation1to1.Default, transform);
 
             using (System.Xml.XmlTextWriter writer = new System.Xml.XmlTextWriter(file, Encoding.UTF8))
             {
@@ -232,29 +231,30 @@ namespace WXMLDatabase
         static void ShowUsage()
         {
             Console.WriteLine("Command line parameters");
-            Console.WriteLine("  -O=value\t-  Output file name. Example: -O=test.xml. Default is <database>.xml");
-            Console.WriteLine("  -S=value\t-  Database server. Example: -S=(local). Default is (local).");
-            Console.WriteLine("  -E\t\t-  Integrated security.");
-            Console.WriteLine("  -U=value\t-  Username");
-            Console.WriteLine("  -P=value\t-  Password. Will requested if need.");
-            Console.WriteLine("  -D=value\t-  Initial catalog(database). Example: -D=test");
-            Console.WriteLine("  -M=[msft]\t-  Manufacturer. Example: -M=msft. Default is msft.");
-            Console.WriteLine(@"  -schemas=list\t-  Database schema filter.\n\t\t 
-                Example: -schemas=dbo,one\tInclude all tables in schemas dbo and one\n\t\t
-                Example: -schemas=(dbo,one)\tInclude all tables in all schemas except dbo and one
-            ");
-            Console.WriteLine(@"  -name=value\t-  Database table name filter.\n\t\t
-                Example: -name=aspnet_%,tbl%\tInclude all tables starts with aspnet_ and tbl
-                Example: -name=!aspnet_%\tInclude all tables except whose who starts with aspnet_
-            ");
-            Console.WriteLine("  -F=[error|merge]\t-  Existing file behavior. Example: -F=error. Default is merge.");
-            Console.WriteLine("  -R\t\t-  Drop deleted columns. Meaningfull only with merge behavior. Example: -R.");
-            Console.WriteLine("  -N=value\t-  Objects namespace. Example: -N=test.");
-            Console.WriteLine("  -Y\t\t-  Unify entyties with the same PK(1-1 relation). Example: -Y.");
-            Console.WriteLine("  -H\t\t-  Make hierarchy from 1-1 relations. Example: -H.");
-            Console.WriteLine("  -T\t\t-  Transform property names. Example: -T.");
-            Console.WriteLine("  -ES\t\t-  Escape table names. Example: -ES.");
-            Console.WriteLine("  -EC\t\t-  Escape column names. Example: -EC.");
+            Console.WriteLine("  -O=value\t-  Output file name.\n\t" + 
+"Example: -O=test.xml. Default is <database>.xml\n");
+            Console.WriteLine("  -S=value\t-  Database server.\n\t"+
+"Example: -S=(local). Default is (local).\n");
+            Console.WriteLine("  -E\t\t-  Integrated security.\n");
+            Console.WriteLine("  -U=value\t-  Username\n");
+            Console.WriteLine("  -P=value\t-  Password. Will requested if need.\n");
+            Console.WriteLine("  -D=value\t-  Initial catalog(database). Example: -D=test\n");
+            Console.WriteLine("  -M=[msft]\t-  Manufacturer. Example: -M=msft. Default is msft.\n");
+            Console.WriteLine("  -schemas=list\t-  Database schema filter.\n\t" + 
+"Example: -schemas=dbo,one\n\tInclude all tables in schemas dbo and one\n\t" +
+"Example: -schemas=(dbo,one)\n\tInclude all tables in all schemas except dbo and one\n");
+            Console.WriteLine("  -name=value\t-  Database table name filter.\n\t"+
+"Example: -name=aspnet_%,tbl%\n\tInclude all tables starts with aspnet_ and tbl\n\t" +
+"Example: -name=!aspnet_%\n\tInclude all tables except whose who starts with aspnet_\n");
+            Console.WriteLine("  -F=[error|merge]\t-  Existing file behavior.\n\t" +
+"Example: -F=error. Default is merge.\n");
+            Console.WriteLine("  -R\t\t-  Drop deleted columns. Meaningfull only with merge behavior.\n");
+            Console.WriteLine("  -N=value\t-  Objects namespace. Example: -N=test.\n");
+            Console.WriteLine("  -Y\t\t-  Unify entyties with the same PK(1-1 relation). Example: -Y.\n");
+            Console.WriteLine("  -H\t\t-  Make hierarchy from 1-1 relations. Example: -H.\n");
+            Console.WriteLine("  -T\t\t-  Transform property names. Example: -T.\n");
+            Console.WriteLine("  -ES\t\t-  Escape table names. Example: -ES.\n");
+            Console.WriteLine("  -EC\t\t-  Escape column names. Example: -EC.\n");
         }
     }
 }
