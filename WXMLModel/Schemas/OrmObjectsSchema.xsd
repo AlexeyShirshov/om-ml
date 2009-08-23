@@ -325,7 +325,7 @@
       <xs:documentation>Свойство сущности</xs:documentation>
     </xs:annotation>
     <xs:sequence>
-      <xs:element name="fields" minOccurs="1" maxOccurs="unbounded">
+      <xs:element name="fields" minOccurs="0" maxOccurs="unbounded">
         <xs:complexType>
           <xs:attribute name="relatedProperty" type="Name_t" use="required">
             <xs:annotation>

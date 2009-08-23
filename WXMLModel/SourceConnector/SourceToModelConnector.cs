@@ -6,7 +6,7 @@ using System.Linq;
 using WXML.Model;
 using WXML.CodeDom;
 
-namespace WXML.DatabaseConnector
+namespace WXML.SourceConnector
 {
     public class Pair<T>
     {
@@ -71,32 +71,31 @@ namespace WXML.DatabaseConnector
         Hierarchy
     }
 
-    public class WXMLModelGenerator
+    public class SourceToModelConnector
     {
         private readonly SourceView _db;
         private readonly WXMLModel _model;
-        private readonly bool _transform;
+        //private readonly bool _transform;
         //private HashSet<string> _ents;
 
-        public delegate void OnEntityCreatedDelegate(WXMLModelGenerator sender, EntityDefinition entity);
+        public delegate void OnEntityCreatedDelegate(SourceToModelConnector sender, EntityDefinition entity);
         public event OnEntityCreatedDelegate OnEntityCreated;
         
-        public delegate void OnPropertyCreatedDelegate(WXMLModelGenerator sender, PropertyDefinition entity, bool created);
+        public delegate void OnPropertyCreatedDelegate(SourceToModelConnector sender, PropertyDefinition entity, bool created);
         public event OnPropertyCreatedDelegate OnPropertyCreated;
 
-        public delegate void OnPropertyRemovedDelegate(WXMLModelGenerator sender, PropertyDefinition entity);
+        public delegate void OnPropertyRemovedDelegate(SourceToModelConnector sender, PropertyDefinition entity);
         public event OnPropertyRemovedDelegate OnPropertyRemoved;
 
-        public WXMLModelGenerator(SourceView db, WXMLModel model, bool transform)
+        public SourceToModelConnector(SourceView db, WXMLModel model)
         {
             _db = db;
             _model = model;
-            _transform = transform;
+            //_transform = transform;
         }
 
-        public void MergeModelWithDatabase(bool dropColumns, relation1to1 rb)
+        public void ApplySourceViewToModel(bool dropColumns, relation1to1 rb, bool transforRawNamesToReadableForm)
         {
-            List<Pair<SourceFieldDefinition, ScalarPropertyDefinition>> notFound = new List<Pair<SourceFieldDefinition, ScalarPropertyDefinition>>();
             List<SourceFragmentDefinition> tables2skip = new List<SourceFragmentDefinition>();
             foreach (SourceFragmentDefinition sf in _db.GetTables())
             {
@@ -107,7 +106,7 @@ namespace WXML.DatabaseConnector
                     _db.GetColumns(sf).All(clm => clm.IsFK))
                     continue;
 
-                GetEntity(sf, rb, tables2skip);
+                GetEntity(sf, rb, tables2skip, transforRawNamesToReadableForm);
             }
 
             //Dictionary<string, EntityDefinition> dic = Process1to1Relations(columns, defferedCols, odef, escape, notFound, rb);
@@ -127,7 +126,7 @@ namespace WXML.DatabaseConnector
                     {
                         string id = pd.Identifier;
                         if (!_db.GetColumns(pd.SourceFragment)
-                            .Any(item=>Trim(Capitalize(item.SourceFieldExpression)) == id))
+                            .Any(item=>Trim(Capitalize(item.SourceFieldExpression), transforRawNamesToReadableForm) == id))
                         {
                             ed.RemoveProperty(pd);
                             RaiseOnPropertyRemoved(pd);
@@ -185,7 +184,7 @@ namespace WXML.DatabaseConnector
         }
 
         private EntityDefinition GetEntity(SourceFragmentDefinition sf, relation1to1 rb, 
-            List<SourceFragmentDefinition> tables2skip)
+            List<SourceFragmentDefinition> tables2skip, bool transforRawNamesToReadableForm)
         {
             EntityDefinition e = _model.GetEntity(GetEntityName(sf.Selector, sf.Name));
             
@@ -204,7 +203,7 @@ namespace WXML.DatabaseConnector
                         case relation1to1.Unify:
                         case relation1to1.Hierarchy:
                             masterTable = GetMasterTable(sf, out conds);
-                            masterEntity = GetEntity(masterTable, rb, tables2skip);
+                            masterEntity = GetEntity(masterTable, rb, tables2skip, transforRawNamesToReadableForm);
                             break;
                         default:
                             throw new NotSupportedException(rb.ToString());
@@ -220,14 +219,14 @@ namespace WXML.DatabaseConnector
                     .Where(item=>!item.IsFK))
                 {
                     bool propCreated;
-                    PropertyDefinition prop = AppendColumn(e, field, out propCreated);
+                    PropertyDefinition prop = AppendColumn(e, field, out propCreated, transforRawNamesToReadableForm);
                     RaiseOnPropertyCreated(prop, propCreated);
                 }
 
                 foreach (SourceConstraint fk in sf.Constraints)
                 {
                     bool propCreated;
-                    PropertyDefinition prop = AppendFK(e, sf, fk, tables2skip, rb, out propCreated);
+                    PropertyDefinition prop = AppendFK(e, sf, fk, tables2skip, rb, out propCreated, transforRawNamesToReadableForm);
                     RaiseOnPropertyCreated(prop, propCreated);
                 }
 
@@ -501,10 +500,10 @@ namespace WXML.DatabaseConnector
 
         protected EntityPropertyDefinition AppendFK(EntityDefinition e, SourceFragmentDefinition sf, 
             SourceConstraint fk, List<SourceFragmentDefinition> tables2skip, 
-            relation1to1 rb, out bool created)
+            relation1to1 rb, out bool created, bool transforRawNamesToReadableForm)
         {
             created = false;
-            TypeDefinition td = GetRelatedType(fk, tables2skip, rb);
+            TypeDefinition td = GetRelatedType(fk, tables2skip, rb, transforRawNamesToReadableForm);
             string propAlias = td.Entity.Name;
             string propName = td.Entity.Name;
             
@@ -540,7 +539,7 @@ namespace WXML.DatabaseConnector
                 .Select(item=>item.FKField)
                 .Where(item=>item.IsPK))
             {
-                string pkPropName = Trim(Capitalize(pkField.SourceFieldExpression));
+                string pkPropName = Trim(Capitalize(pkField.SourceFieldExpression), transforRawNamesToReadableForm);
                 string pkPropAlias = pkPropName;
                 ScalarPropertyDefinition pe = (ScalarPropertyDefinition) e.SelfProperties
                     .SingleOrDefault(pd =>pd.Identifier == pkPropAlias);
@@ -574,7 +573,7 @@ namespace WXML.DatabaseConnector
         }
 
         protected ScalarPropertyDefinition AppendColumn(EntityDefinition e, SourceFieldDefinition c,
-            out bool created)
+            out bool created, bool transforRawNamesToReadableForm)
         {
             created = false;
             ScalarPropertyDefinition pe = e.SelfProperties.OfType<ScalarPropertyDefinition>().SingleOrDefault(pd =>
@@ -586,9 +585,9 @@ namespace WXML.DatabaseConnector
             if (pe == null)
             {
                 Field2DbRelations attrs = c.GetAttributes();
-                string name = Trim(Capitalize(c.SourceFieldExpression));
+                string name = Trim(Capitalize(c.SourceFieldExpression), transforRawNamesToReadableForm);
 
-                pe = new ScalarPropertyDefinition(name,
+                pe = new ScalarPropertyDefinition(e, name,
                      name, attrs, "Auto generated from column " + c.SourceFieldExpression, 
                      GetClrType(c.SourceType, c.IsNullable), c, 
                      AccessLevel.Private, AccessLevel.Public
@@ -611,10 +610,10 @@ namespace WXML.DatabaseConnector
             return pe;
         }
 
-        private string Trim(string columnName)
+        private static string Trim(string columnName, bool transforRawNamesToReadableForm)
         {
             columnName = columnName.Replace(' ', '_');
-            if (_transform)
+            if (transforRawNamesToReadableForm)
             {
                 if (columnName.EndsWith("_id"))
                     columnName = columnName.Substring(0, columnName.Length - 3);
@@ -777,11 +776,11 @@ namespace WXML.DatabaseConnector
         //}
         
         private TypeDefinition GetRelatedType(SourceConstraint fk, 
-            List<SourceFragmentDefinition> tables2skip, relation1to1 rb)
+            List<SourceFragmentDefinition> tables2skip, relation1to1 rb, bool transforRawNamesToReadableForm)
         {
             var rels = _db.GetFKRelations(fk);
             SourceFragmentDefinition m = rels.First().PKField.SourceFragment;
-            EntityDefinition e = GetEntity(m, rb, tables2skip);
+            EntityDefinition e = GetEntity(m, rb, tables2skip, transforRawNamesToReadableForm);
             string id = "t" + e.Name;
             return _model.GetType(id, false) ?? new TypeDefinition(id, e);
         }

@@ -77,16 +77,6 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public string ClrTypeName
-        {
-            get
-            {
-                if (_clrType == null)
-                    throw new InvalidOperationException("Valid only for ClrType. Use 'IsClrType' at first.");
-                return _clrType.FullName;
-            }
-        }
-
         public EntityDefinition Entity
         {
             get { return _entity; }

@@ -19,7 +19,7 @@ namespace WXMLToWorm.CodeDomExtensions
     {
         private CodeEntityTypeDeclaration m_entityClass;
         private readonly CodeTypeReference m_typeReference;
-        private WXMLCodeDomGeneratorSettings _settings;
+        private readonly WXMLCodeDomGeneratorSettings _settings;
 
         public CodeSchemaDefTypeDeclaration(WXMLCodeDomGeneratorSettings settings)
         {
@@ -173,7 +173,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 {
                     SourceFragmentRefDefinition tbl = tbl_;
                     int tblIdx = m_entityClass.Entity.GetSourceFragments().IndexOf(tbl);
-                    int sfrIdx = m_entityClass.Entity.GetSourceFragments().IndexOf((sfr)=>sfr.Identifier == tbl.AnchorTable.Identifier);
+                    int sfrIdx = m_entityClass.Entity.GetSourceFragments().IndexOf(sfr=>sfr.Identifier == tbl.AnchorTable.Identifier);
                     if (cond == null)
                     {
                         CodeConditionStatement cond2 = Emit.@if((SourceFragment left, SourceFragment right) =>
@@ -356,8 +356,24 @@ namespace WXMLToWorm.CodeDomExtensions
          						)
          			)
          	};
-            condTrueStatements.AddRange(m_entityClass.Entity.SelfProperties
-                .Where(item => !item.Disabled && !string.IsNullOrEmpty(item.FieldName))
+            if (m_entityClass.Entity.SelfProperties.Any(item => !item.Disabled &&
+                item is EntityPropertyDefinition && ((EntityPropertyDefinition)item).SourceFields.Count() > 1
+                ))
+                throw new NotImplementedException(string.Format("Entity {0} contains EntityPropertyDefinition which is not supported yet", m_entityClass.Entity.Identifier));
+
+            var props = m_entityClass.Entity.SelfProperties.Where(item => !item.Disabled)
+                .Select(item => new
+                {
+                    FieldName = item is ScalarPropertyDefinition ?
+                        ((ScalarPropertyDefinition)item).SourceFieldExpression :
+                        ((EntityPropertyDefinition)item).SourceFields.First().SourceFieldExpression, 
+                    item.PropertyAlias,
+                    FieldAlias = item is ScalarPropertyDefinition ?
+                        ((ScalarPropertyDefinition)item).SourceFieldAlias :
+                        ((EntityPropertyDefinition)item).SourceFields.First().SourceFieldAlias,
+                    Prop = item
+                });
+            condTrueStatements.AddRange(props.Where(item=>!string.IsNullOrEmpty(item.FieldName))
                 .SelectMany(item =>
                     {
                         List<CodeStatement> coll = new List<CodeStatement>();
@@ -366,7 +382,7 @@ namespace WXMLToWorm.CodeDomExtensions
                                 new CodeVariableReferenceExpression("idx"),
                                 new CodePrimitiveExpression(item.PropertyAlias)
                             ),
-                            GetMapField2ColumObjectCreationExpression(item)
+                            GetMapField2ColumObjectCreationExpression(item.Prop)
                         ));
                         if (!string.IsNullOrEmpty(item.FieldAlias))
                             coll.Add(
@@ -416,11 +432,18 @@ namespace WXMLToWorm.CodeDomExtensions
                 );
         }
 
-        private CodeObjectCreateExpression GetMapField2ColumObjectCreationExpression(ScalarPropertyDefinition prop)
+        private CodeObjectCreateExpression GetMapField2ColumObjectCreationExpression(PropertyDefinition p)
         {
+            ScalarPropertyDefinition prop = p as ScalarPropertyDefinition;
+            if (p is EntityPropertyDefinition)
+            {
+                prop = (p as EntityPropertyDefinition).ToPropertyDefinition();
+            }
+
             CodeObjectCreateExpression expression = new CodeObjectCreateExpression(
-                new CodeTypeReference(
-                    typeof(MapField2Column)));
+                new CodeTypeReference(typeof(MapField2Column))
+            );
+
             expression.Parameters.Add(new CodePrimitiveExpression(prop.PropertyAlias));
             expression.Parameters.Add(new CodePrimitiveExpression(prop.SourceFieldExpression));
             //(SourceFragment)this.GetTables().GetValue((int)(XMedia.Framework.Media.Objects.ArtistBase.ArtistBaseSchemaDef.TablesLink.tblArtists)))
@@ -436,28 +459,12 @@ namespace WXMLToWorm.CodeDomExtensions
                         WXMLCodeDomGeneratorNameHelper.GetSafeName(prop.SourceFragment.Identifier)
                     ))
                 ));
-
-                //expression.Parameters.Add(new CodeMethodInvokeExpression(
-                //    new CodeThisReferenceExpression(), "GetTable",
-                //    new CodeFieldReferenceExpression(
-                //        new CodeTypeReferenceExpression(tableLink),
-                //        WXMLCodeDomGeneratorNameHelper.GetSafeName(prop.SourceFragment.Identifier)
-                //        )
-                //    )
-                //);
             }
             else
             {
                 expression.Parameters.Add(CodeDom.GetExpression(() => CodeDom.@this.Property("Table")));
             }
 
-            //if (action.PropertyAlias == "ID")
-            //if (action.Attributes != null && action.Attributes.Length > 0)
-            //    expression.Parameters.Add(GetPropAttributesEnumValues(action.Attributes));
-            //else
-            //    expression.Parameters.Add(
-            //        new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(Worm.Entities.Meta.Field2DbRelations)),
-            //                                         Worm.Entities.Meta.Field2DbRelations.None.ToString()));
             expression.Parameters.Add(GetPropAttributesEnumValues(prop.Attributes));
 
             if (!string.IsNullOrEmpty(prop.SourceType))
@@ -471,19 +478,9 @@ namespace WXMLToWorm.CodeDomExtensions
             return expression;
         }
 
-        //private static CodeExpression GetPropAttributesEnumValues(IEnumerable<string> attrs)
-        //{
-        //    var attrsList = new List<string>(attrs);
-        //    CodeExpression first = new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(typeof(Worm.Entities.Meta.Field2DbRelations)), attrsList.Count == 0 ? Worm.Entities.Meta.Field2DbRelations.None.ToString() : attrsList[0]);
-        //    if (attrsList.Count > 1)
-        //        return new CodeBinaryOperatorExpression(first, CodeBinaryOperatorType.BitwiseOr, GetPropAttributesEnumValues(attrsList.GetRange(1, attrsList.Count - 1).ToArray()));
-        //    return first;
-        //}
-
         private static CodeExpression GetPropAttributesEnumValues(WXML.Model.Field2DbRelations attrs)
         {
             Worm.Entities.Meta.Field2DbRelations a = (Worm.Entities.Meta.Field2DbRelations) attrs;
-            //return CodeDom.GetExpression(()=>CodeDom.Field(new CodeTypeReference(typeof(Worm.Entities.Meta.Field2DbRelations)), attrs));
             return CodeDom.GetExpression(() => a);
         }
 
@@ -719,24 +716,47 @@ namespace WXMLToWorm.CodeDomExtensions
             {
                 EntityDefinition relatedEntity = entity == relationDescription.Left.Entity
                     ? relationDescription.Right.Entity : relationDescription.Left.Entity;
-                string fieldName = entity == relationDescription.Left.Entity ? relationDescription.Right.FieldName : relationDescription.Left.FieldName;
-                bool cascadeDelete = entity == relationDescription.Left.Entity ? relationDescription.Right.CascadeDelete : relationDescription.Left.CascadeDelete;
 
-                return new CodeExpression[] { GetM2MRelationCreationExpression(relatedEntity, relationDescription.SourceFragment, relationDescription.UnderlyingEntity, fieldName, cascadeDelete, null, relationDescription.Constants) };
+                var lt = entity == relationDescription.Left.Entity ? relationDescription.Right : relationDescription.Left;
+                if (lt.FieldName.Length > 1)
+                    throw new NotImplementedException(string.Format("Relation with multiple columns is not supported yet. Relation on table {0}", relationDescription.SourceFragment.Identifier));
+                string fieldName = lt.FieldName[0];
+                
+                bool cascadeDelete = entity == relationDescription.Left.Entity ? 
+                    relationDescription.Right.CascadeDelete : 
+                    relationDescription.Left.CascadeDelete;
+
+                return new[]
+                {
+                    GetM2MRelationCreationExpression(
+                        relatedEntity, relationDescription.SourceFragment, 
+                        relationDescription.UnderlyingEntity, fieldName, 
+                        cascadeDelete, null, relationDescription.Constants
+                    )
+                };
             }
-            throw new ArgumentException("To realize m2m relation on self use SelfRelation instead.");
+            throw new ArgumentException(string.Format("To realize m2m relation on self use SelfRelation instead. Relation on table {0}", relationDescription.SourceFragment.Identifier));
         }
 
         private CodeExpression[] GetM2MRelationCreationExpressions(SelfRelationDescription relationDescription, EntityDefinition entity)
         {
+            if (relationDescription.Direct.FieldName.Length > 1)
+                throw new NotImplementedException(string.Format("Relation with multiple columns is not supported yet. Direct relation on entity {0}", relationDescription.Entity.Identifier));
+
+            if (relationDescription.Reverse.FieldName.Length > 1)
+                throw new NotImplementedException(string.Format("Relation with multiple columns is not supported yet. Reverse relation on entity {0}", relationDescription.Entity.Identifier));
+
+            if (relationDescription.Direct.FieldName.Length != relationDescription.Reverse.FieldName.Length)
+                throw new InvalidOperationException(string.Format("Direct and Reverse relations must have the same number of fields. Relation on entity {0}", relationDescription.Entity.Identifier));
 
             return new CodeExpression[]
 				{
 					GetM2MRelationCreationExpression(entity, relationDescription.SourceFragment, relationDescription.UnderlyingEntity,
-					                                 relationDescription.Direct.FieldName, relationDescription.Direct.CascadeDelete,
-					                                 true, relationDescription.Constants),
+                        relationDescription.Direct.FieldName[0], relationDescription.Direct.CascadeDelete,
+                        true, relationDescription.Constants),
 					GetM2MRelationCreationExpression(entity, relationDescription.SourceFragment, relationDescription.UnderlyingEntity,
-					                                 relationDescription.Reverse.FieldName, relationDescription.Reverse.CascadeDelete, false, relationDescription.Constants)
+					    relationDescription.Reverse.FieldName[0], relationDescription.Reverse.CascadeDelete, 
+                        false, relationDescription.Constants)
 				};
 
         }
@@ -747,11 +767,7 @@ namespace WXMLToWorm.CodeDomExtensions
             //    throw new NotImplementedException("M2M relation on self cannot have underlying entity.");
             // new Worm.Orm.M2MRelation(this._schema.GetTypeByEntityName("Album"), this.GetTypeMainTable(this._schema.GetTypeByEntityName("Album2ArtistRelation")), "album_id", false, new System.Data.Common.DataTableMapping(), this._schema.GetTypeByEntityName("Album2ArtistRelation")),
 
-            CodeExpression entityTypeExpression;
             CodeExpression tableExpression;
-            CodeExpression fieldExpression;
-            CodeExpression cascadeDeleteExpression;
-            CodeExpression mappingExpression;
 
             //entityTypeExpression = new CodeMethodInvokeExpression(
             //    new CodeMethodReferenceExpression(
@@ -764,7 +780,7 @@ namespace WXMLToWorm.CodeDomExtensions
             //    OrmCodeGenHelper.GetEntityNameReferenceExpression(relatedEntity)
             //        //new CodePrimitiveExpression(relatedEntity.Name)
             //    );
-            entityTypeExpression = WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings,relatedEntity);
+            CodeExpression entityTypeExpression = WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings,relatedEntity);
 
             if (underlyingEntity == null)
                 tableExpression = new CodeMethodInvokeExpression(
@@ -793,11 +809,11 @@ namespace WXMLToWorm.CodeDomExtensions
             //        )
             //    );
 
-            fieldExpression = new CodePrimitiveExpression(fieldName);
+            CodeExpression fieldExpression = new CodePrimitiveExpression(fieldName);
 
-            cascadeDeleteExpression = new CodePrimitiveExpression(cascadeDelete);
+            CodeExpression cascadeDeleteExpression = new CodePrimitiveExpression(cascadeDelete);
 
-            mappingExpression = new CodeObjectCreateExpression(new CodeTypeReference(typeof(DataTableMapping)));
+            CodeExpression mappingExpression = new CodeObjectCreateExpression(new CodeTypeReference(typeof(DataTableMapping)));
 
             CodeObjectCreateExpression result =
                 new CodeObjectCreateExpression(

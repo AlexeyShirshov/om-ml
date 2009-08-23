@@ -152,10 +152,10 @@ namespace WormCodeGenerator
                 settings.UseTypeInProps = true;
             }
 
-            if (cmdLine["rm"] != null)
-            {
-                settings.RemoveOldM2M = true;
-            }
+            //if (cmdLine["rm"] != null)
+            //{
+            //    settings.RemoveOldM2M = true;
+            //}
 
             //if (cmdLine["os"] != null)
             //{

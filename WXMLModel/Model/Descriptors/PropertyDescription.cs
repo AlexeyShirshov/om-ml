@@ -175,27 +175,27 @@ namespace WXML.Model.Descriptors
 
         protected ScalarPropertyDefinition() {}
 
-        public ScalarPropertyDefinition(EntityDefinition entity, string name)
-            : this(entity, name, name, Field2DbRelations.None, null, null, null, AccessLevel.Private, AccessLevel.Public)
+        public ScalarPropertyDefinition(EntityDefinition entity, string propertyName)
+            : this(entity, propertyName, propertyName, Field2DbRelations.None, null, null, null, AccessLevel.Private, AccessLevel.Public)
         {
         }
 
-        public ScalarPropertyDefinition(string name)
-            : this(null, name, name, Field2DbRelations.None, null, null, null, AccessLevel.Private, AccessLevel.Public)
-        {
-        }
+        //public ScalarPropertyDefinition(string propertyName)
+        //    : this(null, propertyName, propertyName, Field2DbRelations.None, null, null, null, AccessLevel.Private, AccessLevel.Public)
+        //{
+        //}
 
-        public ScalarPropertyDefinition(string name, string alias, Field2DbRelations attributes, string description,
-            TypeDefinition type, SourceFieldDefinition sf,
-            AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
-            : this(null, name, alias, attributes, description, type, sf, fieldAccessLevel, propertyAccessLevel)
-        {
-        }
+        //public ScalarPropertyDefinition(string propertyName, string propertyAlias, Field2DbRelations attributes, string description,
+        //    TypeDefinition type, SourceFieldDefinition sf,
+        //    AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
+        //    : this(null, propertyName, propertyAlias, attributes, description, type, sf, fieldAccessLevel, propertyAccessLevel)
+        //{
+        //}
 
-        public ScalarPropertyDefinition(EntityDefinition entity, string name, string alias, Field2DbRelations attributes,
+        public ScalarPropertyDefinition(EntityDefinition entity, string propertyName, string propertyAlias, Field2DbRelations attributes,
             string description, TypeDefinition type, SourceFieldDefinition sf,
             AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel)
-            : base(name, alias, type, attributes, description, fieldAccessLevel, propertyAccessLevel, entity)
+            : base(propertyName, propertyAlias, type, attributes, description, fieldAccessLevel, propertyAccessLevel, entity)
         {
             _sf = sf;
         }

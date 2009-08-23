@@ -704,8 +704,8 @@ namespace WXMLToWorm
 
                         #region m2m relation methods
 
-                        if (!Settings.RemoveOldM2M && entity.GetPkProperties().Count() == 1)
-                            CreateM2MMethodsSet(entity, entityClass);
+                        //if (!Settings.RemoveOldM2M && entity.GetPkProperties().Count() == 1)
+                        //    CreateM2MMethodsSet(entity, entityClass);
 
                         #endregion
 
@@ -1609,245 +1609,248 @@ namespace WXMLToWorm
         }
 
         #region M2M methods
-        private void CreateM2MMethodsSet(EntityDefinition entity, CodeTypeDeclaration entityClass)
-        {
-            foreach (RelationDefinitionBase relation in entity.GetAllRelations(false))
-            {
-                LinkTarget link = null;
-                RelationDefinition rd = relation as RelationDefinition;
-                if (rd != null)
-                    link = rd.Left.Entity == entity ? rd.Right : rd.Left;
-                if (!relation.HasAccessors || (link != null && link.Entity.GetPkProperties().Count() != 1))
-                    continue;
-                CreateM2MGenMethods(CreateM2MAddMethod, entity, relation, entityClass);
-                CreateM2MGenMethods(CreateM2MRemoveMethod, entity, relation, entityClass);
-                CreateM2MGenMethods(CreateM2MGetMethod, entity, relation, entityClass);
-                CreateM2MGenMethods(CreateM2MMergeMethod, entity, relation, entityClass);
-            }
-        }
+        //private void CreateM2MMethodsSet(EntityDefinition entity, CodeTypeDeclaration entityClass)
+        //{
+        //    foreach (RelationDefinitionBase relation in entity.GetAllRelations(false))
+        //    {
+        //        LinkTarget link = null;
+        //        RelationDefinition rd = relation as RelationDefinition;
+        //        if (rd != null)
+        //            link = rd.Left.Entity == entity ? rd.Right : rd.Left;
+        //        if (!relation.HasAccessors || (link != null && link.Entity.GetPkProperties().Count() != 1))
+        //            continue;
+        //        CreateM2MGenMethods(CreateM2MAddMethod, entity, relation, entityClass);
+        //        CreateM2MGenMethods(CreateM2MRemoveMethod, entity, relation, entityClass);
+        //        CreateM2MGenMethods(CreateM2MGetMethod, entity, relation, entityClass);
+        //        CreateM2MGenMethods(CreateM2MMergeMethod, entity, relation, entityClass);
+        //    }
+        //}
 
-        private delegate CodeMemberMethod CreateM2MMethodDelegate(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct);
+        //private delegate CodeMemberMethod CreateM2MMethodDelegate(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct);
 
-        private static void CreateM2MGenMethods(CreateM2MMethodDelegate del, EntityDefinition entity, RelationDefinitionBase relation, CodeTypeDeclaration entityClass)
-        {
-            RelationDefinition rel = relation as RelationDefinition;
-            if (rel != null)
-            {
-                LinkTarget link = rel.Left.Entity == entity ? rel.Right : rel.Left;
-                string accessorName = link.AccessorName;
-                EntityDefinition relatedEntity = link.Entity;
-                if (!string.IsNullOrEmpty(accessorName))
-                    entityClass.Members.Add(del(accessorName, relatedEntity, link.AccessedEntityType, null));
-            }
+        //private static void CreateM2MGenMethods(CreateM2MMethodDelegate del, EntityDefinition entity, RelationDefinitionBase relation, CodeTypeDeclaration entityClass)
+        //{
+        //    RelationDefinition rel = relation as RelationDefinition;
+        //    if (rel != null)
+        //    {
+        //        LinkTarget link = rel.Left.Entity == entity ? rel.Right : rel.Left;
+        //        string accessorName = link.AccessorName;
+        //        EntityDefinition relatedEntity = link.Entity;
+        //        if (!string.IsNullOrEmpty(accessorName))
+        //            entityClass.Members.Add(del(accessorName, relatedEntity, link.AccessedEntityType, null));
+        //    }
 
-            SelfRelationDescription selfRel = relation as SelfRelationDescription;
-            if (selfRel != null)
-            {
+        //    SelfRelationDescription selfRel = relation as SelfRelationDescription;
+        //    if (selfRel != null)
+        //    {
 
-                if (!string.IsNullOrEmpty(selfRel.Direct.AccessorName))
-                    entityClass.Members.Add(del(selfRel.Direct.AccessorName, entity, selfRel.Direct.AccessedEntityType, true));
-                if (!string.IsNullOrEmpty(selfRel.Reverse.AccessorName))
-                    entityClass.Members.Add(del(selfRel.Reverse.AccessorName, entity, selfRel.Reverse.AccessedEntityType, false));
-            }
-        }
+        //        if (!string.IsNullOrEmpty(selfRel.Direct.AccessorName))
+        //            entityClass.Members.Add(del(selfRel.Direct.AccessorName, entity, selfRel.Direct.AccessedEntityType, true));
+        //        if (!string.IsNullOrEmpty(selfRel.Reverse.AccessorName))
+        //            entityClass.Members.Add(del(selfRel.Reverse.AccessorName, entity, selfRel.Reverse.AccessedEntityType, false));
+        //    }
+        //}
 
-        private CodeMemberMethod CreateM2MAddMethod(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct)
-        {
-            CodeMemberMethod method = new CodeMemberMethod();
-            method.Name = "Add" + accessorName;
+        //private CodeMemberMethod CreateM2MAddMethod(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct)
+        //{
+        //    CodeMemberMethod method = new CodeMemberMethod();
+        //    method.Name = "Add" + accessorName;
 
-            CodeParameterDeclarationExpression relObjectPrm = new CodeParameterDeclarationExpression();
-            method.Parameters.Add(relObjectPrm);
-            method.Attributes = MemberAttributes.Public;
-            relObjectPrm.Name = accessorName.ToLower();
-            if (relatedEntity.UseGenerics)
-            {
-                CodeTypeParameter typePrm = new CodeTypeParameter("T" + accessorName);
-                typePrm.Constraints.Add(new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true)));
-                typePrm.HasConstructorConstraint = true;
-                method.TypeParameters.Add(typePrm);
-                relObjectPrm.Type = new CodeTypeReference(typePrm);
-            }
-            else
-            {
-                relObjectPrm.Type = new CodeTypeReference(relatedEntityType == null ? new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true) : relatedEntityType.GetTypeName(Settings));
-            }
-            CodeMethodInvokeExpression methodInvokeExpression = new CodeMethodInvokeExpression(
-                            new CodePropertyReferenceExpression(
-                                new CodeThisReferenceExpression(),
-                                "M2M"
-                                ),
-                            "Add",
-                            new CodeArgumentReferenceExpression(relObjectPrm.Name)
-                            );
-            if (direct.HasValue)
-            {
-                methodInvokeExpression.Parameters.Add(new CodePrimitiveExpression(direct.Value));
-            }
-            method.Statements.Add(
-                new CodeExpressionStatement(
-                    methodInvokeExpression
-                    )
-                );
-            return method;
-        }
+        //    CodeParameterDeclarationExpression relObjectPrm = new CodeParameterDeclarationExpression();
+        //    method.Parameters.Add(relObjectPrm);
+        //    method.Attributes = MemberAttributes.Public;
+        //    relObjectPrm.Name = accessorName.ToLower();
+        //    if (relatedEntity.UseGenerics)
+        //    {
+        //        CodeTypeParameter typePrm = new CodeTypeParameter("T" + accessorName);
+        //        typePrm.Constraints.Add(new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true)));
+        //        typePrm.HasConstructorConstraint = true;
+        //        method.TypeParameters.Add(typePrm);
+        //        relObjectPrm.Type = new CodeTypeReference(typePrm);
+        //    }
+        //    else
+        //    {
+        //        relObjectPrm.Type = new CodeTypeReference(relatedEntityType == null ? new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true) : relatedEntityType.GetTypeName(Settings));
+        //    }
+        //    CodeMethodInvokeExpression methodInvokeExpression = new CodeMethodInvokeExpression(
+        //                    new CodePropertyReferenceExpression(
+        //                        new CodeThisReferenceExpression(),
+        //                        "M2M"
+        //                        ),
+        //                    "Add",
+        //                    new CodeArgumentReferenceExpression(relObjectPrm.Name)
+        //                    );
+        //    if (direct.HasValue)
+        //    {
+        //        methodInvokeExpression.Parameters.Add(new CodePrimitiveExpression(direct.Value));
+        //    }
+        //    method.Statements.Add(
+        //        new CodeExpressionStatement(
+        //            methodInvokeExpression
+        //            )
+        //        );
+        //    return method;
+        //}
 
-        private CodeMemberMethod CreateM2MRemoveMethod(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct)
-        {
-            CodeMemberMethod method = new CodeMemberMethod();
-            method.Name = "Remove" + accessorName;
+        //private CodeMemberMethod CreateM2MRemoveMethod(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct)
+        //{
+        //    CodeMemberMethod method = new CodeMemberMethod();
+        //    method.Name = "Remove" + accessorName;
 
-            CodeParameterDeclarationExpression relObjectPrm = new CodeParameterDeclarationExpression();
-            method.Parameters.Add(relObjectPrm);
-            method.Attributes = MemberAttributes.Public;
-            relObjectPrm.Name = accessorName.ToLower();
-            if (relatedEntity.UseGenerics)
-            {
-                CodeTypeParameter typePrm = new CodeTypeParameter("T" + accessorName);
-                typePrm.Constraints.Add(new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true)));
-                typePrm.HasConstructorConstraint = true;
-                method.TypeParameters.Add(typePrm);
-                relObjectPrm.Type = new CodeTypeReference(typePrm);
-            }
-            else
-            {
-                relObjectPrm.Type = new CodeTypeReference(relatedEntityType == null ? new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true) : relatedEntityType.GetTypeName(Settings));
-            }
-            CodeMethodInvokeExpression methodInvokeExpression = new CodeMethodInvokeExpression(
-                new CodePropertyReferenceExpression(
-                    new CodeThisReferenceExpression(),
-                    "M2M"
-                    ),
-                "Delete",
-                new CodeArgumentReferenceExpression(relObjectPrm.Name)
-                );
-            if (direct.HasValue)
-            {
-                methodInvokeExpression.Parameters.Add(new CodePrimitiveExpression(direct.Value));
-            }
-            method.Statements.Add(
-                new CodeExpressionStatement(
-                    methodInvokeExpression
-                    )
-                );
-            return method;
-        }
+        //    CodeParameterDeclarationExpression relObjectPrm = new CodeParameterDeclarationExpression();
+        //    method.Parameters.Add(relObjectPrm);
+        //    method.Attributes = MemberAttributes.Public;
+        //    relObjectPrm.Name = accessorName.ToLower();
+        //    if (relatedEntity.UseGenerics)
+        //    {
+        //        CodeTypeParameter typePrm = new CodeTypeParameter("T" + accessorName);
+        //        typePrm.Constraints.Add(new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true)));
+        //        typePrm.HasConstructorConstraint = true;
+        //        method.TypeParameters.Add(typePrm);
+        //        relObjectPrm.Type = new CodeTypeReference(typePrm);
+        //    }
+        //    else
+        //    {
+        //        relObjectPrm.Type = new CodeTypeReference(relatedEntityType == null ? new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true) : relatedEntityType.GetTypeName(Settings));
+        //    }
+        //    CodeMethodInvokeExpression methodInvokeExpression = new CodeMethodInvokeExpression(
+        //        new CodePropertyReferenceExpression(
+        //            new CodeThisReferenceExpression(),
+        //            "M2M"
+        //            ),
+        //        "Delete",
+        //        new CodeArgumentReferenceExpression(relObjectPrm.Name)
+        //        );
+        //    if (direct.HasValue)
+        //    {
+        //        methodInvokeExpression.Parameters.Add(new CodePrimitiveExpression(direct.Value));
+        //    }
+        //    method.Statements.Add(
+        //        new CodeExpressionStatement(
+        //            methodInvokeExpression
+        //            )
+        //        );
+        //    return method;
+        //}
 
-        private CodeMemberMethod CreateM2MGetMethod(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct)
-        {
-            CodeMemberMethod method = new CodeMemberMethod();
-            method.Name = "Get" + WXMLCodeDomGeneratorNameHelper.GetMultipleForm(accessorName);
-            method.Attributes = MemberAttributes.Public;
-            CodeTypeReference callType;
-            if (relatedEntity.UseGenerics)
-            {
-                CodeTypeParameter typePrm = new CodeTypeParameter("T" + accessorName);
-                typePrm.Constraints.Add(new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true)));
-                typePrm.HasConstructorConstraint = true;
-                method.TypeParameters.Add(typePrm);
-                callType = new CodeTypeReference(typePrm);
-            }
-            else
-            {
-                callType = new CodeTypeReference(relatedEntityType == null ? new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true) : relatedEntityType.GetTypeName(Settings));
-            }
-            method.ReturnType = new CodeTypeReference(typeof(ReadOnlyList<>).FullName, callType);
-            CodeMethodInvokeExpression methodInvokeExpression = new CodeMethodInvokeExpression(
-                            new CodeMethodReferenceExpression(
-                                new CodePropertyReferenceExpression(
-                                    new CodeThisReferenceExpression(),
-                                    "M2M"
-                                    ),
-                                "Find",
-                                callType),
-                            new CodePrimitiveExpression(null),
-                            new CodePrimitiveExpression(null),
-                            new CodePrimitiveExpression(false)
-                            );
-            if (direct.HasValue)
-            {
-                methodInvokeExpression.Parameters.Add(new CodePrimitiveExpression(direct.Value));
-            }
-            method.Statements.Add(
-                new CodeMethodReturnStatement(
-                    methodInvokeExpression
-                    )
-                );
-            return method;
-        }
+        //private CodeMemberMethod CreateM2MGetMethod(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct)
+        //{
+        //    CodeMemberMethod method = new CodeMemberMethod();
+        //    method.Name = "Get" + WXMLCodeDomGeneratorNameHelper.GetMultipleForm(accessorName);
+        //    method.Attributes = MemberAttributes.Public;
+        //    CodeTypeReference callType;
+        //    if (relatedEntity.UseGenerics)
+        //    {
+        //        CodeTypeParameter typePrm = new CodeTypeParameter("T" + accessorName);
+        //        typePrm.Constraints.Add(new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true)));
+        //        typePrm.HasConstructorConstraint = true;
+        //        method.TypeParameters.Add(typePrm);
+        //        callType = new CodeTypeReference(typePrm);
+        //    }
+        //    else
+        //    {
+        //        callType = new CodeTypeReference(relatedEntityType == null ? new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true) : relatedEntityType.GetTypeName(Settings));
+        //    }
+        //    method.ReturnType = new CodeTypeReference(typeof(ReadOnlyList<>).FullName, callType);
+        //    CodeMethodInvokeExpression methodInvokeExpression = new CodeMethodInvokeExpression(
+        //                    new CodeMethodReferenceExpression(
+        //                        new CodePropertyReferenceExpression(
+        //                            new CodeThisReferenceExpression(),
+        //                            "M2M"
+        //                            ),
+        //                        "Find",
+        //                        callType),
+        //                    new CodePrimitiveExpression(null),
+        //                    new CodePrimitiveExpression(null),
+        //                    new CodePrimitiveExpression(false)
+        //                    );
+        //    if (direct.HasValue)
+        //    {
+        //        methodInvokeExpression.Parameters.Add(new CodePrimitiveExpression(direct.Value));
+        //    }
+        //    method.Statements.Add(
+        //        new CodeMethodReturnStatement(
+        //            methodInvokeExpression
+        //            )
+        //        );
+        //    return method;
+        //}
 
-        private CodeMemberMethod CreateM2MMergeMethod(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct)
-        {
-            CodeMemberMethod method = new CodeMemberMethod();
-            method.Name = "Merge" + WXMLCodeDomGeneratorNameHelper.GetMultipleForm(accessorName);
-            method.Attributes = MemberAttributes.Public;
+        //private CodeMemberMethod CreateM2MMergeMethod(string accessorName, EntityDefinition relatedEntity, TypeDefinition relatedEntityType, bool? direct)
+        //{
+        //    CodeMemberMethod method = new CodeMemberMethod();
+        //    method.Name = "Merge" + WXMLCodeDomGeneratorNameHelper.GetMultipleForm(accessorName);
+        //    method.Attributes = MemberAttributes.Public;
 
-            CodeParameterDeclarationExpression colPrm = new CodeParameterDeclarationExpression();
-            method.Parameters.Add(colPrm);
-            method.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(bool)), "removeNotInList"));
+        //    CodeParameterDeclarationExpression colPrm = new CodeParameterDeclarationExpression();
+        //    method.Parameters.Add(colPrm);
+        //    method.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(bool)), "removeNotInList"));
 
-            colPrm.Name = "col";
+        //    colPrm.Name = "col";
 
-            CodeTypeReference callType;
+        //    CodeTypeReference callType;
 
-            if (relatedEntity.UseGenerics)
-            {
-                CodeTypeParameter typePrm = new CodeTypeParameter("T" + accessorName);
-                typePrm.Constraints.Add(new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true)));
-                typePrm.HasConstructorConstraint = true;
-                method.TypeParameters.Add(typePrm);
-                callType = new CodeTypeReference(typePrm);
+        //    if (relatedEntity.UseGenerics)
+        //    {
+        //        CodeTypeParameter typePrm = new CodeTypeParameter("T" + accessorName);
+        //        typePrm.Constraints.Add(new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true)));
+        //        typePrm.HasConstructorConstraint = true;
+        //        method.TypeParameters.Add(typePrm);
+        //        callType = new CodeTypeReference(typePrm);
 
 
-            }
-            else
-            {
-                callType = new CodeTypeReference(relatedEntityType == null ? new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true) : relatedEntityType.GetTypeName(Settings));
-            }
-            colPrm.Type = new CodeTypeReference(typeof(ReadOnlyList<>).FullName, callType);
-            CodeMethodInvokeExpression methodInvokeExpression = new CodeMethodInvokeExpression(
-                            new CodeMethodReferenceExpression(
-                                new CodePropertyReferenceExpression(
-                                    new CodeThisReferenceExpression(),
-                                    "M2M"
-                                    ),
-                                "Merge",
-                                callType),
-                            new CodeArgumentReferenceExpression(colPrm.Name),
-                            new CodeArgumentReferenceExpression("removeNotInList")
-                            );
-            if (direct.HasValue)
-            {
-                methodInvokeExpression.Parameters.Add(new CodePrimitiveExpression(direct.Value));
-            }
-            method.Statements.Add(
-                new CodeExpressionStatement(
-                    methodInvokeExpression
-                    )
-                );
-            return method;
-        }
+        //    }
+        //    else
+        //    {
+        //        callType = new CodeTypeReference(relatedEntityType == null ? new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relatedEntity, true) : relatedEntityType.GetTypeName(Settings));
+        //    }
+        //    colPrm.Type = new CodeTypeReference(typeof(ReadOnlyList<>).FullName, callType);
+        //    CodeMethodInvokeExpression methodInvokeExpression = new CodeMethodInvokeExpression(
+        //                    new CodeMethodReferenceExpression(
+        //                        new CodePropertyReferenceExpression(
+        //                            new CodeThisReferenceExpression(),
+        //                            "M2M"
+        //                            ),
+        //                        "Merge",
+        //                        callType),
+        //                    new CodeArgumentReferenceExpression(colPrm.Name),
+        //                    new CodeArgumentReferenceExpression("removeNotInList")
+        //                    );
+        //    if (direct.HasValue)
+        //    {
+        //        methodInvokeExpression.Parameters.Add(new CodePrimitiveExpression(direct.Value));
+        //    }
+        //    method.Statements.Add(
+        //        new CodeExpressionStatement(
+        //            methodInvokeExpression
+        //            )
+        //        );
+        //    return method;
+        //}
         #endregion
 
         private void ImplementIRelation(RelationDefinition relation, EntityDefinition entity,
             CodeTypeDeclaration entitySchemaDefClass)
         {
-            var leftProp = entity.GetActiveProperties().SingleOrDefault(match => match.FieldName == relation.Left.FieldName);
-            var rightProp = entity.GetActiveProperties().SingleOrDefault(match => match.FieldName == relation.Right.FieldName);
+            var leftProp = entity.GetActiveProperties().OfType<EntityPropertyDefinition>().SingleOrDefault(item => 
+                item.SourceFields.Any(sf=>relation.Left.FieldName.Contains(sf.SourceFieldExpression)));
+            
+            var rightProp = entity.GetActiveProperties().OfType<EntityPropertyDefinition>().SingleOrDefault(item =>
+                item.SourceFields.Any(sf => relation.Right.FieldName.Contains(sf.SourceFieldExpression)));
 
             if (leftProp != null && rightProp != null)
             {
                 entitySchemaDefClass.BaseTypes.Add(new CodeTypeReference(typeof(IRelation)));
 
                 #region Pair<string, Type> GetFirstType()
-                CodeMemberMethod method = new CodeMemberMethod();
-                //method.StartDirectives.Add(Regions["IRelation Members"].Start);
-                entitySchemaDefClass.Members.Add(method);
-                method.Name = "GetFirstType";
-                // тип возвращаемого значения
-                method.ReturnType = new CodeTypeReference(typeof(IRelation.RelationDesc));
-                // модификаторы доступа
-                method.Attributes = MemberAttributes.Public;
+                CodeMemberMethod method = new CodeMemberMethod
+                {
+                    Name = "GetFirstType",
+                    // тип возвращаемого значения
+                    ReturnType = new CodeTypeReference(typeof(IRelation.RelationDesc)),
+                    // модификаторы доступа
+                    Attributes = MemberAttributes.Public
+                };
                 // реализует метод базового класса
                 method.ImplementationTypes.Add(typeof(IRelation));
 
@@ -1869,17 +1872,18 @@ namespace WXMLToWorm
                             )
                         )
                     );
+                entitySchemaDefClass.Members.Add(method);
                 #endregion Pair<string, Type> GetFirstType()
 
                 #region Pair<string, Type> GetSecondType()
-                method = new CodeMemberMethod();
-                //method.EndDirectives.Add(Regions["IRelation Members"].End);
-                entitySchemaDefClass.Members.Add(method);
-                method.Name = "GetSecondType";
-                // тип возвращаемого значения
-                method.ReturnType = new CodeTypeReference(typeof(IRelation.RelationDesc));
-                // модификаторы доступа
-                method.Attributes = MemberAttributes.Public;
+                method = new CodeMemberMethod
+                {
+                    Name = "GetSecondType",
+                    // тип возвращаемого значения
+                    ReturnType = new CodeTypeReference(typeof(IRelation.RelationDesc)),
+                    // модификаторы доступа
+                    Attributes = MemberAttributes.Public
+                };
                 // реализует метод базового класса
                 method.ImplementationTypes.Add(typeof(IRelation));
                 method.Statements.Add(
@@ -1897,12 +1901,10 @@ namespace WXMLToWorm
                                     ),
                                 new CodePrimitiveExpression(relation.Left.Entity.Name)
                                 )
-                    //new CodeTypeOfExpression(
-                    //    new CodeTypeReference(GetEntityClassQualifiedName(relation.Left.Entity, settings))
-                    //)
                             )
                         )
                     );
+                entitySchemaDefClass.Members.Add(method);
                 #endregion Pair<string, Type> GetSecondType()
             }
         }
@@ -1910,15 +1912,16 @@ namespace WXMLToWorm
         private void ImplementIRelation(SelfRelationDescription relation, EntityDefinition entity, CodeTypeDeclaration entitySchemaDefClass)
         {
             entitySchemaDefClass.BaseTypes.Add(new CodeTypeReference(typeof(IRelation)));
+            
             #region Pair<string, Type> GetFirstType()
-            CodeMemberMethod method = new CodeMemberMethod();
-            //method.StartDirectives.Add(Regions["IRelation Members"].Start);
-            entitySchemaDefClass.Members.Add(method);
-            method.Name = "GetFirstType";
-            // тип возвращаемого значения
-            method.ReturnType = new CodeTypeReference(typeof(IRelation.RelationDesc));
-            // модификаторы доступа
-            method.Attributes = MemberAttributes.Public;
+            CodeMemberMethod method = new CodeMemberMethod
+            {
+                Name = "GetFirstType",
+                // тип возвращаемого значения
+                ReturnType = new CodeTypeReference(typeof(IRelation.RelationDesc)),
+                // модификаторы доступа
+                Attributes = MemberAttributes.Public
+            };
             // реализует метод базового класса
             method.ImplementationTypes.Add(typeof(IRelation));
             method.Statements.Add(
@@ -1926,67 +1929,77 @@ namespace WXMLToWorm
                     new CodeObjectCreateExpression(
                         new CodeTypeReference(typeof(IRelation.RelationDesc)),
                         WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings,
-                            entity.SelfProperties.First(
-                                match => match.FieldName == relation.Direct.FieldName)),
+                            entity.GetActiveProperties().OfType<EntityPropertyDefinition>().SingleOrDefault(item =>
+                                item.SourceFields.Any(sf => relation.Direct.FieldName.Contains(sf.SourceFieldExpression)))
+                        ),
                         new CodeMethodInvokeExpression(
                             new CodeMethodReferenceExpression(
                                 new CodeFieldReferenceExpression(
                                     new CodeThisReferenceExpression(),
                                     "_schema"
-                                    ),
-                                "GetTypeByEntityName"
                                 ),
-                            new CodePrimitiveExpression(relation.Entity.Name)
+                                "GetTypeByEntityName"
                             ),
+                            new CodePrimitiveExpression(relation.Entity.Name)
+                        ),
                         new CodePrimitiveExpression(true)
-                        )
                     )
-                );
-            #endregion Pair<string, Type> GetFirstType()
-            #region Pair<string, Type> GetSecondType()
-            method = new CodeMemberMethod();
-            //method.EndDirectives.Add(Regions["IRelation Members"].End);
+                )
+            );
             entitySchemaDefClass.Members.Add(method);
-            method.Name = "GetSecondType";
-            // тип возвращаемого значения
-            method.ReturnType = new CodeTypeReference(typeof(IRelation.RelationDesc));
-            // модификаторы доступа
-            method.Attributes = MemberAttributes.Public;
+            #endregion Pair<string, Type> GetFirstType()
+
+            #region Pair<string, Type> GetSecondType()
+            method = new CodeMemberMethod
+            {
+                Name = "GetSecondType",
+                // тип возвращаемого значения
+                ReturnType = new CodeTypeReference(typeof(IRelation.RelationDesc)),
+                // модификаторы доступа
+                Attributes = MemberAttributes.Public
+            };
             // реализует метод базового класса
             method.ImplementationTypes.Add(typeof(IRelation));
             method.Statements.Add(
                 new CodeMethodReturnStatement(
                     new CodeObjectCreateExpression(
                         new CodeTypeReference(typeof(IRelation.RelationDesc)),
-                        WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, entity.SelfProperties.First(
-                            match => match.FieldName == relation.Reverse.FieldName)),
+                        WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, 
+                            entity.GetActiveProperties().OfType<EntityPropertyDefinition>().SingleOrDefault(item =>
+                                item.SourceFields.Any(sf => relation.Reverse.FieldName.Contains(sf.SourceFieldExpression)))
+                        ),
                         new CodeMethodInvokeExpression(
                             new CodeMethodReferenceExpression(
                                 new CodeFieldReferenceExpression(
                                     new CodeThisReferenceExpression(),
                                     "_schema"
-                                    ),
-                                "GetTypeByEntityName"
                                 ),
-                            new CodePrimitiveExpression(relation.Entity.Name)
+                                "GetTypeByEntityName"
                             ),
-                            new CodePrimitiveExpression(false)
-                        )
+                            new CodePrimitiveExpression(relation.Entity.Name)
+                        ),
+                        new CodePrimitiveExpression(false)
                     )
-                );
+                )
+            );
+            entitySchemaDefClass.Members.Add(method);
             #endregion Pair<string, Type> GetSecondType()
         }
 
         private static CodeMemberMethod CreateGetValueMethod(CodeEntityTypeDeclaration entityClass)
         {
-            CodeMemberMethod method = new CodeMemberMethod();
-            method.Name = "GetValueOptimized";
-            method.ReturnType = new CodeTypeReference(typeof(object));
-            method.Attributes = MemberAttributes.Public;
+            CodeMemberMethod method = new CodeMemberMethod
+            {
+                Name = "GetValueOptimized",
+                ReturnType = new CodeTypeReference(typeof (object)),
+                Attributes = MemberAttributes.Public
+            };
+
             if (entityClass.Entity.BaseEntity != null)
                 method.Attributes |= MemberAttributes.Override;
             else
                 method.ImplementationTypes.Add(new CodeTypeReference(typeof(IOptimizedValues)));
+            
             CodeParameterDeclarationExpression prm = new CodeParameterDeclarationExpression(
                 new CodeTypeReference(typeof(string)),
                 "propertyAlias"
@@ -2241,7 +2254,7 @@ namespace WXMLToWorm
                     if (td != null)
                     {
                         //CreateProperty(copyMethod, createobjectMethod, entityClass, propertyDesc, settings, setvalueMethod, getvalueMethod);
-                        property = CreateUpdatedProperty(entityClass, propertyDesc, td.ToCodeType(Settings));
+                        property = CreateUpdatedProperty(entityClass, propertyDesc as EntityPropertyDefinition, td.ToCodeType(Settings));
                     }
                 }
 
@@ -2296,7 +2309,7 @@ namespace WXMLToWorm
         }
 
         private CodeMemberProperty CreateUpdatedProperty(CodeEntityTypeDeclaration entityClass, 
-            ScalarPropertyDefinition propertyDesc, CodeTypeReference propertyType)
+            EntityPropertyDefinition propertyDesc, CodeTypeReference propertyType)
         {
             CodeMemberProperty property = new CodeMemberProperty
             {
@@ -2337,24 +2350,27 @@ namespace WXMLToWorm
 
             RaisePropertyCreated(propertyDesc, entityClass, property, null);
 
-            #region добавление членов в класс
             entityClass.Members.Add(property);
-            #endregion добавление членов в класс
 
             return property;
         }
 
         private CodeMemberProperty CreateProperty(CodeEntityTypeDeclaration entityClass,
-            ScalarPropertyDefinition propertyDesc, EntityDefinition entity,
+            PropertyDefinition propertyDesc, EntityDefinition entity,
             CodeMemberMethod setvalueMethod, CodeMemberMethod getvalueMethod)
         {
             CodeTypeReference fieldType = propertyDesc.PropertyType.ToCodeType(Settings);
             CodeMemberProperty property = null;
 
-            if (string.IsNullOrEmpty(propertyDesc.SourceFieldExpression) && entity.GetPropertiesFromBase().Any(item => !item.Disabled && item.Name == propertyDesc.Name))
+            bool emptyField = propertyDesc is ScalarPropertyDefinition ?
+                string.IsNullOrEmpty((propertyDesc as ScalarPropertyDefinition).SourceFieldExpression) :
+                ((EntityPropertyDefinition) propertyDesc).SourceFields.Count() == 0;
+            
+            if (emptyField && entity.GetPropertiesFromBase().Any(item => 
+                !item.Disabled && item.Name == propertyDesc.Name))
             {
                 property = Define.Property(fieldType,
-                    WXMLCodeDomGenerator.GetMemberAttribute(propertyDesc) | MemberAttributes.New | MemberAttributes.Final,
+                    GetMemberAttribute(propertyDesc) | MemberAttributes.New | MemberAttributes.Final,
                     propertyDesc.Name,
                     CodeDom.CombineStmts(
                         Emit.@return(()=>CodeDom.cast(fieldType, CodeDom.@base.Property(propertyDesc.Name)))
@@ -2370,7 +2386,7 @@ namespace WXMLToWorm
 
                 CodeMemberField field = new CodeMemberField(fieldType, fieldName)
                 {
-                    Attributes = WXMLCodeDomGenerator.GetMemberAttribute(propertyDesc.FieldAccessLevel)
+                    Attributes = GetMemberAttribute(propertyDesc.FieldAccessLevel)
                 };
 
                 property = new CodeMemberProperty
@@ -2379,7 +2395,7 @@ namespace WXMLToWorm
                     HasSet = true,
                     Name = propertyDesc.Name,
                     Type = fieldType,
-                    Attributes = WXMLCodeDomGenerator.GetMemberAttribute(propertyDesc)
+                    Attributes = GetMemberAttribute(propertyDesc)
                 };
 
                 if (entity.GetPropertiesFromBase().Any(k => propertyDesc.Name == k.Name))
@@ -2466,11 +2482,12 @@ namespace WXMLToWorm
                 #endregion public override object GetValue(string propAlias, Worm.Orm.IOrmObjectsSchema schema)
 
             }
-                entityClass.Members.Add(property);
-                return property;
+
+            entityClass.Members.Add(property);
+            return property;
         }
 
-        private void UpdateGetValueMethod(ScalarPropertyDefinition propertyDesc, CodeMemberMethod getvalueMethod)
+        private void UpdateGetValueMethod(PropertyDefinition propertyDesc, CodeMemberMethod getvalueMethod)
         {
             getvalueMethod.Statements.Insert(getvalueMethod.Statements.Count - 1,
                 new CodeConditionStatement(
@@ -2480,19 +2497,26 @@ namespace WXMLToWorm
                         new CodeArgumentReferenceExpression("propertyAlias")
                     ),
                     new CodeMethodReturnStatement(
-                        new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(propertyDesc.Name))
+                        new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), 
+                            new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(propertyDesc.Name)
+                        )
                     )
                 )
             );
         }
-        private void CreatePropertyColumnAttribute(CodeMemberProperty property, ScalarPropertyDefinition propertyDesc)
+        private void CreatePropertyColumnAttribute(CodeMemberProperty property, PropertyDefinition propertyDesc)
         {
-            CodeAttributeDeclaration declaration = new CodeAttributeDeclaration(new CodeTypeReference(typeof(EntityPropertyAttribute)));
+            CodeAttributeDeclaration declaration = new CodeAttributeDeclaration(
+                new CodeTypeReference(typeof(EntityPropertyAttribute))
+            );
 
             if (!string.IsNullOrEmpty(propertyDesc.PropertyAlias))
             {
                 declaration.Arguments.Add(
-                    new CodeAttributeArgument("PropertyAlias", WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc)));
+                    new CodeAttributeArgument("PropertyAlias", 
+                        WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc)
+                    )
+                );
             }
 
             property.CustomAttributes.Add(declaration);

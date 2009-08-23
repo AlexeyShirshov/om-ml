@@ -42,7 +42,7 @@ namespace WXML.Model.Descriptors
             _properties = new List<PropertyDefinition>();
             _suppressedProperties = new List<string>();
             _model = model;
-            RawNamespace = nameSpace;
+            EntitySpecificNamespace = nameSpace;
             _baseEntity = baseEntity;
             Behaviour = behaviour;
 
@@ -303,7 +303,7 @@ namespace WXML.Model.Descriptors
 	                                                });
                 if (relationDescription.UnderlyingEntity != null)
                 {
-                    EntityDefinition superBaseEntity = relationDescription.UnderlyingEntity.SuperBaseEntity;
+                    EntityDefinition superBaseEntity = relationDescription.UnderlyingEntity.RootEntity;
                     key += "$" + (superBaseEntity == null ? relationDescription.UnderlyingEntity.Name : superBaseEntity.Name);
                 }
 
@@ -358,11 +358,11 @@ namespace WXML.Model.Descriptors
 
         public string Namespace
         {
-            get { return string.IsNullOrEmpty(RawNamespace) ? _model.Namespace : RawNamespace; }
-            set { RawNamespace = value; }
+            get { return string.IsNullOrEmpty(EntitySpecificNamespace) ? _model.Namespace : EntitySpecificNamespace; }
+            set { EntitySpecificNamespace = value; }
         }
 
-        public string RawNamespace { get; private set; }
+        public string EntitySpecificNamespace { get; private set; }
 
         public EntityDefinition BaseEntity
         {
@@ -375,7 +375,7 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public EntityDefinition SuperBaseEntity
+        public EntityDefinition RootEntity
         {
             get
             {

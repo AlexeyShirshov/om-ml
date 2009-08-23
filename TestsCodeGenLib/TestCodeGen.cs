@@ -190,7 +190,7 @@ namespace TestsCodeGenLib
             CodeDomProvider prov = new Microsoft.CSharp.CSharpCodeProvider();
             WXMLCodeDomGeneratorSettings settings = new WXMLCodeDomGeneratorSettings();
             settings.LanguageSpecificHacks = LanguageSpecificHacks.CSharp;
-            settings.RemoveOldM2M = true;
+            //settings.RemoveOldM2M = true;
 			//settings.Split = false;
             CompileCode(prov, settings, XmlReader.Create(stream));
 
@@ -327,7 +327,7 @@ namespace TestsCodeGenLib
 
             WXMLCodeDomGeneratorSettings settings = new WXMLCodeDomGeneratorSettings();
             settings.LanguageSpecificHacks = LanguageSpecificHacks.VisualBasic;
-            settings.RemoveOldM2M = true;
+            //settings.RemoveOldM2M = true;
 
 			//settings.Split = false;
             CompileCode(prov, settings, XmlReader.Create(stream));

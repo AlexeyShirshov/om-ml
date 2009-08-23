@@ -24,7 +24,7 @@ namespace WXML.Model.Descriptors
                 get { return _propertyAlias; }
             }
 
-            public string Alias
+            public string SourceFieldAlias
             {
                 get { return _alias; }
             }
@@ -139,5 +139,21 @@ namespace WXML.Model.Descriptors
             return null;
         }
 
+        public ScalarPropertyDefinition ToPropertyDefinition()
+        {
+            if (SourceFields.Count() > 1)
+                throw new InvalidOperationException(string.Format("Cannot convert property {0} to PropertyDefinition", Identifier));
+
+            var sf = SourceFields.First();
+
+            var p = new ScalarPropertyDefinition(Entity, Name)
+            {
+                SourceField = new SourceFieldDefinition(SourceFragment,
+                    sf.SourceFieldExpression, sf.SourceTypeSize, sf.IsNullable,
+                    sf.SourceType, false, sf.DefaultValue)
+            };
+            CopyTo(p);
+            return p;
+        }
     }
 }

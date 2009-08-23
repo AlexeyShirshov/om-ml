@@ -103,7 +103,7 @@ namespace WXMLToWorm.CodeDomExtensions
             else
                 entityName += "s";
             Attributes = MemberAttributes.Public | MemberAttributes.Final;
-            Name = (entity.RawNamespace ?? string.Empty) + entityName;
+            Name = (entity.EntitySpecificNamespace ?? string.Empty) + entityName;
             var entityTypeReference = new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(Entity, true));
             Type = new CodeTypeReference("Worm.Linq.QueryWrapperT", entityTypeReference);
             SetStatements.Clear();
