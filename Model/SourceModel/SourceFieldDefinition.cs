@@ -19,17 +19,18 @@ namespace WXML.Model.Descriptors
         {
         }
 
-        public SourceFieldDefinition(SourceFragmentDefinition sf, string column)
-            :this(sf, column, null, true, null, false, null)
+        public SourceFieldDefinition(SourceFragmentDefinition sf, string sourceFieldExpression)
+            :this(sf, sourceFieldExpression, null, true, null, false, null)
         {
             
         }
 
-        public SourceFieldDefinition(SourceFragmentDefinition sf, string column, int? sourceTypeSize,
+        public SourceFieldDefinition(SourceFragmentDefinition sf, string sourceFieldExpression, 
+            int? sourceTypeSize,
             bool isNullable, string type, bool identity, string defaultValue)
         {
             _tbl = sf;
-            _column = column;
+            _column = sourceFieldExpression;
             _sz = sourceTypeSize;
             _isNotNullable = !isNullable;
             _type = type;

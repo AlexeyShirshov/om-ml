@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="CodeDom\CodeCompileFileUnit.cs" />
     <Compile Include="Model\Descriptors\EntityProperty.cs" />
+    <Compile Include="Model\SourceModel\SourceProvider.cs" />
     <Compile Include="Model\SourceModel\SourceReferences.cs" />
     <Compile Include="Model\SourceModel\SourceView.cs" />
     <Compile Include="Model\SourceModel\SourceConstraint.cs" />
@@ -88,7 +89,7 @@
     <Compile Include="Model\Descriptors\SelfRelationTarget.cs" />
     <Compile Include="Model\SourceModel\SourceFragmentDescription.cs" />
     <Compile Include="Model\Enums.cs" />
-    <Compile Include="Database\WXMLModelGenerator.cs" />
+    <Compile Include="SourceConnector\ModelToSourceConnector.cs" />
     <Compile Include="CodeDom\WXMLCodeDomGenerator.cs" />
     <Compile Include="CodeDom\WXMLCodeDomGeneratorHelper.cs" />
     <Compile Include="CodeDom\WXMLCodeDomGeneratorNameHelper.cs" />
@@ -101,6 +102,7 @@
     <Compile Include="Model\Descriptors\PropertyDescription.cs" />
     <Compile Include="Model\Descriptors\RelationDescription.cs" />
     <Compile Include="Model\WXMLModel.cs" />
+    <Compile Include="SourceConnector\SourceToModelConnector.cs" />
     <Compile Include="WXML\WXMLModelWriterSettings.cs" />
     <Compile Include="WXML\WXMLModelWriter.cs" />
     <Compile Include="WXML\WXMLModelReader.cs" />

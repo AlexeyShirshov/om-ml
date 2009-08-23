@@ -14,7 +14,7 @@ namespace WXML.CodeDom
         private string _classNamePrefix = string.Empty;
         private string _classNameSuffix = string.Empty;
         private bool _useTypeInProps;
-        private bool _removeOldm2m;
+        //private bool _removeOldm2m;
         //private OrmObjectGeneratorBehaviour _behaviour = OrmObjectGeneratorBehaviour.Objects;
         private LanguageSpecificHacks _languageSpecificHacks; 
 
@@ -35,11 +35,11 @@ namespace WXML.CodeDom
             }
         }
 
-        public bool RemoveOldM2M
-        {
-            get { return _removeOldm2m; }
-            set { _removeOldm2m = value; }
-        }
+        //public bool RemoveOldM2M
+        //{
+        //    get { return _removeOldm2m; }
+        //    set { _removeOldm2m = value; }
+        //}
 
         //public bool OnlySchema { get; set; }
 

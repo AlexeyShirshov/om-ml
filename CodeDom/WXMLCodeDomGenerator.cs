@@ -27,7 +27,7 @@ namespace WXML.CodeDom
             member.Comments.Add(new CodeCommentStatement(string.Format("<summary>{1}{0}{1}</summary>", description, Environment.NewLine), true));
         }
 
-        public static MemberAttributes GetMemberAttribute(ScalarPropertyDefinition p)
+        public static MemberAttributes GetMemberAttribute(PropertyDefinition p)
         {
             if (p.Group != null && p.Group.Hide)
                 return MemberAttributes.Family;

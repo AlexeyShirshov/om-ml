@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.IO;
@@ -15,7 +16,7 @@ namespace WXML.Model.Database.Providers
         {
         }
 
-        public override SourceView GetDatabase(string schemas, string namelike, bool escapeTableNames, bool escapeColumnNames)
+        public override SourceView GetSourceView(string schemas, string namelike, bool escapeTableNames, bool escapeColumnNames)
         {
             SourceView database = new SourceView();
             //List<Pair<string>> defferedCols = new List<Pair<string>>();
@@ -302,6 +303,110 @@ namespace WXML.Model.Database.Providers
                     }
                 }
             }
+        }
+
+        public override void GenerateCreateScript(IEnumerable<PropertyDefinition> props, StringBuilder script, 
+            bool unicodeStrings)
+        {
+            SourceFragmentDefinition sf = props.First().SourceFragment;
+            script.AppendFormat("CREATE TABLE {0}.{1}(", sf.Selector, sf.Name);
+            
+            foreach (PropertyDefinition prop in props)
+            {
+                ScalarPropertyDefinition sp = prop as ScalarPropertyDefinition;
+                if (sp != null)
+                {
+                    script.Append(sp.SourceFieldExpression).Append(" ").Append(GetType(sp, unicodeStrings));
+                    
+                    if (sp.SourceField.IsAutoIncrement)
+                        script.Append(" IDENTITY");
+
+                    script.Append(sp.IsNullable?" NULL":"NOT NULL");
+
+                    if (!string.IsNullOrEmpty(sp.SourceField.DefaultValue))
+                        script.AppendFormat(" DEFAULT({0})", sp.SourceField.DefaultValue);
+
+                    script.Append(", ");
+                }
+            }
+
+            script.Length -= 2;
+            script.AppendLine(");");
+            script.AppendLine();
+        }
+
+        private static string GetType(ScalarPropertyDefinition prop, bool unicodeStrings)
+        {
+            string result = prop.SourceType;
+            if (string.IsNullOrEmpty(result))
+            {
+                switch (prop.PropertyType.ClrType.FullName)
+                {
+                    case "System.Boolean":
+                        result = "bit";
+                        break;
+                    case "System.Byte":
+                        result = "tinyint";
+                        break;
+                    case "System.Int16":
+                    case "System.SByte":
+                        result = "smallint";
+                        break;
+                    case "System.Int32":
+                    case "System.UInt16":
+                        result = "int";
+                        break;
+                    case "System.Int64":
+                    case "System.UInt32":
+                        result = "bigint";
+                        break;
+                    case "System.UInt64":
+                        result = "decimal";
+                        break;
+                    case "System.Decimal":
+                        result = "money";
+                        break;
+                    case "System.Single":
+                        result = "real";
+                        break;
+                    case "System.Double":
+                        result = "float";
+                        break;
+                    case "System.String":
+                        result = string.Format(unicodeStrings ? "nvarchar({0})" : "varchar({0})", 
+                            prop.SourceTypeSize.HasValue ? prop.SourceTypeSize.Value : 50);
+                        break;
+                    case "System.Char":
+                        result = unicodeStrings ? "nchar(1)" : "char(1)";
+                        break;
+                    case "System.Xml.XmlDocument":
+                    case "System.Xml.XmlDocumentFragment":
+                    case "System.Xml.Linq.XDocument":
+                    case "System.Xml.Linq.XElement":
+                        result = "xml";
+                        break;
+                    case "System.DateTime":
+                        result = "datetime";
+                        break;
+                    case "System.GUID":
+                        result = "uniqueidentifier";
+                        break;
+                    case "System.Char[]":
+                        result = string.Format(unicodeStrings ? "nvarchar({0})" : "varchar({0})", 
+                            prop.SourceTypeSize.HasValue ? prop.SourceTypeSize.Value : 50);
+                        break;
+                    case "System.Byte[]":
+                        if ((prop.Attributes & Field2DbRelations.RV) == Field2DbRelations.RV)
+                            result = "rowversion";
+                        else
+                            result = string.Format("varbinary({0})", prop.SourceTypeSize.HasValue ? prop.SourceTypeSize.Value : 50);
+
+                        break;
+                    default:
+                        throw new NotSupportedException(prop.PropertyType.ClrType.FullName);
+                }
+            }
+            return result;
         }
     }
 }

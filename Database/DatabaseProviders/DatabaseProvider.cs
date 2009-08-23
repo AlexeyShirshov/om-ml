@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Common;
+using System.Text;
 using WXML.Model.Descriptors;
 
 namespace WXML.Model.Database.Providers
 {
-    public abstract class DatabaseProvider
+    public abstract class DatabaseProvider : ISourceProvider
     {
         protected string _server;
         protected string _db;
@@ -26,7 +28,8 @@ namespace WXML.Model.Database.Providers
             _psw = psw;
         }
 
-        public abstract SourceView GetDatabase(string schemas, string namelike, bool escapeTableNames, bool escapeColumnNames);
+        public abstract SourceView GetSourceView(string schemas, string namelike, bool escapeTableNames, bool escapeColumnNames);
+        public abstract void GenerateCreateScript(IEnumerable<PropertyDefinition> props, StringBuilder script, bool unicodeStrings);
 
         protected abstract DbConnection GetDBConn();
 
