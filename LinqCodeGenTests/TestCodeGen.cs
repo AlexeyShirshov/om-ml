@@ -82,6 +82,8 @@ namespace LinqCodeGenTests
 
                 Console.WriteLine(gen.GenerateCode(LinqToCodedom.CodeDomGenerator.Language.VB));
 
+                Console.WriteLine(gen.GenerateCode(LinqToCodedom.CodeDomGenerator.Language.CSharp));
+
                 Assert.IsNotNull(gen.Compile(LinqToCodedom.CodeDomGenerator.Language.VB));
 
                 Assert.IsNotNull(gen.Compile(LinqToCodedom.CodeDomGenerator.Language.CSharp));

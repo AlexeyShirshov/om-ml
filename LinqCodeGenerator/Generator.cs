@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using WXML.CodeDom;
 using WXML.Model;
 using WXML.CodeDom.CodeDomExtensions;
@@ -12,6 +9,7 @@ using System.Reflection;
 using LinqToCodedom.Generator;
 using System.Data;
 using WXML.Model.Descriptors;
+using System;
 
 namespace LinqCodeGenerator
 {
@@ -44,6 +42,8 @@ namespace LinqCodeGenerator
         private CodeDomGenerator _GenerateCode(LinqToCodedom.CodeDomGenerator.Language language)
         {
             var c = new CodeDomGenerator();
+            c.RequireVariableDeclaration = true;
+            c.AllowLateBound = false;
 
             var ns = c.AddNamespace(Model.Namespace)
                 .Imports("System")
@@ -110,42 +110,137 @@ namespace LinqCodeGenerator
             cls.AddField(typeof(System.ComponentModel.PropertyChangingEventArgs), MemberAttributes.Private | MemberAttributes.Static,
                 "emptyChangingEventArgs", () => new System.ComponentModel.PropertyChangingEventArgs(string.Empty));
 
-            foreach (ScalarPropertyDefinition p in e.GetActiveProperties())
+            foreach (PropertyDefinition p_ in e.GetActiveProperties())
             {
-                cls.AddField(p.PropertyType.ToCodeType(_settings),
-                    WXMLCodeDomGenerator.GetMemberAttribute(p.FieldAccessLevel), 
-                    new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name));
+                if (p_ is ScalarPropertyDefinition)
+                {
+                    ScalarPropertyDefinition p = p_ as ScalarPropertyDefinition;
+                    cls.AddField(p.PropertyType.ToCodeType(_settings),
+                        WXMLCodeDomGenerator.GetMemberAttribute(p.FieldAccessLevel),
+                        new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name));
+                }
+                else if (p_ is EntityPropertyDefinition)
+                {
+                    EntityPropertyDefinition p = p_ as EntityPropertyDefinition;
+                    foreach (EntityPropertyDefinition.SourceField field in p.SourceFields)
+                    {
+                        TypeDefinition pt = GetSourceFieldType(p, field);
+
+                        cls.AddField(pt.ToCodeType(_settings),
+                            WXMLCodeDomGenerator.GetMemberAttribute(p.FieldAccessLevel),
+                            new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(field.SourceFieldExpression));
+                    }
+
+                    CodeTypeReference ft = CodeDom.TypeRef(typeof (System.Data.Linq.EntityRef<>), p.PropertyType.ToCodeType(_settings));
+
+                    cls.AddField(ft,
+                        WXMLCodeDomGenerator.GetMemberAttribute(p.FieldAccessLevel),
+                        new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name)
+                    );
+                }
             }
 
             //add relations
 
             AddEntityPartialMethods(cls, e);
 
-            cls.AddCtor(Emit.stmt(() => CodeDom.Call(null, "OnCreated")))
-                .Base();
-
-            foreach (ScalarPropertyDefinition p in e.GetActiveProperties())
+            CodeConstructor ctor = cls.AddCtor();
+            foreach (EntityPropertyDefinition p in e.GetActiveProperties().OfType<EntityPropertyDefinition>())
             {
-                var fieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name);
+                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntityRef<>), p.PropertyType.ToCodeType(_settings));
+                ctor.Statements.Add(Emit.assignField(new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name),
+                    ()=>CodeDom.@default(ft)
+                ));
+            }
+            ctor.Statements.Add(Emit.stmt(() => CodeDom.Call(null, "OnCreated")));
 
-                var prop = cls.AddProperty(p.PropertyType.ToCodeType(_settings),
-                    WXMLCodeDomGenerator.GetMemberAttribute(p.PropertyAccessLevel), p.Name,
-                    CodeDom.CombineStmts(
-                        Emit.@return(()=>CodeDom.@this.Field(fieldName))
-                    ),
-                    //set
-                        Emit.@if(() => CodeDom.Call<bool>(CodeDom.@this.Field(fieldName), "Equals")(CodeDom.VarRef("value")),
-                            Emit.stmt(()=>CodeDom.@this.Call("On"+p.Name+"Changing")(CodeDom.VarRef("value"))),
-                            Emit.stmt(()=>CodeDom.@this.Call("SendPropertyChanging")),
-                            Emit.assignField(fieldName, () => CodeDom.VarRef("value")),
-                            Emit.stmt(()=>CodeDom.@this.Call("SendPropertyChanged")(p.Name)),
-                            Emit.stmt(()=>CodeDom.@this.Call("On"+p.Name+"Changed"))
-                    )
-                );
+            foreach (PropertyDefinition p_ in e.GetActiveProperties())
+            {
+                if (p_ is ScalarPropertyDefinition)
+                {
+                    ScalarPropertyDefinition p = p_ as ScalarPropertyDefinition;
+                    
+                    var fieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name);
 
-                var attr = AddPropertyAttribute(p, fieldName);
+                    var prop = cls.AddProperty(p.PropertyType.ToCodeType(_settings),
+                        WXMLCodeDomGenerator.GetMemberAttribute(p.PropertyAccessLevel), p.Name,
+                        CodeDom.CombineStmts(
+                            Emit.@return(() => CodeDom.@this.Field(fieldName))
+                        ),
+                        //set
+                            Emit.@if(() => CodeDom.Call<bool>(CodeDom.@this.Field(fieldName), "Equals")(CodeDom.VarRef("value")),
+                                Emit.stmt(() => CodeDom.@this.Call("On" + p.Name + "Changing")(CodeDom.VarRef("value"))),
+                                Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanging")),
+                                Emit.assignField(fieldName, () => CodeDom.VarRef("value")),
+                                Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanged")(p.Name)),
+                                Emit.stmt(() => CodeDom.@this.Call("On" + p.Name + "Changed"))
+                        )
+                    );
 
-                prop.AddAttribute(attr);
+                    var attr = AddPropertyAttribute(p, fieldName);
+
+                    prop.AddAttribute(attr);
+                }
+                else if(p_ is EntityPropertyDefinition)
+                {
+                    EntityPropertyDefinition p = p_ as EntityPropertyDefinition;
+                    foreach (EntityPropertyDefinition.SourceField field in p.SourceFields)
+                    {
+                        var fieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(field.SourceFieldExpression);
+
+                        var prop = cls.AddProperty(GetSourceFieldType(p, field).ToCodeType(_settings),
+                            WXMLCodeDomGenerator.GetMemberAttribute(AccessLevel.Public), field.SourceFieldExpression,
+                            CodeDom.CombineStmts(
+                                Emit.@return(() => CodeDom.@this.Field(fieldName))
+                            ),
+                            //set
+                                Emit.@if(() => !Equals(CodeDom.@this.Field(fieldName), CodeDom.VarRef("value")),
+                                    Emit.stmt(() => CodeDom.@this.Call("On" + field.SourceFieldExpression + "Changing")(CodeDom.VarRef("value"))),
+                                    Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanging")),
+                                    Emit.assignField(fieldName, () => CodeDom.VarRef("value")),
+                                    Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanged")(field.SourceFieldExpression)),
+                                    Emit.stmt(() => CodeDom.@this.Call("On" + field.SourceFieldExpression + "Changed"))
+                            )
+                        );
+
+                        var attr = AddPropertyAttribute(field, fieldName);
+
+                        prop.AddAttribute(attr);
+                    }
+
+                    var efieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name);
+
+                    CodeTypeReference pt = p.PropertyType.ToCodeType(_settings);
+
+                    var eprop = cls.AddProperty(pt,
+                        WXMLCodeDomGenerator.GetMemberAttribute(p.PropertyAccessLevel), p.Name,
+                        CodeDom.CombineStmts(
+                            Emit.@return(() => CodeDom.Field(CodeDom.@this.Field(efieldName), "Entity"))
+                        ),
+                        Emit.declare(pt, "previousValue", ()=> CodeDom.Field(CodeDom.@this.Field(efieldName), "Entity")),
+                        Emit.@if(() => !Equals(CodeDom.@this.Field(efieldName), CodeDom.VarRef("value")) ||
+                            !CodeDom.Field<bool>(CodeDom.@this.Field(efieldName), "HasLoadedOrAssignedValue"),
+                            Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanging")),
+                            Emit.@if((object previousValue)=>!Equals(previousValue, null),
+                                Emit.assignProperty<object>(CodeDom.GetExpression(()=>CodeDom.@this.Field(efieldName)), "Entity", ()=>null)
+                            ),
+                            Emit.assignProperty(CodeDom.GetExpression(()=>CodeDom.@this.Field(efieldName)), "Entity", (object value)=>value),
+                            Emit.ifelse((object value) => !Equals(value, null),
+                                p.SourceFields.Select(field=>
+                                    Emit.assignField(new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(field.SourceFieldExpression), () => CodeDom.VarRef("value").Property(p.PropertyType.Entity.GetProperty(field.PropertyAlias).Name))
+                                ).ToArray(),
+                                p.SourceFields.Select(field =>
+                                    Emit.assignField(new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(field.SourceFieldExpression), () => CodeDom.@default(GetSourceFieldType(p, field).ToCodeType(_settings)))
+                                ).ToArray()
+                            ),
+                            Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanged")(p.Name))
+                        )
+                    );
+
+                    eprop.AddAttribute(AddPropertyAttribute(p, efieldName));
+                }
+                else
+                    throw new NotImplementedException();
             }
 
             //relations
@@ -175,6 +270,132 @@ namespace LinqCodeGenerator
                     Emit.stmt((string propertyName) => CodeDom.@this.Raise("PropertyChanged")(CodeDom.@this, new System.ComponentModel.PropertyChangedEventArgs(propertyName)))
                 )
             );
+        }
+
+        private static TypeDefinition GetSourceFieldType(PropertyDefinition p, EntityPropertyDefinition.SourceField field)
+        {
+            TypeDefinition pt = null;
+            if (string.IsNullOrEmpty(field.SourceType))
+            {
+                var pr = ((ScalarPropertyDefinition)p.PropertyType.Entity.GetActiveProperties().SingleOrDefault(item=>item.PropertyAlias==field.PropertyAlias));
+                pt = GetPropType(pr.SourceType, pr.IsNullable);
+            }
+            else
+                pt = GetPropType(field.SourceType, field.IsNullable);
+            return pt;
+        }
+
+        private static TypeDefinition GetPropType(string dbType, bool nullable)
+        {
+            string id = null;
+            string type = null;
+
+            switch (dbType)
+            {
+                case "rowversion":
+                case "timestamp":
+                    id = "tBytes";
+                    type = "System.Byte[]";
+                    break;
+                case "varchar":
+                case "nvarchar":
+                case "char":
+                case "nchar":
+                case "text":
+                case "ntext":
+                    id = "tString";
+                    type = "System.String";
+                    break;
+                case "int":
+                    id = "tInt32";
+                    type = "System.Int32";
+                    break;
+                case "smallint":
+                    id = "tInt16";
+                    type = "System.Int16";
+                    break;
+                case "bigint":
+                    id = "tInt64";
+                    type = "System.Int64";
+                    break;
+                case "tinyint":
+                    id = "tByte";
+                    type = "System.Byte";
+                    break;
+                case "datetime":
+                case "smalldatetime":
+                    id = "tDateTime";
+                    type = "System.DateTime";
+                    break;
+                case "money":
+                case "numeric":
+                case "decimal":
+                case "smallmoney":
+                    id = "tDecimal";
+                    type = "System.Decimal";
+                    break;
+                case "float":
+                    id = "tDouble";
+                    type = "System.Double";
+                    break;
+                case "real":
+                    id = "tSingle";
+                    type = "System.Single";
+                    break;
+                case "varbinary":
+                case "binary":
+                    id = "tBytes";
+                    type = "System.Byte[]";
+                    break;
+                case "bit":
+                    id = "tBoolean";
+                    type = "System.Boolean";
+                    break;
+                case "xml":
+                    id = "tXML";
+                    type = "System.Xml.XmlDocument";
+                    break;
+                case "uniqueidentifier":
+                    id = "tGUID";
+                    type = "System.Guid";
+                    break;
+                case "image":
+                    id = "tBytes";
+                    type = "System.Byte[]";
+                    break;
+                default:
+                    throw new ArgumentException("Unknown database type " + dbType);
+            }
+
+            Type tp = GetTypeByName(type);
+            if (nullable && tp.IsValueType)
+                type = String.Format("System.Nullable`1[{0}]", type);
+
+            return new TypeDefinition(id, type);
+        }
+
+        private static Type GetTypeByName(string type)
+        {
+            foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                Type tp = a.GetType(type, false, true);
+                if (tp != null)
+                    return tp;
+            }
+            throw new TypeLoadException("Cannot load type " + type);
+        }
+
+        private static CodeAttributeDeclaration AddPropertyAttribute(EntityPropertyDefinition p, string fieldName)
+        {
+            var attr = Define.Attribute(typeof(System.Data.Linq.Mapping.AssociationAttribute));
+
+            Define.InitAttributeArgs(() => new { Storage = fieldName, Name = 
+                p.PropertyType.Entity.Name+"_"+p.Entity.Name,
+                ThisKey=string.Join(",", p.SourceFields.Select(item=>item.SourceFieldExpression).ToArray()),
+                OtherKey = string.Join(",", p.SourceFields.Select(item => item.PropertyAlias).Select(item=>p.PropertyType.Entity.GetProperty(item)).Cast<ScalarPropertyDefinition>().Select(item=>item.SourceFieldExpression).ToArray())
+            }, attr);
+
+            return attr;
         }
 
         private static CodeAttributeDeclaration AddPropertyAttribute(ScalarPropertyDefinition p, string fieldName)
@@ -216,16 +437,55 @@ namespace LinqCodeGenerator
             return attr;
         }
 
+        private static CodeAttributeDeclaration AddPropertyAttribute(SourceFieldDefinition p, string fieldName)
+        {
+            var attr = Define.Attribute(typeof(System.Data.Linq.Mapping.ColumnAttribute));
+            string nullable = " NULL";
+            if (!p.IsNullable)
+                nullable = " NOT NULL";
+
+            string size = string.Empty;
+            if (p.SourceTypeSize.HasValue)
+                size = "(" + p.SourceTypeSize.Value.ToString() + ")";
+
+            System.Data.Linq.Mapping.AutoSync async = System.Data.Linq.Mapping.AutoSync.Default;
+
+            Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.SourceFieldExpression, DbType = p.SourceType + size + nullable, AutoSync = async}, attr);
+
+            return attr;
+        }
+
         private void AddEntityPartialMethods(CodeTypeDeclaration cls, EntityDefinition e)
         {
-            cls.AddMethod(MemberAttributes.Private, () => "OnLoaded");
+            CodeTypeMember lastMethod = Define.PartialMethod(MemberAttributes.Private, () => "OnLoaded");
+            lastMethod.StartDirective("Extensibility Method Definitions");
+            cls.AddMember(lastMethod);
             cls.AddMethod(MemberAttributes.Private, (System.Data.Linq.ChangeAction action) => "OnValidate");
             cls.AddMethod(MemberAttributes.Private, () => "OnCreated");
-            foreach (ScalarPropertyDefinition p in e.GetActiveProperties())
+            foreach (PropertyDefinition p_ in e.GetActiveProperties())
             {
-                cls.AddMethod(MemberAttributes.Private, (DynType value) => "On" + p.Name + "Changing" + value.SetType(p.PropertyType.ToCodeType(Settings)));
-                cls.AddMethod(MemberAttributes.Private, () => "On" + p.Name + "Changed");
+                if (p_ is ScalarPropertyDefinition)
+                {
+                    ScalarPropertyDefinition p = p_ as ScalarPropertyDefinition;
+                    
+                    cls.AddMethod(MemberAttributes.Private, (DynType value) => "On" + p.Name + "Changing" + value.SetType(p.PropertyType.ToCodeType(Settings)));
+                    lastMethod = Define.PartialMethod(MemberAttributes.Private, () => "On" + p.Name + "Changed");
+                    cls.AddMember(lastMethod);
+                }
+                else if (p_ is EntityPropertyDefinition)
+                {
+                    EntityPropertyDefinition p = p_ as EntityPropertyDefinition;
+                    foreach (EntityPropertyDefinition.SourceField field in p.SourceFields)
+                    {
+                        TypeDefinition pt = GetSourceFieldType(p, field);
+                        cls.AddMethod(MemberAttributes.Private, (DynType value) => "On" + field.SourceFieldExpression + "Changing" + value.SetType(pt.ToCodeType(Settings)));
+                        lastMethod = Define.PartialMethod(MemberAttributes.Private, () => "On" + field.SourceFieldExpression + "Changed");
+                        cls.AddMember(lastMethod);
+                    }
+                }
+
             }
+            lastMethod.EndDirective();
         }
 
         private void AddProps(CodeTypeDeclaration ctx)
@@ -246,17 +506,23 @@ namespace LinqCodeGenerator
 
         private void AddPartialMethods(CodeTypeDeclaration ctx)
         {
-            ctx.AddMethod(MemberAttributes.Private, () => "OnCreated");
+            CodeTypeMember lastMethod = Define.PartialMethod(MemberAttributes.Private, () => "OnCreated");
+            lastMethod.StartDirective("Extensibility Method Definitions");
+            ctx.AddMember(lastMethod);
+            
             var n = new WXMLCodeDomGeneratorNameHelper(Settings);
 
             foreach (EntityDefinition e in Model.GetActiveEntities())
             {
                 CodeTypeReference et = new CodeTypeReference(n.GetEntityClassName(e, true));
+                
+                ctx.AddMember(Define.PartialMethod(MemberAttributes.Private, (DynType instance) => "Insert" + e.Name + instance.SetType(et)));
+                ctx.AddMember(Define.PartialMethod(MemberAttributes.Private, (DynType instance) => "Update" + e.Name + instance.SetType(et)));
 
-                ctx.AddMethod(MemberAttributes.Private, (DynType instance) => "Insert" + e.Name + instance.SetType(et));
-                ctx.AddMethod(MemberAttributes.Private, (DynType instance) => "Update" + e.Name + instance.SetType(et));
-                ctx.AddMethod(MemberAttributes.Private, (DynType instance) => "Delete" + e.Name + instance.SetType(et));
+                lastMethod = Define.PartialMethod(MemberAttributes.Private, (DynType instance) => "Delete" + e.Name + instance.SetType(et));
+                ctx.AddMember(lastMethod);
             }
+            lastMethod.EndDirective();
         }
 
         private void AddCtors(CodeTypeDeclaration ctx)
