@@ -335,7 +335,7 @@ namespace WXML.Model.Database.Providers
             script.AppendLine();
         }
 
-        private static string GetType(ScalarPropertyDefinition prop, bool unicodeStrings)
+        public static string GetType(ScalarPropertyDefinition prop, bool unicodeStrings)
         {
             string result = prop.SourceType;
             if (string.IsNullOrEmpty(result))
