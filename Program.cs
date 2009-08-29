@@ -140,7 +140,11 @@ namespace WXMLDatabase
             switch (m)
             {
                 case "msft":
-                    dp = new MSSQLProvider(server, dbName, i, user, psw);
+                    if (i)
+                        dp = new MSSQLProvider(server, dbName);
+                    else
+                        dp = new MSSQLProvider(server, dbName, user, psw);
+
                     break;
                 default:
                     Console.WriteLine("Invalid manufacturer parameter.");
