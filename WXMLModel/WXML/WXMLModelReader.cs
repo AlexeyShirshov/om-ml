@@ -230,7 +230,7 @@ namespace WXML.Model
                 {
                     EntityDefinition baseEntity = Model.GetEntity(baseEntityId);
                     if (baseEntity == null)
-                        throw new OrmXmlParserException(
+                        throw new WXMLParserException(
                             string.Format("Base entity '{0}' for entity '{1}' not found.", baseEntityId,
                                           entity.Identifier));
                     entity.BaseEntity = baseEntity;
@@ -833,7 +833,7 @@ namespace WXML.Model
 
                 var table = entity.Model.GetSourceFragment(tableId);
                 if (table == null)
-                    throw new OrmXmlParserException(String.Format("Table {0} not found.", tableId));
+                    throw new WXMLParserException(String.Format("Table {0} not found.", tableId));
 
                 var tableRef = new SourceFragmentRefDefinition(table);
 
@@ -930,7 +930,7 @@ namespace WXML.Model
         {
             if(e.Severity == XmlSeverityType.Warning)
                 return;
-            throw new OrmXmlParserException(string.Format("Xml document format error{1}: {0}", e.Message, (e.Exception != null) ? string.Format("({0},{1})", e.Exception.LineNumber, e.Exception.LinePosition) : string.Empty));
+            throw new WXMLParserException(string.Format("Xml document format error{1}: {0}", e.Message, (e.Exception != null) ? string.Format("({0},{1})", e.Exception.LineNumber, e.Exception.LinePosition) : string.Empty));
         }
 
         internal protected XmlDocument SourceXmlDocument

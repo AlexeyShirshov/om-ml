@@ -5,7 +5,7 @@ using System.Text;
 namespace WXML.Model
 {
     [global::System.Serializable]
-    public class OrmCodeGenException : Exception
+    public class WXMLException : Exception
     {
         //
         // For guidelines regarding the creation of new exception types, see
@@ -14,10 +14,10 @@ namespace WXML.Model
         //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dncscol/html/csharp07192001.asp
         //
 
-        public OrmCodeGenException() { }
-        public OrmCodeGenException(string message) : base(message) { }
-        public OrmCodeGenException(string message, Exception inner) : base(message, inner) { }
-        protected OrmCodeGenException(
+        public WXMLException() { }
+        public WXMLException(string message) : base(message) { }
+        public WXMLException(string message, Exception inner) : base(message, inner) { }
+        protected WXMLException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context)
             : base(info, context) { }
@@ -25,7 +25,7 @@ namespace WXML.Model
 
 
     [global::System.Serializable]
-    public class OrmXmlParserException : OrmCodeGenException
+    public class WXMLParserException : WXMLException
     {
         //
         // For guidelines regarding the creation of new exception types, see
@@ -34,10 +34,10 @@ namespace WXML.Model
         //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dncscol/html/csharp07192001.asp
         //
 
-        public OrmXmlParserException() { }
-        public OrmXmlParserException(string message) : base(message) { }
-        public OrmXmlParserException(string message, Exception inner) : base(message, inner) { }
-        protected OrmXmlParserException(
+        public WXMLParserException() { }
+        public WXMLParserException(string message) : base(message) { }
+        public WXMLParserException(string message, Exception inner) : base(message, inner) { }
+        protected WXMLParserException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context)
             : base(info, context) { }

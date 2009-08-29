@@ -26,6 +26,11 @@ namespace WXML.Model.Database.Providers
             return GetSourceView(null, null, true, true);
         }
 
+        public SourceView GetSourceView(string schemas, string namelike)
+        {
+            return GetSourceView(schemas, namelike, true, true);
+        }
+
         public override SourceView GetSourceView(string schemas, string namelike, bool escapeTableNames, bool escapeColumnNames)
         {
             SourceView database = new SourceView();
@@ -74,8 +79,7 @@ namespace WXML.Model.Database.Providers
                     {
                         while (reader.Read())
                         {
-                            SourceFieldDefinition c = Create(database, reader, escapeTableNames, escapeColumnNames);
-                            database._columns.Add(c);
+                            Create(database, reader, escapeTableNames, escapeColumnNames);
                         }
                     }
                     RaiseOnEndLoadDatabase();
@@ -90,16 +94,23 @@ namespace WXML.Model.Database.Providers
         private static void PrepareCmd(DbCommand cmd, string schemas, string namelike, params string[] aliases)
         {
             StringBuilder yyyyy = new StringBuilder();
-            if (!string.IsNullOrEmpty(namelike))
+            if (!string.IsNullOrEmpty(schemas))
             {
+                string r = string.Empty;
+                if (schemas.StartsWith("(") && schemas.EndsWith(")"))
+                {
+                    schemas = schemas.Trim('(', ')');
+                    r = "not ";
+                }
+                StringBuilder ss = new StringBuilder();
+                foreach (string s in schemas.Split(','))
+                {
+                    ss.AppendFormat("'{0}',", s);
+                }
+                ss.Length -= 1;
                 foreach (string alias in aliases)
                 {
-                    string slist;
-                    if (schemas.StartsWith("(") && schemas.EndsWith(")"))
-                        slist = "and " + alias + ".table_schema not in ('" + schemas + "')";
-                    else
-                        slist = "and " + alias + ".table_schema in ('" + schemas + "')";
-                    yyyyy.AppendLine(slist);
+                    yyyyy.AppendLine("and " + alias + string.Format(".table_schema {1}in ({0})", ss.ToString(), r));
                 }
             }
             cmd.CommandText = cmd.CommandText.Replace("YYYYY", yyyyy.ToString());
@@ -108,24 +119,26 @@ namespace WXML.Model.Database.Providers
 
             if (!string.IsNullOrEmpty(namelike))
             {
+                int i = 1;
                 foreach (string alias in aliases)
                 {
-                    int i = 1;
                     foreach (string nl in namelike.Split(','))
                     {
                         DbParameter tn = cmd.CreateParameter();
                         tn.ParameterName = "tn" + i;
                         string r = string.Empty;
-                        if (namelike.StartsWith("!"))
+                        if (nl.StartsWith("!"))
                         {
                             r = "not ";
-                            namelike = namelike.Substring(1);
+                            tn.Value = nl.Substring(1);
                         }
-                        tn.Value = nl;
+                        else
+                            tn.Value = nl;
                         tn.Direction = ParameterDirection.Input;
                         cmd.Parameters.Add(tn);
 
-                        sb.AppendFormat("and ({2}.table_schema+{2}.table_name {1}like @tn{0})", i, r, alias).AppendLine();
+                        //{2}.table_schema+
+                        sb.AppendFormat("and ({2}.table_name {1}like @tn{0})", i, r, alias).AppendLine();
                         i++;
                     }
                 }
@@ -191,17 +204,34 @@ namespace WXML.Model.Database.Providers
             }
 
             c.SourceFragment = db.GetOrCreateTable(schema, table);
-            
+
             c._column = reader.GetString(reader.GetOrdinal("column_name"));
             if (escapeColumnNames && !c._column.StartsWith("[") && !c._column.EndsWith("]"))
                 c._column = "[" + c._column + "]";
 
-            string yn = reader.GetString(reader.GetOrdinal("is_nullable"));
-            if (yn == "YES")
+            if (!db.GetColumns(c.SourceFragment).Any(item => item.SourceFieldExpression == c._column))
             {
-                c.IsNullable = true;
+                string yn = reader.GetString(reader.GetOrdinal("is_nullable"));
+                if (yn == "YES")
+                {
+                    c.IsNullable = true;
+                }
+                c.SourceType = reader.GetString(reader.GetOrdinal("data_type"));
+
+                c.IsAutoIncrement = Convert.ToBoolean(reader.GetInt32(reader.GetOrdinal("identity")));
+
+                int dfo = reader.GetOrdinal("column_default");
+                if (!reader.IsDBNull(dfo))
+                    c._defaultValue = reader.GetString(dfo);
+
+                int sc = reader.GetOrdinal("character_maximum_length");
+                if (!reader.IsDBNull(sc))
+                    c.SourceTypeSize = reader.GetInt32(sc);
+
+                db._columns.Add(c);
             }
-            c.SourceType = reader.GetString(reader.GetOrdinal("data_type"));
+            else
+                c = db.GetColumns(c.SourceFragment).Single(item => item.SourceFieldExpression == c._column);
 
             int ct = reader.GetOrdinal("constraint_type");
             int cn = reader.GetOrdinal("constraint_name");
@@ -209,31 +239,21 @@ namespace WXML.Model.Database.Providers
             if (!reader.IsDBNull(ct))
             {
                 SourceConstraint cns = c.SourceFragment.Constraints
-                    .SingleOrDefault(item => item.ConstraintName == reader.GetString(ct));
+                    .SingleOrDefault(item => item.ConstraintName == reader.GetString(cn));
 
                 if (cns == null)
+                {
                     cns = new SourceConstraint(reader.GetString(ct), reader.GetString(cn));
-
-                c.SourceFragment._constraints.Add(cns);
+                    c.SourceFragment._constraints.Add(cns);
+                }
 
                 cns.SourceFields.Add(c);
             }
 
-            c.IsAutoIncrement = Convert.ToBoolean(reader.GetInt32(reader.GetOrdinal("identity")));
-
-            int dfo = reader.GetOrdinal("column_default");
-            if (!reader.IsDBNull(dfo))
-                c._defaultValue = reader.GetString(dfo);
-
-            int sc = reader.GetOrdinal("character_maximum_length");
-            if (!reader.IsDBNull(sc))
-                c.SourceTypeSize = reader.GetInt32(sc);
-
-            db._columns.Add(c);
             return c;
         }
 
-        public void FillReferencedColumns(string schemas, string namelike, 
+        public void FillReferencedColumns(string schemas, string namelike,
             bool escapeTableNames, bool escapeColumnNames, SourceView sv, DbConnection conn)
         {
             using (DbCommand cmd = conn.CreateCommand())
@@ -275,7 +295,7 @@ namespace WXML.Model.Database.Providers
 
                         if (pkTable == null)
                             throw new InvalidOperationException(string.Format("Table {0}.{1} not found",
-                                pkSchema, pkName ));
+                                pkSchema, pkName));
 
                         string fkSchema = reader.GetString(reader.GetOrdinal("fkSchema"));
                         string fkName = reader.GetString(reader.GetOrdinal("fkTable"));
@@ -293,13 +313,7 @@ namespace WXML.Model.Database.Providers
 
                         if (fkTable == null)
                             throw new InvalidOperationException(string.Format("Table {0}.{1} not found",
-                                fkSchema,fkName ));
-
-                        //SourceFieldDefinition pkCol = sv.GetColumns(pkTable)
-                        //    .Single(item => item.ColumnName == reader.GetString(reader.GetOrdinal("COLUMN_NAME")));
-                        
-                        //SourceFieldDefinition fkCol = sv.GetColumns(fkTable)
-                        //    .Single(item => item.ColumnName == reader.GetString(reader.GetOrdinal("fkColumn")));
+                                fkSchema, fkName));
 
                         string pkCol = reader.GetString(reader.GetOrdinal("COLUMN_NAME"));
                         if (escapeColumnNames && !pkCol.StartsWith("[") && !pkCol.EndsWith("]"))
@@ -308,6 +322,18 @@ namespace WXML.Model.Database.Providers
                         string fkCol = reader.GetString(reader.GetOrdinal("fkColumn"));
                         if (escapeColumnNames && !fkCol.StartsWith("[") && !fkCol.EndsWith("]"))
                             fkCol = "[" + fkCol + "]";
+
+                        //if (pkTable.Constraints.Count(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"))) > 1)
+                        //    throw new InvalidOperationException(string.Format("Constraint {0} occur {1} times", reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME")),
+                        //        pkTable.Constraints.Count(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME")))));
+
+                        //SourceConstraint pkConstarint = pkTable.Constraints.SingleOrDefault(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME")));
+                        //if (pkConstarint == null)
+                        //    throw new InvalidOperationException(string.Format("Constraint {0} not found", reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"))));
+
+                        //SourceConstraint fkConstarint = fkTable.Constraints.SingleOrDefault(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("fkConstraint")));
+                        //if (fkConstarint == null)
+                        //    throw new InvalidOperationException(string.Format("Constraint {0} not found", reader.GetString(reader.GetOrdinal("fkConstraint"))));
 
                         sv._references.Add(new SourceReferences(
                             reader.GetString(reader.GetOrdinal("DELETE_RULE")),
@@ -321,23 +347,23 @@ namespace WXML.Model.Database.Providers
             }
         }
 
-        public override void GenerateCreateScript(IEnumerable<PropertyDefinition> props, StringBuilder script, 
+        public override void GenerateCreateScript(IEnumerable<PropertyDefinition> props, StringBuilder script,
             bool unicodeStrings)
         {
             SourceFragmentDefinition sf = props.First().SourceFragment;
             script.AppendFormat("CREATE TABLE {0}.{1}(", sf.Selector, sf.Name);
-            
+
             foreach (PropertyDefinition prop in props)
             {
                 ScalarPropertyDefinition sp = prop as ScalarPropertyDefinition;
                 if (sp != null)
                 {
                     script.Append(sp.SourceFieldExpression).Append(" ").Append(GetType(sp, unicodeStrings));
-                    
+
                     if (sp.SourceField.IsAutoIncrement)
                         script.Append(" IDENTITY");
 
-                    script.Append(sp.IsNullable?" NULL":"NOT NULL");
+                    script.Append(sp.IsNullable ? " NULL" : "NOT NULL");
 
                     if (!string.IsNullOrEmpty(sp.SourceField.DefaultValue))
                         script.AppendFormat(" DEFAULT({0})", sp.SourceField.DefaultValue);
@@ -389,7 +415,7 @@ namespace WXML.Model.Database.Providers
                         result = "float";
                         break;
                     case "System.String":
-                        result = string.Format(unicodeStrings ? "nvarchar({0})" : "varchar({0})", 
+                        result = string.Format(unicodeStrings ? "nvarchar({0})" : "varchar({0})",
                             prop.SourceTypeSize.HasValue ? prop.SourceTypeSize.Value : 50);
                         break;
                     case "System.Char":
@@ -408,7 +434,7 @@ namespace WXML.Model.Database.Providers
                         result = "uniqueidentifier";
                         break;
                     case "System.Char[]":
-                        result = string.Format(unicodeStrings ? "nvarchar({0})" : "varchar({0})", 
+                        result = string.Format(unicodeStrings ? "nvarchar({0})" : "varchar({0})",
                             prop.SourceTypeSize.HasValue ? prop.SourceTypeSize.Value : 50);
                         break;
                     case "System.Byte[]":

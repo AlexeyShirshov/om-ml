@@ -84,7 +84,7 @@ namespace TestsCodeGenLib
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OrmCodeGenException))]
+        [ExpectedException(typeof(WXMLException))]
         public void TestCSCodeGroupsHideParent()
         {
             using (Stream stream = Resources.GetXmlDocumentStream("groups2"))
@@ -94,7 +94,7 @@ namespace TestsCodeGenLib
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OrmCodeGenException))]
+        [ExpectedException(typeof(WXMLException))]
         public void TestVBCodeGroupsHideParent()
         {
             using (Stream stream = Resources.GetXmlDocumentStream("groups2"))
@@ -104,7 +104,7 @@ namespace TestsCodeGenLib
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OrmCodeGenException))]
+        [ExpectedException(typeof(WXMLException))]
         public void TestCSCodeM2MCheck1()
         {
             using (Stream stream = Resources.GetXmlDocumentStream("m2mCheck1"))
@@ -114,7 +114,7 @@ namespace TestsCodeGenLib
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OrmCodeGenException))]
+        [ExpectedException(typeof(WXMLException))]
         public void TestVBCodeM2MCheck1()
         {
             using (Stream stream = Resources.GetXmlDocumentStream("m2mCheck1"))
@@ -144,7 +144,7 @@ namespace TestsCodeGenLib
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OrmCodeGenException))]
+        [ExpectedException(typeof(WXMLException))]
         public void TestCSCodeM2MCheck3()
         {
             using (Stream stream = Resources.GetXmlDocumentStream("m2mCheck3"))
@@ -154,7 +154,7 @@ namespace TestsCodeGenLib
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OrmCodeGenException))]
+        [ExpectedException(typeof(WXMLException))]
         public void TestVBCodeM2MCheck3()
         {
             using (Stream stream = Resources.GetXmlDocumentStream("m2mCheck3"))
@@ -164,7 +164,7 @@ namespace TestsCodeGenLib
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OrmCodeGenException))]
+        [ExpectedException(typeof(WXMLException))]
         public void TestCSCodeM2MCheck4()
         {
             using (Stream stream = Resources.GetXmlDocumentStream("m2mCheck4"))
@@ -174,7 +174,7 @@ namespace TestsCodeGenLib
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OrmCodeGenException))]
+        [ExpectedException(typeof(WXMLException))]
         public void TestVBCodeM2MCheck4()
         {
             using (Stream stream = Resources.GetXmlDocumentStream("m2mCheck4"))

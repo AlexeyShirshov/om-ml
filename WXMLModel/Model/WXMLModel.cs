@@ -787,4 +787,24 @@ namespace WXML.Model
             return -1;
         }
     }
+
+    public class EqualityComparer<T, T2> : IEqualityComparer<T> where T2 : class
+    {
+        private readonly Func<T, T2> _accessor;
+
+        public EqualityComparer(Func<T, T2> accessor)
+        {
+            _accessor = accessor;
+        }
+
+        public bool Equals(T x, T y)
+        {
+            return Equals(_accessor(x), _accessor(y));
+        }
+
+        public int GetHashCode(T obj)
+        {
+            return _accessor(obj).GetHashCode();
+        }
+    }
 }

@@ -80,7 +80,7 @@ namespace WXMLToWorm.CodeDomExtensions
                                 || (r.Right.Entity == m_entity && string.IsNullOrEmpty(r.Left.AccessorName))));
 
                     if (lst.Count > 0)
-                        throw new OrmCodeGenException(
+                        throw new WXMLException(
                             string.Format(
                                 "Существуют неоднозначные связи между '{0}' и '{1}'. конкретизируйте их через accessorName.",
                                 lst[0].Left.Entity.Name, lst[0].Right.Entity.Name));
