@@ -11,9 +11,19 @@ namespace WXML.Model.Database.Providers
 {
     public class MSSQLProvider : DatabaseProvider
     {
-        public MSSQLProvider(string server, string db, bool integratedSecurity, string user, string psw) :
-            base(server, db, integratedSecurity, user, psw)
+        public MSSQLProvider(string server, string db) :
+            base(server, db, true, null, null)
         {
+        }
+
+        public MSSQLProvider(string server, string db, string user, string psw) :
+            base(server, db, false, user, psw)
+        {
+        }
+
+        public SourceView GetSourceView()
+        {
+            return GetSourceView(null, null, true, true);
         }
 
         public override SourceView GetSourceView(string schemas, string namelike, bool escapeTableNames, bool escapeColumnNames)
@@ -80,40 +90,44 @@ namespace WXML.Model.Database.Providers
         private static void PrepareCmd(DbCommand cmd, string schemas, string namelike, params string[] aliases)
         {
             StringBuilder yyyyy = new StringBuilder();
-            foreach (string alias in aliases)
+            if (!string.IsNullOrEmpty(namelike))
             {
-                string slist = string.Empty;
-                if (schemas != null)
+                foreach (string alias in aliases)
                 {
+                    string slist;
                     if (schemas.StartsWith("(") && schemas.EndsWith(")"))
                         slist = "and " + alias + ".table_schema not in ('" + schemas + "')";
                     else
                         slist = "and " + alias + ".table_schema in ('" + schemas + "')";
+                    yyyyy.AppendLine(slist);
                 }
-                yyyyy.AppendLine(slist);
             }
             cmd.CommandText = cmd.CommandText.Replace("YYYYY", yyyyy.ToString());
 
             StringBuilder sb = new StringBuilder();
-            foreach (string alias in aliases)
-            {
-                int i = 1;
-                foreach (string nl in namelike.Split(','))
-                {
-                    DbParameter tn = cmd.CreateParameter();
-                    tn.ParameterName = "tn" + i;
-                    string r = string.Empty;
-                    if (namelike.StartsWith("!"))
-                    {
-                        r = "not ";
-                        namelike = namelike.Substring(1);
-                    }
-                    tn.Value = nl;
-                    tn.Direction = ParameterDirection.Input;
-                    cmd.Parameters.Add(tn);
 
-                    sb.AppendFormat("and ({2}.table_schema+{2}.table_name {1}like @tn{0})", i, r, alias).AppendLine();
-                    i++;
+            if (!string.IsNullOrEmpty(namelike))
+            {
+                foreach (string alias in aliases)
+                {
+                    int i = 1;
+                    foreach (string nl in namelike.Split(','))
+                    {
+                        DbParameter tn = cmd.CreateParameter();
+                        tn.ParameterName = "tn" + i;
+                        string r = string.Empty;
+                        if (namelike.StartsWith("!"))
+                        {
+                            r = "not ";
+                            namelike = namelike.Substring(1);
+                        }
+                        tn.Value = nl;
+                        tn.Direction = ParameterDirection.Input;
+                        cmd.Parameters.Add(tn);
+
+                        sb.AppendFormat("and ({2}.table_schema+{2}.table_name {1}like @tn{0})", i, r, alias).AppendLine();
+                        i++;
+                    }
                 }
             }
 
@@ -207,7 +221,9 @@ namespace WXML.Model.Database.Providers
 
             c.IsAutoIncrement = Convert.ToBoolean(reader.GetInt32(reader.GetOrdinal("identity")));
 
-            c._defaultValue = reader.GetString(reader.GetOrdinal("column_default"));
+            int dfo = reader.GetOrdinal("column_default");
+            if (!reader.IsDBNull(dfo))
+                c._defaultValue = reader.GetString(dfo);
 
             int sc = reader.GetOrdinal("character_maximum_length");
             if (!reader.IsDBNull(sc))

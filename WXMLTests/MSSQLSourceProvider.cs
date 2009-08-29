@@ -65,7 +65,7 @@ namespace WXMLTests
         [TestMethod]
         public void TestCreateTable()
         {
-            var p = new MSSQLProvider(null, null, false, null, null);
+            var p = new MSSQLProvider(null, null);
             var sf = new SourceFragmentDefinition("sdfdsf", "tbl", "dbo");
             StringBuilder script = new StringBuilder();
             

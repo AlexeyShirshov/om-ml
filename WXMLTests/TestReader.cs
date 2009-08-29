@@ -497,7 +497,7 @@ namespace WXMLTests
 
         public static Stream GetSampleFileStream()
         {
-            string name = "SchemaBased";
+            const string name = "SchemaBased";
             return GetFile(name);
         }
 
@@ -505,7 +505,7 @@ namespace WXMLTests
         {
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
 
-            string resourceName = string.Format("{0}.{1}.xml", assembly.GetName().Name, name);
+            string resourceName = string.Format("{0}.TestFiles.{1}.xml", assembly.GetName().Name, name);
             return assembly.GetManifestResourceStream(resourceName);
         }
     }

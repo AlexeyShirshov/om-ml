@@ -13,10 +13,9 @@ namespace TestsCodeGenLib
 
         public static Stream GetXmlDocumentStream(string documentName, Assembly assembly)
         {
-            string extension = "xml";
-            
-            string resourceName;
-            resourceName = string.Format("{0}.{1}.{2}", assembly.GetName().Name, documentName, extension);
+            const string extension = "xml";
+
+            string resourceName = string.Format("{0}.TestFiles.{1}.{2}", assembly.GetName().Name, documentName, extension);
 
             return assembly.GetManifestResourceStream(resourceName);
         }
