@@ -16,7 +16,7 @@ namespace TestsSourceModel
         [TestMethod]
         public void TestSourceView()
         {
-            MSSQLProvider p = new MSSQLProvider(GetTestDB(), "wtest");
+            MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
             SourceView view = p.GetSourceView();
 
             Assert.AreEqual(133, view.GetColumns().Count());
