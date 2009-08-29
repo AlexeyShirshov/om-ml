@@ -168,7 +168,8 @@ namespace WXML.Model.Database.Providers
             }
 
             cb.DataSource = srv;
-            cb.InitialCatalog = _db;
+            if (!string.IsNullOrEmpty(_db))
+                cb.InitialCatalog = _db;
 
             if (_integratedSecurity)
             {
