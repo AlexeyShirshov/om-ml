@@ -18,6 +18,7 @@ namespace WXML.Model.Descriptors
         {
             _constraintType = constraintType;
             _constraintName = constraintName;
+            SourceFields = new List<SourceFieldDefinition>();
         }
 
         public string ConstraintType
