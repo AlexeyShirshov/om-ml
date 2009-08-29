@@ -12,7 +12,9 @@ namespace WXML.Model.Descriptors
         public IEnumerable<SourceFragmentDefinition> GetTables()
         {
             return (from c in _columns
-                    select c.SourceFragment).Distinct();
+                    select c.SourceFragment).Distinct(new EqualityComparer<SourceFragmentDefinition, string>(
+                        (item)=>item.Identifier
+                   ));
         }
 
         public IEnumerable<SourceFieldDefinition> GetColumns(SourceFragmentDefinition sf)
@@ -33,7 +35,7 @@ namespace WXML.Model.Descriptors
                 item.Selector == selector && item.Name == name);
 
             if (sf == null)
-                sf = new SourceFragmentDefinition(selector + "." + name, selector, name);
+                sf = new SourceFragmentDefinition(selector + "." + name, name, selector);
 
             return sf;
         }

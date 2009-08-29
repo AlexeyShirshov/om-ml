@@ -99,26 +99,6 @@ namespace WXML.Model.Descriptors
             return SelfProperties;
         }
 
-        private class EqualityComparer<T, T2> : IEqualityComparer<T> where T2 : class
-        {
-            private readonly Func<T, T2> _accessor;
-
-            public EqualityComparer(Func<T, T2> accessor)
-            {
-                _accessor = accessor;
-            }
-
-            public bool Equals(T x, T y)
-            {
-                return Equals(_accessor(x), _accessor(y));
-            }
-
-            public int GetHashCode(T obj)
-            {
-                return _accessor(obj).GetHashCode();
-            }
-        }
-
         public void RemoveSourceFragment(SourceFragmentRefDefinition sf)
         {
             int index = _sourceFragments.IndexOf(item=>item.Identifier == sf.Identifier);
@@ -285,7 +265,7 @@ namespace WXML.Model.Descriptors
             foreach (var relationUnique in relationUniques)
             {
                 if (relationUnique.Value > 1)
-                    throw new OrmCodeGenException("Существуют дублирующиеся M2M связи." + relationUnique.Key);
+                    throw new WXMLException("Существуют дублирующиеся M2M связи." + relationUnique.Key);
             }
             return l;
         }
@@ -337,7 +317,7 @@ namespace WXML.Model.Descriptors
             foreach (var relationUnique in relationUniques)
             {
                 if (relationUnique.Value > 1)
-                    throw new OrmCodeGenException("Существуют дублирующиеся M2M связи." + relationUnique.Key);
+                    throw new WXMLException("Существуют дублирующиеся M2M связи." + relationUnique.Key);
             }
             return l;
         }

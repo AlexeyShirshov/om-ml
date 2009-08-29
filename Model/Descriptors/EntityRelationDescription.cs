@@ -62,14 +62,14 @@ namespace WXML.Model.Descriptors
                         .Where(p => p.PropertyType.IsEntityType && p.PropertyType.Entity == SourceEntity);
                     if (lst.Count() > 1)
                     {
-                        throw new OrmCodeGenException(
+                        throw new WXMLException(
                             string.Format(
                                 "Возможно несколько вариантов связи от сущности '{0}' к '{1}'. Используйте PropertyAlias для указания свойства-связки.",
                                 SourceEntity.Name, Entity.Name));
                     }
                     else if (lst.Count() == 0)
                     {
-                        throw new OrmCodeGenException(
+                        throw new WXMLException(
                             string.Format(
                                 "Не возможно определить связь между сущностями '{0}' и '{1}'. Используйте PropertyAlias для указания свойства-связки.",
                                 SourceEntity.Name, Entity.Name));
