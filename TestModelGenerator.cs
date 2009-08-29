@@ -16,12 +16,32 @@ namespace TestsSourceModel
         [TestMethod]
         public void TestSourceView()
         {
-            MSSQLProvider p = new MSSQLProvider(GetTestDB(), "test");
+            MSSQLProvider p = new MSSQLProvider(GetTestDB(), "wtest");
             SourceView view = p.GetSourceView();
 
-            Assert.AreEqual(143, view.GetColumns().Count());
+            Assert.AreEqual(133, view.GetColumns().Count());
 
-            Assert.AreEqual(31, view.GetTables().Count());
+            Assert.AreEqual(32, view.GetTables().Count());
+        }
+
+        [TestMethod]
+        public void TestSourceViewPatterns()
+        {
+            MSSQLProvider p = new MSSQLProvider(GetTestDB(), "wtest");
+
+            Assert.AreEqual(11, p.GetSourceView(null, "aspnet_%").GetTables().Count());
+
+            Assert.AreEqual(21, p.GetSourceView(null, "!aspnet_%").GetTables().Count());
+
+            Assert.AreEqual(16, p.GetSourceView(null, "!aspnet_%,!ent%").GetTables().Count());
+
+            Assert.AreEqual(1, p.GetSourceView(null, "guid_table").GetTables().Count());
+
+            Assert.AreEqual(1, p.GetSourceView("test", null).GetTables().Count());
+
+            Assert.AreEqual(32, p.GetSourceView("test,dbo", null).GetTables().Count());
+
+            Assert.AreEqual(31, p.GetSourceView("(test)", null).GetTables().Count());
         }
 
         public static string GetTestDB()
