@@ -44,6 +44,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WXML", "WXML", "{DB99EDB8-B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLTests", "WXMLTests\WXMLTests.csproj", "{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Help", "Help", "{A7B4E429-08AB-4A24-B473-B00B695D5154}"
+	ProjectSection(SolutionItems) = preProject
+		Help\wxml.shfbproj = Help\wxml.shfbproj
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
 		SccNumberOfProjects = 10

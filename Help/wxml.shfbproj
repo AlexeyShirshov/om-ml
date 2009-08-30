@@ -1,0 +1,36 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <!-- The configuration and platform will be used to determine which
+         assemblies to include from solution and project documentation
+         sources -->
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{bf3ff097-3b6a-4ba0-9383-6f604bce4756}</ProjectGuid>
+    <SHFBSchemaVersion>1.8.0.0</SHFBSchemaVersion>
+    <!-- AssemblyName, Name, and RootNamespace are not used by SHFB but Visual
+         Studio adds them anyway -->
+    <AssemblyName>Documentation</AssemblyName>
+    <RootNamespace>Documentation</RootNamespace>
+    <Name>Documentation</Name>
+    <!-- SHFB properties -->
+    <OutputPath>.\Reference\</OutputPath>
+    <HtmlHelpName>wxml</HtmlHelpName>
+    <HelpTitle>A WXML Class Library</HelpTitle>
+    <HelpFileFormat>Help1xAndWebsite</HelpFileFormat>
+    <SandcastlePath>..\..\..\Program Files (x86)\Sandcastle\</SandcastlePath>
+    <DocumentationSources>
+      <DocumentationSource sourceFile="..\LinqCodeGenerator\LinqCodeGenerator.csproj" xmlns="" />
+<DocumentationSource sourceFile="..\DatabaseConnector\WXMLDatabase.csproj" xmlns="" />
+<DocumentationSource sourceFile="..\WXMLModel\WXMLModel.csproj" xmlns="" />
+<DocumentationSource sourceFile="..\WXMLToWorm\WXMLToWorm.csproj" xmlns="" /></DocumentationSources>
+  </PropertyGroup>
+  <!-- There are no properties for these two groups but they need to appear in
+       order for Visual Studio to perform the build. -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
+  <!-- Import the SHFB build targets -->
+  <Import Project="$(SHFBROOT)\SandcastleHelpFileBuilder.targets" />
+</Project>
