@@ -422,7 +422,7 @@ namespace WXML.Model
 
         private void FillEntityRelations(XmlNode entityElement, EntityDefinition entity)
         {
-            if (entity.EntityRelations.Count > 0)
+            if (entity.EntityRelations.Count() > 0)
             {
                 XmlNode relationsNode = CreateElement("Relations");
 

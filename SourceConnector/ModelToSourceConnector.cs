@@ -30,7 +30,7 @@ namespace WXML.Model.SourceConnector
             {
                 SourceFragmentDefinition sf = s;
 
-                var targetSF = _db.GetTables().SingleOrDefault(item => 
+                var targetSF = _db.GetSourceFragments().SingleOrDefault(item => 
                     item.Name == sf.Name && item.Selector == sf.Selector);
 
                 if (targetSF == null)

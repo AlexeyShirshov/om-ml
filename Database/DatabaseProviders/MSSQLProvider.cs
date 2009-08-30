@@ -120,27 +120,31 @@ namespace WXML.Model.Database.Providers
             if (!string.IsNullOrEmpty(namelike))
             {
                 int i = 1;
+                string r = string.Empty;
+                string cond = "or";
+                if (namelike.StartsWith("(") && namelike.EndsWith(")"))
+                {
+                    namelike = namelike.Trim('(', ')');
+                    r = "not ";
+                    cond = "and";
+                }
+
                 foreach (string alias in aliases)
                 {
+                    sb.Append("and (");
                     foreach (string nl in namelike.Split(','))
                     {
                         DbParameter tn = cmd.CreateParameter();
                         tn.ParameterName = "tn" + i;
-                        string r = string.Empty;
-                        if (nl.StartsWith("!"))
-                        {
-                            r = "not ";
-                            tn.Value = nl.Substring(1);
-                        }
-                        else
-                            tn.Value = nl;
+                        tn.Value = nl;
                         tn.Direction = ParameterDirection.Input;
                         cmd.Parameters.Add(tn);
-
                         //{2}.table_schema+
-                        sb.AppendFormat("and ({2}.table_name {1}like @tn{0})", i, r, alias).AppendLine();
+                        sb.AppendFormat("{2}.table_name {1}like @tn{0} {3}", i, r, alias, cond).AppendLine();
                         i++;
                     }
+                    sb.Length -= cond.Length + 3;
+                    sb.Append(")");
                 }
             }
 
@@ -204,13 +208,13 @@ namespace WXML.Model.Database.Providers
                     schema = "[" + schema + "]";
             }
 
-            c.SourceFragment = db.GetOrCreateTable(schema, table);
+            c.SourceFragment = db.GetOrCreateSourceFragment(schema, table);
 
             c._column = reader.GetString(reader.GetOrdinal("column_name"));
             if (escapeColumnNames && !c._column.StartsWith("[") && !c._column.EndsWith("]"))
                 c._column = "[" + c._column + "]";
 
-            if (!db.GetColumns(c.SourceFragment).Any(item => item.SourceFieldExpression == c._column))
+            if (!db.GetSourceFields(c.SourceFragment).Any(item => item.SourceFieldExpression == c._column))
             {
                 string yn = reader.GetString(reader.GetOrdinal("is_nullable"));
                 if (yn == "YES")
@@ -232,7 +236,7 @@ namespace WXML.Model.Database.Providers
                 db._columns.Add(c);
             }
             else
-                c = db.GetColumns(c.SourceFragment).Single(item => item.SourceFieldExpression == c._column);
+                c = db.GetSourceFields(c.SourceFragment).Single(item => item.SourceFieldExpression == c._column);
 
             int ct = reader.GetOrdinal("constraint_type");
             int cn = reader.GetOrdinal("constraint_name");
@@ -291,7 +295,7 @@ namespace WXML.Model.Database.Providers
                                 pkSchema = "[" + pkSchema + "]";
                         }
 
-                        SourceFragmentDefinition pkTable = sv.GetTables()
+                        SourceFragmentDefinition pkTable = sv.GetSourceFragments()
                             .SingleOrDefault(item => item.Selector == pkSchema && item.Name == pkName);
 
                         if (pkTable == null)
@@ -309,7 +313,7 @@ namespace WXML.Model.Database.Providers
                                 fkSchema = "[" + fkSchema + "]";
                         }
 
-                        SourceFragmentDefinition fkTable = sv.GetTables()
+                        SourceFragmentDefinition fkTable = sv.GetSourceFragments()
                             .SingleOrDefault(item => item.Selector == fkSchema && item.Name == fkName);
 
                         if (fkTable == null)
@@ -340,8 +344,8 @@ namespace WXML.Model.Database.Providers
                             reader.GetString(reader.GetOrdinal("DELETE_RULE")),
                             pkTable.Constraints.Single(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"))),
                             fkTable.Constraints.Single(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("fkConstraint"))),
-                            sv.GetColumns(pkTable).Single(item => item.SourceFieldExpression == pkCol),
-                            sv.GetColumns(fkTable).Single(item => item.SourceFieldExpression == fkCol)
+                            sv.GetSourceFields(pkTable).Single(item => item.SourceFieldExpression == pkCol),
+                            sv.GetSourceFields(fkTable).Single(item => item.SourceFieldExpression == fkCol)
                         ));
                     }
                 }
