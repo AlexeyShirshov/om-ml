@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,11 @@ using WXML.Model;
 using System.Xml;
 using WXML.CodeDom.CodeDomExtensions;
 using LinqCodeGenerator;
+using WXML.Model.Database.Providers;
+using WXML.Model.Descriptors;
+using WXML.SourceConnector;
+using System.Data.Linq;
+using System.ComponentModel;
 
 namespace LinqCodeGenTests
 {
@@ -89,5 +95,79 @@ namespace LinqCodeGenTests
                 Assert.IsNotNull(gen.Compile(LinqToCodedom.CodeDomGenerator.Language.CSharp));
             }
         }
+
+        [TestMethod]
+        public void TestCompareLinqCtx()
+        {
+            MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
+
+            SourceView sv = p.GetSourceView(null, "ent1,ent2,1to2");
+
+            Assert.AreEqual(3, sv.GetSourceFragments().Count());
+
+            WXMLModel model = new WXMLModel();
+
+            SourceToModelConnector c = new SourceToModelConnector(sv, model);
+
+            c.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, false);
+
+            Assert.AreEqual(3, model.GetSourceFragments().Count());
+
+            Assert.AreEqual(2, model.GetEntities().Count());
+
+            model.LinqSettings = new LinqSettingsDescriptor()
+            {
+                ContextName = "TestCtxDataContext"
+            };
+            LinqCodeDomGenerator gen = new LinqCodeDomGenerator(model, new WXML.CodeDom.WXMLCodeDomGeneratorSettings());
+
+            Console.WriteLine(gen.GenerateCode(LinqToCodedom.CodeDomGenerator.Language.CSharp));
+
+            Assembly assembly = gen.Compile(LinqToCodedom.CodeDomGenerator.Language.CSharp);
+
+            Assert.IsNotNull(assembly);
+
+            Type ctxType = assembly.GetType(model.LinqSettings.ContextName);
+
+            Assert.IsNotNull(ctxType);
+
+            DataContext ctx = (DataContext)Activator.CreateInstance(ctxType, GetTestDBConnectionString());
+
+            Assert.IsNotNull(ctx);
+
+            ctx.Log = Console.Out;
+
+            TestCtxDataContext realCtx = new TestCtxDataContext(GetTestDBConnectionString());
+
+            Type rctxType = typeof (TestCtxDataContext);
+
+            foreach (PropertyInfo pi in ctxType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
+            {
+                PropertyInfo rpi = rctxType.GetProperties().Single(item => item.Name == pi.Name);
+
+                Assert.AreEqual(rpi.Attributes, pi.Attributes);
+                Assert.AreEqual(rpi.CanRead, pi.CanRead);
+                Assert.AreEqual(rpi.CanWrite, pi.CanWrite);
+
+                Assert.AreEqual(rpi.GetGetMethod().Attributes, pi.GetGetMethod().Attributes);
+
+                IListSource ent1s = (IListSource)pi.GetValue(ctx, null);
+
+                Assert.IsNotNull(ent1s.GetList());
+
+                Assert.AreEqual(((IListSource)rpi.GetValue(realCtx, null)).GetList().Count, ent1s.GetList().Count);
+            }
+        }
+
+        public static string GetTestDB()
+        {
+            return Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), @"..\..\..\Databases\test.mdf"));
+        }
+
+        public static string GetTestDBConnectionString()
+        {
+            return @"Server=.\sqlexpress;AttachDBFileName='" + GetTestDB() + "';User Instance=true;Integrated security=true;";
+        }
+
     }
 }
