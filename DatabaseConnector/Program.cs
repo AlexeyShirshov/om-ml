@@ -130,6 +130,11 @@ namespace WXMLDatabase
                 ec = "false";
             bool escapeColumns = bool.Parse(ec);
 
+            string cn = "true";
+            if (!param.TryGetParam("CN", out cn))
+                cn = "false";
+            bool capitalize = bool.Parse(cn);
+
             DatabaseProvider dp = null;
             string m = null;
             if (!param.TryGetParam("M", out m))
@@ -203,7 +208,10 @@ namespace WXMLDatabase
 
             g.OnPropertyRemoved += (sender, prop) => Console.WriteLine("Remove: {0}.{1}", prop.Entity.Name, prop.Name);
 
-            g.ApplySourceViewToModel(dr, hie ? relation1to1.Hierarchy : unify ? relation1to1.Unify : relation1to1.Default, transform);
+            g.ApplySourceViewToModel(dr, 
+                hie ? relation1to1.Hierarchy : unify ? relation1to1.Unify : relation1to1.Default, 
+                transform,
+                capitalize);
 
             using (System.Xml.XmlTextWriter writer = new System.Xml.XmlTextWriter(file, Encoding.UTF8))
             {
@@ -248,17 +256,20 @@ namespace WXMLDatabase
 "Example: -schemas=dbo,one\n\tInclude all tables in schemas dbo and one\n\t" +
 "Example: -schemas=(dbo,one)\n\tInclude all tables in all schemas except dbo and one\n");
             Console.WriteLine("  -name=value\t-  Database table name filter.\n\t"+
-"Example: -name=aspnet_%,tbl%\n\tInclude all tables starts with aspnet_ and tbl\n\t" +
-"Example: -name=!aspnet_%\n\tInclude all tables except whose who starts with aspnet_\n");
+"Example: -name=aspnet_%,tbl%\n\tInclude all tables starts with aspnet_ or tbl\n\t" +
+"Example: -name=(aspnet_%)\n\tInclude all tables except whose who starts with aspnet_\n");
             Console.WriteLine("  -F=[error|merge]\t-  Existing file behavior.\n\t" +
 "Example: -F=error. Default is merge.\n");
             Console.WriteLine("  -R\t\t-  Drop deleted columns. Meaningfull only with merge behavior.\n");
             Console.WriteLine("  -N=value\t-  Objects namespace. Example: -N=test.\n");
             Console.WriteLine("  -Y\t\t-  Unify entyties with the same PK(1-1 relation). Example: -Y.\n");
             Console.WriteLine("  -H\t\t-  Make hierarchy from 1-1 relations. Example: -H.\n");
-            Console.WriteLine("  -T\t\t-  Transform property names. Example: -T.\n");
+            Console.WriteLine("  -T\t\t-  Transform property names. Example: -T.\n"+
+"Removes id, _id, _dt postfix and other cleanup processing\n");
             Console.WriteLine("  -ES\t\t-  Escape table names. Example: -ES.\n");
             Console.WriteLine("  -EC\t\t-  Escape column names. Example: -EC.\n");
+            Console.WriteLine("  -CN\t\t-  Capitalize names. Example: -CN.\n"+
+"Linq never capitalize names so this option for linq compatibility. Column [name] will be property Name (in linq name).");
         }
     }
 }

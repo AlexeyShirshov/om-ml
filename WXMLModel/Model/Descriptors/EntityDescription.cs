@@ -375,7 +375,7 @@ namespace WXML.Model.Descriptors
         private readonly List<EntityRelationDefinition> _relations = new List<EntityRelationDefinition>();
         private string _familyName;
 
-        public ICollection<EntityRelationDefinition> EntityRelations
+        public IEnumerable<EntityRelationDefinition> EntityRelations
         {
             get
             {
@@ -383,9 +383,9 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public List<EntityRelationDefinition> GetEntityRelations(bool withDisabled)
+        public IEnumerable<EntityRelationDefinition> GetEntityRelations(bool withDisabled)
         {
-            return _relations.FindAll(r => !r.Disabled);
+            return EntityRelations.Where(r => !r.Disabled);
         }
 
         //public string QualifiedIdentifier
@@ -641,6 +641,12 @@ namespace WXML.Model.Descriptors
 
         private void CheckProperty(PropertyDefinition pe)
         {
+            if (string.IsNullOrEmpty(pe.Name))
+                throw new ArgumentException(string.Format("Property {0} has no Name", pe.Identifier));
+
+            if (string.IsNullOrEmpty(pe.PropertyAlias))
+                throw new ArgumentException(string.Format("Property {0} has no PropertyAlias", pe.Identifier));
+
             if (SelfProperties.Any(item => item.PropertyAlias == pe.PropertyAlias))
             {
                 string t = pe.Entity==null?"unknown":pe.Entity.Identifier;
@@ -648,6 +654,15 @@ namespace WXML.Model.Descriptors
                 throw new ArgumentException(string.Format(
                     "Property with alias {0} already exists in type {1}. Added from {2}", 
                     pe.PropertyAlias, Identifier, t));
+            }
+
+            if (SelfProperties.Any(item => item.Name == pe.Name))
+            {
+                string t = pe.Entity == null ? "unknown" : pe.Entity.Identifier;
+
+                throw new ArgumentException(string.Format(
+                    "Property with name {0} already exists in type {1}. Added from {2}",
+                    pe.Name, Identifier, t));
             }
 
             if (pe.PropertyType != null && !Model.GetTypes().Any(item => item.Identifier == pe.PropertyType.Identifier))
@@ -710,5 +725,10 @@ namespace WXML.Model.Descriptors
         //    else
         //        throw new ArgumentException(string.Format("SourceFragment {0} not found among SelfSourceFragments. Probably InheritsBase is true. Consider remove table inheritance and copy base tables to entity.", sf.Identifier));
         //}
+
+        public void AddEntityRelations(EntityRelationDefinition entityRelation)
+        {
+            _relations.Add(entityRelation);
+        }
     }
 }

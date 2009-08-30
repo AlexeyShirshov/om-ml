@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,5 +80,49 @@ namespace WXMLTests
 
             Assert.AreEqual(string.Format("CREATE TABLE dbo.tbl(col1 int NULL);{0}{0}", Environment.NewLine), script.ToString());
         }
+
+        [TestMethod]
+        public void TestSourceView()
+        {
+            MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
+            SourceView view = p.GetSourceView();
+
+            Assert.AreEqual(133, view.GetSourceFields().Count());
+
+            Assert.AreEqual(32, view.GetSourceFragments().Count());
+        }
+
+        [TestMethod]
+        public void TestSourceViewPatterns()
+        {
+            MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
+
+            Assert.AreEqual(11, p.GetSourceView(null, "aspnet_%").GetSourceFragments().Count());
+
+            Assert.AreEqual(21, p.GetSourceView(null, "(aspnet_%)").GetSourceFragments().Count());
+
+            Assert.AreEqual(16, p.GetSourceView(null, "(aspnet_%,ent%)").GetSourceFragments().Count());
+
+            Assert.AreEqual(1, p.GetSourceView(null, "guid_table").GetSourceFragments().Count());
+
+            Assert.AreEqual(1, p.GetSourceView("test", null).GetSourceFragments().Count());
+
+            Assert.AreEqual(32, p.GetSourceView("test,dbo", null).GetSourceFragments().Count());
+
+            Assert.AreEqual(31, p.GetSourceView("(test)", null).GetSourceFragments().Count());
+
+            Assert.AreEqual(3, p.GetSourceView(null, "ent1,ent2,1to2").GetSourceFragments().Count());
+        }
+
+        public static string GetTestDB()
+        {
+            return Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), @"..\..\..\Databases\test.mdf"));
+        }
+
+        public static string GetTestDBConnectionString()
+        {
+            return @"Server=.\sqlexpress;AttachDBFileName='" + GetTestDB() + "';User Instance=true;Integrated security=true;";
+        }
+
     }
 }

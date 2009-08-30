@@ -298,7 +298,7 @@ namespace WXML.Model
                 if (!string.IsNullOrEmpty(mergeAction))
                     relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
 
-                entity.EntityRelations.Add(relation);
+                entity.AddEntityRelations(relation);
             }
         }
 

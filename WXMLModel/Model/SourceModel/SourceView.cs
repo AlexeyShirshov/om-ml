@@ -9,7 +9,7 @@ namespace WXML.Model.Descriptors
         internal List<SourceFieldDefinition> _columns = new List<SourceFieldDefinition>();
         internal List<SourceReferences> _references = new List<SourceReferences>();
 
-        public IEnumerable<SourceFragmentDefinition> GetTables()
+        public IEnumerable<SourceFragmentDefinition> GetSourceFragments()
         {
             return (from c in _columns
                     select c.SourceFragment).Distinct(new EqualityComparer<SourceFragmentDefinition, string>(
@@ -17,21 +17,21 @@ namespace WXML.Model.Descriptors
                    ));
         }
 
-        public IEnumerable<SourceFieldDefinition> GetColumns(SourceFragmentDefinition sf)
+        public IEnumerable<SourceFieldDefinition> GetSourceFields(SourceFragmentDefinition sf)
         {
             return from c in _columns
                    where c.SourceFragment == sf
                    select c;
         }
 
-        public IEnumerable<SourceFieldDefinition> GetColumns()
+        public IEnumerable<SourceFieldDefinition> GetSourceFields()
         {
             return _columns;
         }
 
-        public SourceFragmentDefinition GetOrCreateTable(string selector, string name)
+        public SourceFragmentDefinition GetOrCreateSourceFragment(string selector, string name)
         {
-            SourceFragmentDefinition sf = GetTables().SingleOrDefault(item =>
+            SourceFragmentDefinition sf = GetSourceFragments().SingleOrDefault(item =>
                 item.Selector == selector && item.Name == name);
 
             if (sf == null)

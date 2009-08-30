@@ -4,6 +4,13 @@
   <TestList name="Linq" id="1a731542-8907-4d58-8e88-d82a4a4d30d6" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">
     <TestLinks>
       <TestLink id="c393feb9-5b00-02e7-f86f-2fc14d144a33" name="TestGenerate" storage="linqcodegentests\bin\debug\linqcodegentests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
+      <TestLink id="218df10b-159a-a35e-14e0-dc30e916173b" name="TestCompareLinqCtx" storage="linqcodegentests\bin\debug\linqcodegentests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
+    </TestLinks>
+  </TestList>
+  <TestList name="ModelGeneration" id="30a80a00-dd51-4a28-afc5-7facafb4520f" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">
+    <TestLinks>
+      <TestLink id="ddd9cede-9128-35ab-faa6-b08f6d46d319" name="TestFillModel" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
+      <TestLink id="ee862cb2-f6af-550c-9100-f9e69a8df67f" name="TestFillModelRelations" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
     </TestLinks>
   </TestList>
   <TestList name="Merge" id="49d1a229-f670-48b8-884b-e7afc31de621" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">
@@ -21,17 +28,17 @@
     <TestLinks>
       <TestLink id="890d0d43-57a2-e891-efa6-ea9bf8eab245" name="TestFillProperties" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="dc67391f-ca54-8061-e647-c45de9e686d3" name="TestFindEntities" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
-      <TestLink id="824a5ae4-4649-62c8-be4f-f02dc2bdc127" name="TestSchemaBased" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
+      <TestLink id="faf8fb41-bfa3-1414-22df-11deb7160006" name="TestFillEntityTables" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="e73893e5-5135-8fef-a687-1db261cea1a6" name="TestExtensions" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="f3758985-91c0-3d7c-6ba1-35c593ee215c" name="TestExtensionSave" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
+      <TestLink id="6a0e6c8f-7b20-2987-5d30-d80acf173905" name="TestFillTables" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="615d5137-0266-782e-48ac-b937b389ca2e" name="TestFillTypes" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="c26e7939-c6af-c516-8f10-5a72e50c8d63" name="TestReadXml" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="2d72e95e-4ac3-fd25-8202-a5df82cd5f89" name="TestFillFileDescription" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="4f519217-f4c2-2c60-d89d-dbf92689db9b" name="TestFillPropertiesWithGroups" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
-      <TestLink id="6a0e6c8f-7b20-2987-5d30-d80acf173905" name="TestFillTables" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="6a5c04b0-a2d4-f9f3-0c8e-609fc1137cf4" name="TestSchemaBasedNewVersion" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="91f03e79-7c77-090f-824f-96b093af0df4" name="TestFillSuppressedProperties" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
-      <TestLink id="faf8fb41-bfa3-1414-22df-11deb7160006" name="TestFillEntityTables" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
+      <TestLink id="824a5ae4-4649-62c8-be4f-f02dc2bdc127" name="TestSchemaBased" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
     </TestLinks>
   </TestList>
   <TestList name="Lists of Tests" id="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">
@@ -65,8 +72,8 @@
   </TestList>
   <TestList name="MSSQLSourceProvider" id="d7cb1c44-f6a1-4b9c-be78-4a8ea1acff0e" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">
     <TestLinks>
-      <TestLink id="8c5d68bd-f75a-575d-2b22-a24325be834b" name="TestSourceView" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
-      <TestLink id="99c0607e-78b3-b372-a676-60efc6f0cb62" name="TestSourceViewPatterns" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
+      <TestLink id="7600107c-31e8-b965-afea-3e28044675e4" name="TestSourceViewPatterns" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
+      <TestLink id="76876791-9307-3212-2e99-bdbe0b2e0921" name="TestSourceView" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
       <TestLink id="b123b16a-50cb-88b7-8d9a-c6f142933285" name="TestCreateTable" storage="wxmltests\bin\debug\wxmltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel,   PublicKeyToken=b03f5f7f11d50a3a" />
     </TestLinks>
   </TestList>

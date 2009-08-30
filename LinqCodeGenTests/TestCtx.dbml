@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database Name="test" Class="TestCtxDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=.\SQLEXPRESS;AttachDbFilename=C:\Work\WXML\Databases\test.mdf;Integrated Security=True;Connect Timeout=30;User Instance=True" SettingsObjectName="LinqCodeGenTests.Properties.Settings" SettingsPropertyName="testConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.ent1" Member="ent1s">
+    <Type Name="ent1">
+      <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Association Name="ent1__1to2" Member="_1to2s" ThisKey="id" OtherKey="ent1_id" Type="_1to2" />
+    </Type>
+  </Table>
+  <Table Name="dbo.ent2" Member="ent2s">
+    <Type Name="ent2">
+      <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Association Name="ent2__1to2" Member="_1to2s" ThisKey="id" OtherKey="ent2_id" Type="_1to2" />
+    </Type>
+  </Table>
+  <Table Name="dbo.[1to2]" Member="_1to2s">
+    <Type Name="_1to2">
+      <Column Name="ent1_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="ent2_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Association Name="ent1__1to2" Member="ent1" ThisKey="ent1_id" OtherKey="id" Type="ent1" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+      <Association Name="ent2__1to2" Member="ent2" ThisKey="ent2_id" OtherKey="id" Type="ent2" IsForeignKey="true" />
+    </Type>
+  </Table>
+</Database>
