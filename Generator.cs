@@ -41,6 +41,9 @@ namespace LinqCodeGenerator
 
         private CodeDomGenerator _GenerateCode(LinqToCodedom.CodeDomGenerator.Language language)
         {
+            if (Model.LinqSettings == null)
+                throw new WXMLException("LinqContext is not specified in model");
+
             var c = new CodeDomGenerator();
             c.RequireVariableDeclaration = true;
             c.AllowLateBound = false;
@@ -85,9 +88,9 @@ namespace LinqCodeGenerator
             foreach(EntityDefinition e in Model.GetActiveEntities())
             {
                 CodeNamespace ens = ns;
-                var item = namespaces.SingleOrDefault(s => s.name == e.Namespace);
-                if (item != null)
-                    ens = item.ns;
+                var nns = namespaces.SingleOrDefault(item => item.name == e.Namespace);
+                if (nns != null)
+                    ens = nns.ns;
 
                 FillEntity(ens, e, language);
             }
@@ -210,7 +213,7 @@ namespace LinqCodeGenerator
                     var fieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name);
 
                     var prop = cls.AddProperty(p.PropertyType.ToCodeType(_settings),
-                       WXMLCodeDomGenerator.GetMemberAttribute(p.PropertyAccessLevel), p.Name,
+                       WXMLCodeDomGenerator.GetMemberAttribute(p.PropertyAccessLevel) | MemberAttributes.Final, p.Name,
                        CodeDom.CombineStmts(
                            Emit.@return(() => CodeDom.@this.Field(fieldName))
                            ),
@@ -531,7 +534,7 @@ namespace LinqCodeGenerator
                 size = "(" + p.SourceTypeSize.Value.ToString() + ")";
 
             bool insertDefault = false;
-            if (p.HasAttribute(Field2DbRelations.InsertDefault))
+            if (p.HasAttribute(Field2DbRelations.InsertDefault) || p.HasAttribute(Field2DbRelations.PrimaryKey))
                 insertDefault = true;
 
             System.Data.Linq.Mapping.AutoSync async = System.Data.Linq.Mapping.AutoSync.Default;
@@ -615,7 +618,7 @@ namespace LinqCodeGenerator
                 CodeTypeReference t = new CodeTypeReference(typeof(System.Data.Linq.Table<>));
                 CodeTypeReference et = new CodeTypeReference(n.GetEntityClassName(e, true));
                 t.TypeArguments.Add(et);
-                ctx.AddGetProperty(t, MemberAttributes.Public,
+                ctx.AddGetProperty(t, MemberAttributes.Public | MemberAttributes.Final,
                     WXMLCodeDomGeneratorNameHelper.GetMultipleForm(e.Name),
                     Emit.@return(() => CodeDom.@this.Call("GetTable", et))
                 );
