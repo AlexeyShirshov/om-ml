@@ -10,13 +10,16 @@ using LinqToCodedom.Generator;
 using System.Data;
 using WXML.Model.Descriptors;
 using System;
+using Microsoft.VisualBasic;
+using Microsoft.CSharp;
 
 namespace LinqCodeGenerator
 {
     public class LinqCodeDomGenerator
     {
-        private WXMLModel _ormObjectsDefinition;
-        private WXMLCodeDomGeneratorSettings _settings;
+        private readonly WXMLModel _ormObjectsDefinition;
+        private readonly WXMLCodeDomGeneratorSettings _settings;
+        private Func<string, string> _validId;
 
         public LinqCodeDomGenerator(WXMLModel ormObjectsDefinition, WXMLCodeDomGeneratorSettings settings)
         {
@@ -44,9 +47,14 @@ namespace LinqCodeGenerator
             if (Model.LinqSettings == null)
                 throw new WXMLException("LinqContext is not specified in model");
 
-            var c = new CodeDomGenerator();
-            c.RequireVariableDeclaration = true;
-            c.AllowLateBound = false;
+            if (language == CodeDomGenerator.Language.CSharp)
+                _validId = new CSharpCodeProvider().CreateValidIdentifier;
+            else if (language == CodeDomGenerator.Language.VB)
+                _validId = new VBCodeProvider().CreateValidIdentifier;
+            else
+                throw new NotImplementedException(language.ToString());
+
+            var c = new CodeDomGenerator {RequireVariableDeclaration = true, AllowLateBound = false};
 
             var ns = c.AddNamespace(Model.Namespace)
                 .Imports("System")
@@ -94,6 +102,35 @@ namespace LinqCodeGenerator
 
                 FillEntity(ens, e, language);
             }
+
+            foreach(RelationDefinitionBase rel in Model.Relations)
+            {
+                FillEntity(ns, rel, language);
+            }
+        }
+
+        private void FillEntity(CodeNamespace ns, RelationDefinitionBase rel, CodeDomGenerator.Language language)
+        {
+            CodeTypeDeclaration cls = ns.AddClass(GetName(rel.SourceFragment.Name))
+                .Inherits(typeof(System.ComponentModel.INotifyPropertyChanging))
+                .Inherits(typeof(System.ComponentModel.INotifyPropertyChanged));
+
+            var c = Define.Attribute(typeof(System.Data.Linq.Mapping.TableAttribute));
+            cls.AddAttribute(c);
+            Define.InitAttributeArgs(() => new { Name = string.IsNullOrEmpty(rel.SourceFragment.Selector) ?
+                rel.SourceFragment.Name : rel.SourceFragment.Selector + "." + rel.SourceFragment.Name
+            }, c);
+
+            cls.IsPartial = true;
+        }
+
+        private string GetName(string p)
+        {
+            var n = p.Trim('[', ']');
+            n = _validId(n);
+            if (char.IsDigit(n[0]))
+                n = "_" + n;
+            return n;
         }
 
         private void FillEntity(CodeNamespace ns, EntityDefinition e, LinqToCodedom.CodeDomGenerator.Language language)
