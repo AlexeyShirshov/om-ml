@@ -672,6 +672,9 @@ namespace WXML.Model
                 string leftAccessorDescription = leftTargetElement.GetAttribute("accessorDescription");
                 string rightAccessorDescription = rightTargetElement.GetAttribute("accessorDescription");
 
+                string leftEntityProperties = leftTargetElement.GetAttribute("entityProperties");
+                string rightEntityProperties = rightTargetElement.GetAttribute("entityProperties");
+
 				TypeDefinition leftAccessedEntityType = _model.GetType(leftAccessedEntityTypeId, true);
 				TypeDefinition rightAccessedEntityType = _model.GetType(rightAccessedEntityTypeId, true);
 
@@ -693,13 +696,17 @@ namespace WXML.Model
 
 				EntityDefinition rightLinkTargetEntity = _model.GetEntity(rightLinkTargetEntityId);
 
-                LinkTarget leftLinkTarget = new LinkTarget(leftLinkTargetEntity, leftFieldName.Split(' '), leftCascadeDelete, leftAccessorName) 
+                LinkTarget leftLinkTarget = new LinkTarget(leftLinkTargetEntity, leftFieldName.Split(' '), 
+                    leftEntityProperties.Split(' '),
+                    leftCascadeDelete, leftAccessorName) 
                 { 
                     AccessorDescription = leftAccessorDescription,
                     AccessedEntityType = leftAccessedEntityType
                 };
 
-                LinkTarget rightLinkTarget = new LinkTarget(rightLinkTargetEntity, rightFieldName.Split(' '), rightCascadeDelete, rightAccessorName) 
+                LinkTarget rightLinkTarget = new LinkTarget(rightLinkTargetEntity, rightFieldName.Split(' '), 
+                    rightEntityProperties.Split(' '),
+                    rightCascadeDelete, rightAccessorName) 
                 { 
                     AccessorDescription = rightAccessorDescription,
                     AccessedEntityType = rightAccessedEntityType
@@ -746,6 +753,7 @@ namespace WXML.Model
 				string underlyingEntityId = relationElement.GetAttribute("underlyingEntity");
 				string disabledValue = relationElement.GetAttribute("disabled");
 				string entityId = relationElement.GetAttribute("entity");
+                string entityProperties = relationElement.GetAttribute("entityProperties");
                 string mergeAction = relationElement.GetAttribute("action");
 
 				XmlElement directTargetElement = (XmlElement)directTargetNode;
@@ -789,7 +797,8 @@ namespace WXML.Model
                     AccessedEntityType = reverseAccessedEntityType
                 };
 
-				SelfRelationDescription relation = new SelfRelationDescription(entity, directTarget, reverseTarget, relationTable, underlyingEntity, disabled);
+				SelfRelationDescription relation = new SelfRelationDescription(entity, entityProperties.Split(' '),
+                    directTarget, reverseTarget, relationTable, underlyingEntity, disabled);
 
                 if (!string.IsNullOrEmpty(mergeAction))
                     relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);

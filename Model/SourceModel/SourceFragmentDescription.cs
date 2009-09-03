@@ -31,5 +31,9 @@ namespace WXML.Model.Descriptors
             get { return _constraints; }
         }
 
+        public override string ToString()
+        {
+            return Selector + "." + Name;
+        }
 	}
 }

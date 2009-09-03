@@ -83,8 +83,8 @@ namespace WXML.CodeDom
         {
             WXMLCodeDomGeneratorSettings settings = GetSettings();
             string en = entity.Name;
-            
-            if (entity.Model.FileEntities.Any(e => e.Name == en && e.Identifier != entity.Identifier))
+
+            if (entity.Model != null && entity.Model.FileEntities.Any(e => e.Name == en && e.Identifier != entity.Identifier))
             {
                 if (string.IsNullOrEmpty(entity.GetSourceFragments().First().Selector))
                 {

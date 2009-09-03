@@ -217,6 +217,7 @@ namespace WXML.Model
 
                     XmlElement leftElement = CreateElement("Left");
                     leftElement.SetAttribute("entity", relation.Left.Entity.Identifier);
+                    leftElement.SetAttribute("entityProperties", string.Join(" ", relation.Left.EntityProperties));
                     leftElement.SetAttribute("fieldName", string.Join(" ", relation.Left.FieldName));
                     leftElement.SetAttribute("cascadeDelete", XmlConvert.ToString(relation.Left.CascadeDelete));
 					
@@ -231,6 +232,7 @@ namespace WXML.Model
 
                     XmlElement rightElement = CreateElement("Right");
                     rightElement.SetAttribute("entity", relation.Right.Entity.Identifier);
+                    rightElement.SetAttribute("entityProperties", string.Join(" ", relation.Right.EntityProperties));
                     rightElement.SetAttribute("fieldName", string.Join(" ", relation.Right.FieldName));
                     rightElement.SetAttribute("cascadeDelete", XmlConvert.ToString(relation.Right.CascadeDelete));
 					
@@ -260,6 +262,7 @@ namespace WXML.Model
 
                     relationElement.SetAttribute("table", relation.SourceFragment.Identifier);
                     relationElement.SetAttribute("entity", relation.Entity.Identifier);
+                    relationElement.SetAttribute("entityProperties", string.Join(" ", relation.EntityProperties));
                     if (relation.Disabled)
                     {
                         relationElement.SetAttribute("disabled", XmlConvert.ToString(relation.Disabled));

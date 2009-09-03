@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace WXML.Model.Descriptors
 {
@@ -102,15 +103,21 @@ namespace WXML.Model.Descriptors
 	public class SelfRelationDescription : RelationDefinitionBase
 	{
 		private readonly EntityDefinition _entity;
+	    private string[] _props;
 
-		public SelfRelationDescription(EntityDefinition entity, SelfRelationTarget direct, SelfRelationTarget reverse, SourceFragmentDefinition table, EntityDefinition underlyingEntity, bool disabled)
+	    public SelfRelationDescription(EntityDefinition entity, string[] props, 
+            SelfRelationTarget direct, SelfRelationTarget reverse, 
+            SourceFragmentDefinition table, EntityDefinition underlyingEntity, bool disabled)
             : base(table, underlyingEntity, direct, reverse, disabled)
 		{
 			_entity = entity;
+	        _props = props;
 		}
 
-        public SelfRelationDescription(EntityDefinition entity, SelfRelationTarget direct, SelfRelationTarget reverse, SourceFragmentDefinition table, EntityDefinition underlyingEntity)
-            : this(entity, direct, reverse, table, underlyingEntity, false)
+        public SelfRelationDescription(EntityDefinition entity, string[] props, 
+            SelfRelationTarget direct, SelfRelationTarget reverse, 
+            SourceFragmentDefinition table, EntityDefinition underlyingEntity)
+            : this(entity, props, direct, reverse, table, underlyingEntity, false)
         {
         }
 
@@ -129,6 +136,20 @@ namespace WXML.Model.Descriptors
 			get { return Right; }
 		}
 
+        public string[] EntityProperties
+        {
+            get { return _props; }
+            set { _props = value; }
+        }
+
+        public IEnumerable<ScalarPropertyDefinition> Properties
+        {
+            get
+            {
+                return Entity.GetProperties().Where(item => EntityProperties.Contains(item.PropertyAlias)).Cast<ScalarPropertyDefinition>();
+            }
+        } 
+
         public override bool Similar(RelationDefinitionBase obj)
         {
             return _Similar(obj as SelfRelationDescription);
@@ -141,7 +162,7 @@ namespace WXML.Model.Descriptors
 
         protected bool _Similar(SelfRelationDescription obj)
         {
-            return base.Similar((RelationDefinitionBase)obj) && _entity.Name == obj._entity.Name;
+            return base.Similar(obj) && _entity.Name == obj._entity.Name;
         }
 
 		public override bool IsEntityTakePart(EntityDefinition entity)

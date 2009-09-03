@@ -332,9 +332,11 @@ namespace WXML.SourceConnector
                     var rels = _db.GetFKRelations(fk);
                     SourceFragmentDefinition m = rels.First().PKField.SourceFragment;
 
+                    EntityDefinition e = _model.GetEntity(GetEntityIdentifier(m.Selector, m.Name));
                     LinkTarget lt = new LinkTarget(
-                        _model.GetEntity(GetEntityIdentifier(m.Selector, m.Name)),
+                        e,
                         rels.Select(item => item.FKField.SourceFieldExpression).ToArray(),
+                        rels.Select(item => e.GetPkProperties().Single(p=>p.SourceFieldExpression == item.PKField.SourceFieldExpression).PropertyAlias).ToArray(),
                         rels.First().DeleteAction == SourceConstraint.CascadeAction
                     );
                     targets.Add(lt);
@@ -347,7 +349,7 @@ namespace WXML.SourceConnector
                 {
                     LinkTarget t = targets[0];
                     SelfRelationDescription newRel = new SelfRelationDescription(
-                        t.Entity, targets[0], targets[1],
+                        t.Entity, t.EntityProperties, targets[0], targets[1],
                         GetSourceFragment(sf), null);
 
                     if (_model.GetSimilarRelation(newRel) == null)
@@ -465,6 +467,8 @@ namespace WXML.SourceConnector
         private void NormalizeRelationAccessors(RelationDefinitionBase relation,
             string searchedName, EntityDefinition rdbEntity)
         {
+            if (string.IsNullOrEmpty(searchedName)) return;
+
             var q1 =
                 from r in _model.ActiveRelations.OfType<SelfRelationDescription>()
                 where r != relation && r.Entity.Identifier == rdbEntity.Identifier &&
@@ -630,6 +634,9 @@ namespace WXML.SourceConnector
 
                 if (capitalizeNames)
                     name = Capitalize(name);
+
+                if ((attrs & Field2DbRelations.PK) == Field2DbRelations.PK && c.IsNullable)
+                    throw new WXMLException(string.Format("Column {0}.{1} cannot be nullable since it's a primary key", c.SourceFragment,c.SourceFieldExpression));
 
                 pe = new ScalarPropertyDefinition(e, name,
                      name, attrs, "Auto generated from column " + c.SourceFieldExpression, 

@@ -221,6 +221,9 @@ namespace WXML.Model.Database.Providers
                 {
                     c.IsNullable = true;
                 }
+                else
+                    c.IsNullable = false;
+
                 c.SourceType = reader.GetString(reader.GetOrdinal("data_type"));
 
                 c.IsAutoIncrement = Convert.ToBoolean(reader.GetInt32(reader.GetOrdinal("identity")));
