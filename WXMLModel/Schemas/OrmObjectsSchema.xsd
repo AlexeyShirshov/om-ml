@@ -564,6 +564,14 @@
         <xs:documentation>Сущность реализующая связь</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="entityProperties" use="required">
+      <xs:annotation>
+        <xs:documentation>Алиасы полей сущности (первичные ключи) в последовательности соответствующей поля fieldName</xs:documentation>
+      </xs:annotation>
+      <xs:simpleType>
+        <xs:list itemType="xs:string"/>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="disabled" type="xs:boolean" use="optional" default="false">
       <xs:annotation>
         <xs:documentation>Disable relation</xs:documentation>
@@ -674,8 +682,16 @@
     </xs:annotation>
     <xs:attribute name="entity" type="xs:Name" use="required">
       <xs:annotation>
-        <xs:documentation>Сущность</xs:documentation>
+        <xs:documentation>Ид cущности</xs:documentation>
       </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="entityProperties" use="required">
+      <xs:annotation>
+        <xs:documentation>Алиасы полей сущности (первичные ключи) в последовательности соответствующей поля fieldName</xs:documentation>
+      </xs:annotation>
+      <xs:simpleType>
+        <xs:list itemType="xs:string"/>
+      </xs:simpleType>
     </xs:attribute>
     <xs:attribute name="fieldName" use="required">
       <xs:annotation>

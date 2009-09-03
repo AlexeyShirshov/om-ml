@@ -21,18 +21,23 @@ namespace WXML.Model.Descriptors
 
         #endregion Private Fields
 
-        public EntityDefinition(string id, string name, string nameSpace, string description, WXMLModel ormObjectsDef)
-            : this(id, name, nameSpace, description, ormObjectsDef, null)
+        public EntityDefinition(string id, string name, string @namespace)
+            : this(id, name, @namespace, null, null, null)
         {
         }
 
-        public EntityDefinition(string id, string name, string nameSpace, string description, WXMLModel ormObjectsDef, EntityDefinition baseEntity)
-            : this(id, name, nameSpace, description, ormObjectsDef, baseEntity, EntityBehaviuor.ForcePartial)
+        public EntityDefinition(string id, string name, string @namespace, string description, WXMLModel model)
+            : this(id, name, @namespace, description, model, null)
+        {
+        }
+
+        public EntityDefinition(string id, string name, string @namespace, string description, WXMLModel model, EntityDefinition baseEntity)
+            : this(id, name, @namespace, description, model, baseEntity, EntityBehaviuor.ForcePartial)
         {
 
         }
 
-        public EntityDefinition(string id, string name, string nameSpace, string description, 
+        public EntityDefinition(string id, string name, string @namespace, string description, 
             WXMLModel model, EntityDefinition baseEntity, EntityBehaviuor behaviour)
         {
             _id = id;
@@ -42,7 +47,7 @@ namespace WXML.Model.Descriptors
             _properties = new List<PropertyDefinition>();
             _suppressedProperties = new List<string>();
             _model = model;
-            EntitySpecificNamespace = nameSpace;
+            EntitySpecificNamespace = @namespace;
             _baseEntity = baseEntity;
             Behaviour = behaviour;
 
@@ -114,7 +119,7 @@ namespace WXML.Model.Descriptors
 
         private void CheckSourceFragment(SourceFragmentDefinition sf)
         {
-            if (!Model.GetSourceFragments().Any(item => item.Identifier == sf.Identifier))
+            if (Model != null && !Model.GetSourceFragments().Any(item => item.Identifier == sf.Identifier))
                 throw new ArgumentException(
                     string.Format("SourceFragment {0} not found in Model.SourceFragment collection", sf.Identifier));
 
@@ -338,7 +343,7 @@ namespace WXML.Model.Descriptors
 
         public string Namespace
         {
-            get { return string.IsNullOrEmpty(EntitySpecificNamespace) ? _model.Namespace : EntitySpecificNamespace; }
+            get { return string.IsNullOrEmpty(EntitySpecificNamespace) && _model != null ? _model.Namespace : EntitySpecificNamespace; }
             set { EntitySpecificNamespace = value; }
         }
 
@@ -665,7 +670,7 @@ namespace WXML.Model.Descriptors
                     pe.Name, Identifier, t));
             }
 
-            if (pe.PropertyType != null && !Model.GetTypes().Any(item => item.Identifier == pe.PropertyType.Identifier))
+            if (Model != null && pe.PropertyType != null && !Model.GetTypes().Any(item => item.Identifier == pe.PropertyType.Identifier))
                 throw new ArgumentException(string.Format("Property {0} has type {1} which is not found in Model.Types collection", pe.PropertyAlias, pe.PropertyType.Identifier));
 
             if (pe.SourceFragment != null && !GetSourceFragments().Any(item => item.Identifier == pe.SourceFragment.Identifier))

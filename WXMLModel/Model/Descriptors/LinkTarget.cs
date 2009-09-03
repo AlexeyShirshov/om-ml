@@ -1,23 +1,25 @@
+using System.Collections.Generic;
+using System.Linq;
+
 namespace WXML.Model.Descriptors
 {
     public class LinkTarget : SelfRelationTarget
     {
         private EntityDefinition _entity;
-        //private string _fieldName;
-        //private bool _cascadeDelete;
+        private string[] _props;
 
-    	public LinkTarget(EntityDefinition entity, string[] fieldName, bool cascadeDelete)
+    	public LinkTarget(EntityDefinition entity, string[] fieldName, string[] props, bool cascadeDelete)
     		: base(fieldName, cascadeDelete)
     	{
 			_entity = entity;
+    	    _props = props;
     	}
 
-    	public LinkTarget(EntityDefinition entity, string[] fieldName, bool cascadeDelete, string accessorName)
+    	public LinkTarget(EntityDefinition entity, string[] fieldName,string[] props, bool cascadeDelete, string accessorName)
             : base(fieldName, cascadeDelete, accessorName)
         {
             _entity = entity;
-            //_fieldName = fieldName;
-            //_cascadeDelete = cascadeDelete;
+            _props = props;
         }
 
         public EntityDefinition Entity
@@ -26,25 +28,19 @@ namespace WXML.Model.Descriptors
             set { _entity = value; }
         }
 
-        //public string FieldName
-        //{
-        //    get { return _fieldName; }
-        //    set { _fieldName = value; }
-        //}   
+        public string[] EntityProperties
+        {
+            get { return _props; }
+            set { _props = value; }
+        }
 
-        //public bool CascadeDelete
-        //{
-        //    get { return _cascadeDelete; }
-        //    set { _cascadeDelete = value; }
-        //}
-
-        //public static bool IsSimilar(LinkTarget first, LinkTarget second)
-        //{
-        //    bool yep = true;
-        //    yep &= first.Entity.Name == second.Entity.Name;
-        //    yep &= first.FieldName == second.FieldName;
-        //    return yep;
-        //}
+        public IEnumerable<ScalarPropertyDefinition> Properties
+        {
+            get
+            {
+                return Entity.GetProperties().Where(item=>EntityProperties.Contains(item.PropertyAlias)).Cast<ScalarPropertyDefinition>();
+            }
+        } 
 
         public override bool Equals(object obj)
         {

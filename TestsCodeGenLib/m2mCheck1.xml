@@ -30,12 +30,12 @@
 	</Entities>
   <EntityRelations>
     <Relation table="tbl12">
-      <Left entity="e1" fieldName="e1" cascadeDelete="false"/>
-      <Right entity="e2" fieldName="e2" cascadeDelete="false"/>
+      <Left entity="e1" entityProperties="ID" fieldName="e1" cascadeDelete="false"/>
+      <Right entity="e2" entityProperties="ID" fieldName="e2" cascadeDelete="false"/>
     </Relation>
     <Relation table="tbl12">
-      <Left entity="e1" fieldName="e1" cascadeDelete="false"/>
-      <Right entity="e2" fieldName="e2" cascadeDelete="false"/>
+      <Left entity="e1" entityProperties="ID" fieldName="e1" cascadeDelete="false"/>
+      <Right entity="e2" entityProperties="ID" fieldName="e2" cascadeDelete="false"/>
     </Relation>
   </EntityRelations>
 	<Types>
