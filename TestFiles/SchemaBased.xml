@@ -106,22 +106,22 @@
       <oos:Constants>
         <oos:Constant name="ttt" value="xxx"/>
       </oos:Constants>
-			<oos:Left entity="eArtist" fieldName="artist_id" cascadeDelete="false" accessorName="Artist"/>
-			<oos:Right entity="eAlbum" fieldName="album_id" cascadeDelete="true" accessorName="Album"/>
+			<oos:Left entity="eArtist" entityProperties="ID" fieldName="artist_id" cascadeDelete="false" accessorName="Artist"/>
+			<oos:Right entity="eAlbum" entityProperties="ID" fieldName="album_id" cascadeDelete="true" accessorName="Album"/>
 		</oos:Relation>
 		<oos:Relation table="tblSiteAccess" disabled="true">
-			<oos:Left entity="eArtist" fieldName="artist_id1" cascadeDelete="false"/>
-			<oos:Right entity="eArtist" fieldName="artist_id2" cascadeDelete="true"/>
+			<oos:Left entity="eArtist" entityProperties="ID" fieldName="artist_id1" cascadeDelete="false"/>
+			<oos:Right entity="eArtist" entityProperties="ID" fieldName="artist_id2" cascadeDelete="true"/>
 		</oos:Relation>
 		<oos:Relation table="tblSiteAccess">
-			<oos:Left entity="eArtist" fieldName="artist_id1" cascadeDelete="false" accessorName="T1" accessedEntityType="tAlbum" />
-			<oos:Right entity="eA2B" fieldName="artist_id2" cascadeDelete="true" />
+			<oos:Left entity="eArtist" entityProperties="ID" fieldName="artist_id1" cascadeDelete="false" accessorName="T1" accessedEntityType="tAlbum" />
+			<oos:Right entity="eA2B" entityProperties="ID" fieldName="artist_id2" cascadeDelete="true" />
 		</oos:Relation>
-	  <oos:SelfRelation  table="tblal2al" entity="eAlbum" >
+	  <oos:SelfRelation table="tblal2al" entity="eAlbum" entityProperties="ID">
 		<oos:Direct fieldName="a1_id" cascadeDelete="false" accessorName="A1"/>
 		<oos:Reverse fieldName="a2_id" cascadeDelete="false"/>
 	  </oos:SelfRelation>
-	  <oos:SelfRelation  table="tbla2b" entity="eArtist" underlyingEntity="eA2B" >
+	  <oos:SelfRelation table="tbla2b" entity="eArtist" underlyingEntity="eA2B" entityProperties="ID">
 		<oos:Direct fieldName="band_id" cascadeDelete="false" accessorName="Artist"/>
 		<oos:Reverse fieldName="artist_id" cascadeDelete="false" accessorName="Band"/>
 	  </oos:SelfRelation>
