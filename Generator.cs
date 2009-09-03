@@ -103,25 +103,77 @@ namespace LinqCodeGenerator
                 FillEntity(ens, e, language);
             }
 
-            foreach(RelationDefinitionBase rel in Model.Relations)
+            int i = 1;
+            foreach(RelationDefinitionBase rel in Model.ActiveRelations)
             {
-                FillEntity(ns, rel, language);
+                EntityDefinition e = new EntityDefinition("relationEntity" + i, 
+                    GetName(rel.SourceFragment.Name), ns.Name);
+                
+                e.AddSourceFragment(new SourceFragmentRefDefinition(rel.SourceFragment));
+                
+                if (rel is SelfRelationDescription)
+                {
+                    SelfRelationDescription r = rel as SelfRelationDescription;
+                    CreatePropFromRel(e, r.SourceFragment, r.Entity, r.EntityProperties, r.Direct);
+                    CreatePropFromRel(e, r.SourceFragment, r.Entity, r.EntityProperties, r.Reverse);
+                }
+                else if (rel is RelationDefinition)
+                {
+                    RelationDefinition r = rel as RelationDefinition;
+                    CreatePropFromRel(e, r.SourceFragment, r.Left.Entity, r.Left.EntityProperties, r.Left);
+                    CreatePropFromRel(e, r.SourceFragment, r.Right.Entity, r.Right.EntityProperties, r.Right);
+                }
+                else
+                    throw new NotSupportedException(rel.GetType().ToString());
+
+                FillEntity(ns, e, language, (cls)=>
+                {
+                    if (rel is SelfRelationDescription)
+                    {
+                        SelfRelationDescription r = rel as SelfRelationDescription;
+                    }
+                    else if (rel is RelationDefinition)
+                    {
+                        RelationDefinition r = rel as RelationDefinition;
+
+                        string ename = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(r.Left.Entity, true);
+
+                        CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntityRef<>), ename);
+
+                        cls.AddField(ft,
+                             WXMLCodeDomGenerator.GetMemberAttribute(AccessLevel.Private),
+                             new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(ename)
+                        );
+
+                        ename = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(r.Right.Entity, true);
+
+                        ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntityRef<>), ename);
+
+                        cls.AddField(ft,
+                             WXMLCodeDomGenerator.GetMemberAttribute(AccessLevel.Private),
+                             new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(ename)
+                        );
+                    }
+                });
+
+                i++;
             }
         }
 
-        private void FillEntity(CodeNamespace ns, RelationDefinitionBase rel, CodeDomGenerator.Language language)
+        private void CreatePropFromRel(EntityDefinition e, SourceFragmentDefinition sf, 
+            EntityDefinition relEntity, string [] props, SelfRelationTarget target)
         {
-            CodeTypeDeclaration cls = ns.AddClass(GetName(rel.SourceFragment.Name))
-                .Inherits(typeof(System.ComponentModel.INotifyPropertyChanging))
-                .Inherits(typeof(System.ComponentModel.INotifyPropertyChanged));
-
-            var c = Define.Attribute(typeof(System.Data.Linq.Mapping.TableAttribute));
-            cls.AddAttribute(c);
-            Define.InitAttributeArgs(() => new { Name = string.IsNullOrEmpty(rel.SourceFragment.Selector) ?
-                rel.SourceFragment.Name : rel.SourceFragment.Selector + "." + rel.SourceFragment.Name
-            }, c);
-
-            cls.IsPartial = true;
+            for (int j = 0; j < target.FieldName.Length; j++)
+            {
+                string prop = GetName(target.FieldName[j]);
+                ScalarPropertyDefinition pk = (ScalarPropertyDefinition)relEntity.GetActiveProperties().Single(item => item.PropertyAlias == props[j]);
+                e.AddProperty(new ScalarPropertyDefinition(e, prop, prop, Field2DbRelations.None,
+                    null, pk.PropertyType, new SourceFieldDefinition(
+                        sf, target.FieldName[j], pk.SourceTypeSize, false,
+                        pk.SourceType, false, null
+                    ), AccessLevel.Private, AccessLevel.Public)
+                );
+            }
         }
 
         private string GetName(string p)
@@ -133,7 +185,12 @@ namespace LinqCodeGenerator
             return n;
         }
 
-        private void FillEntity(CodeNamespace ns, EntityDefinition e, LinqToCodedom.CodeDomGenerator.Language language)
+        private void FillEntity(CodeNamespace ns, EntityDefinition e, CodeDomGenerator.Language language)
+        {
+            FillEntity(ns, e, language, null);
+        }
+
+        private void FillEntity(CodeNamespace ns, EntityDefinition e, CodeDomGenerator.Language language, Action<CodeTypeDeclaration> addFields)
         {
             CodeTypeDeclaration cls = ns.AddClass(/*new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(e, true)*/ e.Name)
                 .Inherits(typeof(System.ComponentModel.INotifyPropertyChanging))
@@ -147,7 +204,7 @@ namespace LinqCodeGenerator
 
             cls.IsPartial = true;
 
-            AddFields(e, cls);
+            AddFields(e, cls, addFields);
 
             AddEntityPartialMethods(cls, e);
 
@@ -176,6 +233,38 @@ namespace LinqCodeGenerator
                             new CodeTypeReference("System.Action", new CodeTypeReference(clsName)), new CodeThisReferenceExpression(), "detach" + fldName)
                     )
                 ));
+            }
+
+            foreach (RelationDefinition rel in Model.ActiveRelations.OfType<RelationDefinition>().Where(item => item.Left.Entity == e || item.Right.Entity == e))
+            {
+                LinkTarget t = rel.Left;
+                if (t.Entity != e)
+                    t = rel.Right;
+
+                string ename = GetName(rel.SourceFragment.Name);
+
+                EntityDefinition re = new EntityDefinition("relationEntity",
+                    GetName(rel.SourceFragment.Name), ns.Name);
+
+                string name = string.IsNullOrEmpty(t.AccessorName) ? WXMLCodeDomGeneratorNameHelper.GetMultipleForm(ename)
+                    : t.AccessorName;
+
+                string clsName = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(re, true);
+                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsName);
+                string fldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(name);
+                ctor.Statements.Add(Emit.assignField(fldName,
+                    () => CodeDom.@new(ft,
+                        new CodeDelegateCreateExpression(
+                            new CodeTypeReference("System.Action", new CodeTypeReference(clsName)), new CodeThisReferenceExpression(), "attach" + fldName),
+                        new CodeDelegateCreateExpression(
+                            new CodeTypeReference("System.Action", new CodeTypeReference(clsName)), new CodeThisReferenceExpression(), "detach" + fldName)
+                    )
+                ));
+            }
+
+            foreach (SelfRelationDescription rel in Model.ActiveRelations.OfType<SelfRelationDescription>().Where(item => item.Entity == e))
+            {
+                throw new NotSupportedException("M2M relation to self is not supported yet");
             }
 
             ctor.Statements.Add(Emit.stmt(() => CodeDom.Call(null, "OnCreated")));
@@ -236,6 +325,41 @@ namespace LinqCodeGenerator
                     Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanging")),
                     Emit.assignProperty<object>(CodeDom.GetExpression(() => CodeDom.VarRef("entity")), propName, () => null)
                 );
+            }
+
+            foreach (RelationDefinition rel in Model.ActiveRelations.OfType<RelationDefinition>().Where(item => item.Left.Entity == e || item.Right.Entity == e))
+            {
+                LinkTarget t = rel.Left;
+                if (t.Entity != e)
+                    t = rel.Right;
+
+                string ename = GetName(rel.SourceFragment.Name);
+
+                EntityDefinition re = new EntityDefinition("relationEntity",
+                    GetName(rel.SourceFragment.Name), Model.Namespace);
+
+                string name = string.IsNullOrEmpty(t.AccessorName) ? WXMLCodeDomGeneratorNameHelper.GetMultipleForm(ename)
+                    : t.AccessorName;
+
+                string clsName = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(re, true);
+                string fldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(name);
+
+                string propName = t.Entity.Name;
+
+                cls.AddMethod(MemberAttributes.Private, (DynType entity) => entity.SetType(clsName) + "attach" + fldName,
+                    Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanging")),
+                    Emit.assignProperty(CodeDom.GetExpression(() => CodeDom.VarRef("entity")), propName, () => CodeDom.@this)
+                );
+
+                cls.AddMethod(MemberAttributes.Private, (DynType entity) => entity.SetType(clsName) + "detach" + fldName,
+                    Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanging")),
+                    Emit.assignProperty<object>(CodeDom.GetExpression(() => CodeDom.VarRef("entity")), propName, () => null)
+                );
+            }
+
+            foreach (SelfRelationDescription rel in Model.ActiveRelations.OfType<SelfRelationDescription>().Where(item => item.Entity == e))
+            {
+                throw new NotSupportedException("M2M relation to self is not supported yet");
             }
         }
 
@@ -374,9 +498,54 @@ namespace LinqCodeGenerator
 
                 prop.AddAttribute(attr);
             }
+
+            foreach (RelationDefinition rel in Model.ActiveRelations.OfType<RelationDefinition>().Where(item => item.Left.Entity == e || item.Right.Entity == e))
+            {
+                LinkTarget t = rel.Left;
+                if (t.Entity != e)
+                    t = rel.Right;
+
+                string ename = GetName(rel.SourceFragment.Name);
+
+                EntityDefinition re = new EntityDefinition("relationEntity",
+                    GetName(rel.SourceFragment.Name), Model.Namespace);
+
+                string name = string.IsNullOrEmpty(t.AccessorName) ? WXMLCodeDomGeneratorNameHelper.GetMultipleForm(ename)
+                    : t.AccessorName;
+
+                string clsName = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(re, true);
+                string fldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(name);
+
+                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsName);
+
+                CodeMemberProperty prop = cls.AddProperty(ft, MemberAttributes.Public | MemberAttributes.Final, name,
+                    CodeDom.CombineStmts(
+                        Emit.@return(() => CodeDom.@this.Field(fldName))
+                    ),
+                    Emit.stmt((object value) => CodeDom.Call(CodeDom.@this.Field(fldName), "Assign")(value))
+                );
+
+                var attr = Define.Attribute(typeof(System.Data.Linq.Mapping.AssociationAttribute));
+
+                Define.InitAttributeArgs(() => new
+                {
+                    Storage = fldName,
+                    Name =
+                        e.Name + "_" + ename,
+                    ThisKey = string.Join(",", t.FieldName),
+                    OtherKey = string.Join(",", t.Properties.Select(item => item.SourceFieldExpression).ToArray())
+                }, attr);
+
+                prop.AddAttribute(attr);
+            }
+
+            foreach (SelfRelationDescription rel in Model.ActiveRelations.OfType<SelfRelationDescription>().Where(item => item.Entity == e))
+            {
+                throw new NotSupportedException("M2M relation to self is not supported yet");
+            }
         }
 
-        private void AddFields(EntityDefinition e, CodeTypeDeclaration cls)
+        private void AddFields(EntityDefinition e, CodeTypeDeclaration cls, Action<CodeTypeDeclaration> addFields)
         {
             cls.AddField(typeof(System.ComponentModel.PropertyChangingEventArgs), MemberAttributes.Private | MemberAttributes.Static,
                          "emptyChangingEventArgs", () => new System.ComponentModel.PropertyChangingEventArgs(string.Empty));
@@ -405,9 +574,9 @@ namespace LinqCodeGenerator
                     CodeTypeReference ft = CodeDom.TypeRef(typeof (System.Data.Linq.EntityRef<>), p.PropertyType.ToCodeType(_settings));
 
                     cls.AddField(ft,
-                                 WXMLCodeDomGenerator.GetMemberAttribute(p.FieldAccessLevel),
-                                 new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name)
-                        );
+                         WXMLCodeDomGenerator.GetMemberAttribute(p.FieldAccessLevel),
+                         new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name)
+                    );
                 }
             }
 
@@ -427,6 +596,38 @@ namespace LinqCodeGenerator
                      new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(name)
                 );
             }
+
+            foreach (RelationDefinition rel in Model.ActiveRelations.OfType<RelationDefinition>().Where(item => item.Left.Entity == e || item.Right.Entity == e))
+            {
+                LinkTarget t = rel.Left;
+                if (t.Entity != e)
+                    t = rel.Right;
+
+                string ename = GetName(rel.SourceFragment.Name);
+
+                EntityDefinition re = new EntityDefinition("relationEntity",
+                    GetName(rel.SourceFragment.Name), Model.Namespace);
+
+                string name = string.IsNullOrEmpty(t.AccessorName) ? WXMLCodeDomGeneratorNameHelper.GetMultipleForm(ename)
+                    : t.AccessorName;
+
+                string clsName = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(re, true);
+
+                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsName);
+
+                cls.AddField(ft,
+                     WXMLCodeDomGenerator.GetMemberAttribute(AccessLevel.Private),
+                     new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(name)
+                );
+            }
+
+            foreach (SelfRelationDescription rel in Model.ActiveRelations.OfType<SelfRelationDescription>().Where(item => item.Entity == e))
+            {
+                throw new NotSupportedException("M2M relation to self is not supported yet");
+            }
+
+            if (addFields != null)
+                addFields(cls);
         }
 
         private static TypeDefinition GetSourceFieldType(PropertyDefinition p, EntityPropertyDefinition.SourceField field)
@@ -618,15 +819,15 @@ namespace LinqCodeGenerator
             CodeTypeMember lastMethod = Define.PartialMethod(MemberAttributes.Private, () => "OnLoaded");
             lastMethod.StartDirective("Extensibility Method Definitions");
             cls.AddMember(lastMethod);
-            cls.AddMethod(MemberAttributes.Private, (System.Data.Linq.ChangeAction action) => "OnValidate");
-            cls.AddMethod(MemberAttributes.Private, () => "OnCreated");
+            cls.AddMember(Define.PartialMethod(MemberAttributes.Private, (System.Data.Linq.ChangeAction action) => "OnValidate"));
+            cls.AddMember(Define.PartialMethod(MemberAttributes.Private, () => "OnCreated"));
             foreach (PropertyDefinition p_ in e.GetActiveProperties())
             {
                 if (p_ is ScalarPropertyDefinition)
                 {
                     ScalarPropertyDefinition p = p_ as ScalarPropertyDefinition;
                     
-                    cls.AddMethod(MemberAttributes.Private, (DynType value) => "On" + p.Name + "Changing" + value.SetType(p.PropertyType.ToCodeType(Settings)));
+                    cls.AddMember(Define.PartialMethod(MemberAttributes.Private, (DynType value) => "On" + p.Name + "Changing" + value.SetType(p.PropertyType.ToCodeType(Settings))));
                     lastMethod = Define.PartialMethod(MemberAttributes.Private, () => "On" + p.Name + "Changed");
                     cls.AddMember(lastMethod);
                 }
@@ -636,7 +837,7 @@ namespace LinqCodeGenerator
                     foreach (EntityPropertyDefinition.SourceField field in p.SourceFields)
                     {
                         TypeDefinition pt = GetSourceFieldType(p, field);
-                        cls.AddMethod(MemberAttributes.Private, (DynType value) => "On" + field.SourceFieldExpression + "Changing" + value.SetType(pt.ToCodeType(Settings)));
+                        cls.AddMember(Define.PartialMethod(MemberAttributes.Private, (DynType value) => "On" + field.SourceFieldExpression + "Changing" + value.SetType(pt.ToCodeType(Settings))));
                         lastMethod = Define.PartialMethod(MemberAttributes.Private, () => "On" + field.SourceFieldExpression + "Changed");
                         cls.AddMember(lastMethod);
                     }
@@ -654,6 +855,21 @@ namespace LinqCodeGenerator
             {
                 CodeTypeReference t = new CodeTypeReference(typeof(System.Data.Linq.Table<>));
                 CodeTypeReference et = new CodeTypeReference(n.GetEntityClassName(e, true));
+                t.TypeArguments.Add(et);
+                ctx.AddGetProperty(t, MemberAttributes.Public | MemberAttributes.Final,
+                    WXMLCodeDomGeneratorNameHelper.GetMultipleForm(e.Name),
+                    Emit.@return(() => CodeDom.@this.Call("GetTable", et))
+                );
+            }
+
+            foreach (RelationDefinitionBase rel in Model.ActiveRelations)
+            {
+                EntityDefinition e = new EntityDefinition("relationEntity",
+                    GetName(rel.SourceFragment.Name), Model.Namespace);
+
+                CodeTypeReference t = new CodeTypeReference(typeof(System.Data.Linq.Table<>));
+                CodeTypeReference et = new CodeTypeReference(n.GetEntityClassName(e, true));
+
                 t.TypeArguments.Add(et);
                 ctx.AddGetProperty(t, MemberAttributes.Public | MemberAttributes.Final,
                     WXMLCodeDomGeneratorNameHelper.GetMultipleForm(e.Name),
@@ -680,6 +896,21 @@ namespace LinqCodeGenerator
                 lastMethod = Define.PartialMethod(MemberAttributes.Private, (DynType instance) => "Delete" + e.Name + instance.SetType(et));
                 ctx.AddMember(lastMethod);
             }
+
+            foreach (RelationDefinitionBase rel in Model.ActiveRelations)
+            {
+                EntityDefinition e = new EntityDefinition("relationEntity",
+                    GetName(rel.SourceFragment.Name), Model.Namespace);
+
+                CodeTypeReference et = new CodeTypeReference(n.GetEntityClassName(e, true));
+
+                ctx.AddMember(Define.PartialMethod(MemberAttributes.Private, (DynType instance) => "Insert" + e.Name + instance.SetType(et)));
+                ctx.AddMember(Define.PartialMethod(MemberAttributes.Private, (DynType instance) => "Update" + e.Name + instance.SetType(et)));
+
+                lastMethod = Define.PartialMethod(MemberAttributes.Private, (DynType instance) => "Delete" + e.Name + instance.SetType(et));
+                ctx.AddMember(lastMethod);
+            }
+
             lastMethod.EndDirective();
         }
 
