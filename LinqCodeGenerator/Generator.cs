@@ -87,8 +87,8 @@ namespace LinqCodeGenerator
         private void AddEntities(CodeNamespace ns, CodeDomGenerator c, LinqToCodedom.CodeDomGenerator.Language language)
         {
             var namespaces = (from e in Model.GetActiveEntities()
-                              where !string.IsNullOrEmpty(e.Namespace)
-                              select e.Namespace)
+                              where !string.IsNullOrEmpty(e.EntitySpecificNamespace)
+                              select e.EntitySpecificNamespace)
                               .Distinct()
                               .Select(n => new { name = n, ns = c.AddNamespace(n) })
                               .ToArray();
@@ -96,7 +96,7 @@ namespace LinqCodeGenerator
             foreach(EntityDefinition e in Model.GetActiveEntities())
             {
                 CodeNamespace ens = ns;
-                var nns = namespaces.SingleOrDefault(item => item.name == e.Namespace);
+                var nns = namespaces.SingleOrDefault(item => item.name == e.EntitySpecificNamespace);
                 if (nns != null)
                     ens = nns.ns;
 
@@ -126,11 +126,12 @@ namespace LinqCodeGenerator
                 else
                     throw new NotSupportedException(rel.GetType().ToString());
 
-                FillEntity(ns, e, language, (cls)=>
+                FillEntity(ns, e, language/*, (cls)=>
                 {
                     if (rel is SelfRelationDescription)
                     {
                         SelfRelationDescription r = rel as SelfRelationDescription;
+                        throw new NotImplementedException();
                     }
                     else if (rel is RelationDefinition)
                     {
@@ -142,7 +143,7 @@ namespace LinqCodeGenerator
 
                         cls.AddField(ft,
                              WXMLCodeDomGenerator.GetMemberAttribute(AccessLevel.Private),
-                             new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(ename)
+                             new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(r.Left.Entity.Name)
                         );
 
                         ename = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(r.Right.Entity, true);
@@ -151,27 +152,136 @@ namespace LinqCodeGenerator
 
                         cls.AddField(ft,
                              WXMLCodeDomGenerator.GetMemberAttribute(AccessLevel.Private),
-                             new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(ename)
+                             new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(r.Right.Entity.Name)
                         );
                     }
-                });
+                },
+                (cls)=>
+                {
+                    if (rel is SelfRelationDescription)
+                    {
+                        SelfRelationDescription r = rel as SelfRelationDescription;
+                        throw new NotImplementedException();
+                    }
+                    else if (rel is RelationDefinition)
+                    {
+                        RelationDefinition r = rel as RelationDefinition;
+
+                        string ename = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(r.Left.Entity, true);
+
+                        string efieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(r.Left.Entity.Name);
+
+                        string name = string.IsNullOrEmpty(r.Left.AccessorName) ? WXMLCodeDomGeneratorNameHelper.GetMultipleForm(GetName(r.SourceFragment.Name))
+                            : r.Left.AccessorName;
+
+                        CreateAssociation(ename, cls, CodeDom.TypeRef(ename), r.Left.Entity.Name, 
+                            efieldName, name, e, r.Left);
+
+                        ename = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(r.Right.Entity, true);
+
+                        efieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(r.Right.Entity.Name);
+
+                        name = string.IsNullOrEmpty(r.Right.AccessorName) ? WXMLCodeDomGeneratorNameHelper.GetMultipleForm(GetName(r.SourceFragment.Name))
+                            : r.Right.AccessorName;
+
+                        CreateAssociation(ename, cls, CodeDom.TypeRef(ename), r.Right.Entity.Name, 
+                            efieldName, name, e, r.Left);
+                    }
+                }, 
+                (ctor)=>
+                {
+                    if (rel is SelfRelationDescription)
+                    {
+                        SelfRelationDescription r = rel as SelfRelationDescription;
+                        throw new NotImplementedException();
+                    }
+                    else if (rel is RelationDefinition)
+                    {
+                        RelationDefinition r = rel as RelationDefinition;
+
+                        string ename = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(r.Left.Entity, true);
+
+                        string efieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(r.Left.Entity.Name);
+
+                        ctor.Statements.Add(Emit.assignField(efieldName, ()=>CodeDom.@default(CodeDom.TypeRef(typeof(System.Data.Linq.EntityRef<>), ename))));
+
+                        ename = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(r.Right.Entity, true);
+
+                        efieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(r.Right.Entity.Name);
+
+                        ctor.Statements.Add(Emit.assignField(efieldName, () => CodeDom.@default(CodeDom.TypeRef(typeof(System.Data.Linq.EntityRef<>), ename))));
+                    }
+                }*/);
 
                 i++;
             }
         }
 
+        //private void CreateAssociation(string ename, CodeTypeDeclaration cls, CodeTypeReference ft, 
+        //    string propName, string efieldName, string name, EntityDefinition e, LinkTarget target)
+        //{
+        //    var eprop = cls.AddProperty(ft,
+        //        MemberAttributes.Public | MemberAttributes.Final, propName,
+        //        CodeDom.CombineStmts(
+        //            Emit.@return(() => CodeDom.Field(CodeDom.@this.Field(efieldName), "Entity"))
+        //            ),
+        //        Emit.declare(ft, "previousValue", () => CodeDom.Field(CodeDom.@this.Field(efieldName), "Entity")),
+        //        Emit.@if(() => !Equals(CodeDom.@this.Field(efieldName), CodeDom.VarRef("value")) ||
+        //                       !CodeDom.Field<bool>(CodeDom.@this.Field(efieldName), "HasLoadedOrAssignedValue"),
+        //                 Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanging")),
+        //                 Emit.@if((object previousValue) => !Equals(previousValue, null),
+        //                          Emit.assignProperty<object>(CodeDom.GetExpression(() => CodeDom.@this.Field(efieldName)), "Entity", () => null),
+        //                          Emit.stmt(() => CodeDom.VarRef("previousValue").Property(name).Call("Remove")(CodeDom.@this))
+        //                     ),
+        //                 Emit.assignProperty(CodeDom.GetExpression(() => CodeDom.@this.Field(efieldName)), "Entity", (object value) => value),
+        //                 Emit.ifelse((object value) => !Equals(value, null),
+        //                             CodeDom.CombineStmts(
+        //                                 Emit.stmt(() => CodeDom.VarRef("value").Property(name).Call("Add")(CodeDom.@this))
+        //                                 ).Union(target.FieldName.Select(field => Emit.assignField(new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(GetName(field)), () => CodeDom.VarRef("value").Property(target.Entity.GetPkProperties().Skip(target.FieldName.IndexOf(field)).First().Name))).Cast<CodeStatement>()).ToArray(),
+        //                             target.FieldName.Select(field => Emit.assignField(new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(GetName(field)), () => CodeDom.@default(target.Entity.GetPkProperties().Skip(target.FieldName.IndexOf(field)).First().PropertyType.ToCodeType(_settings)))).ToArray()
+        //                     ),
+        //                 Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanged")(propName))
+        //            )
+        //    );
+
+        //    var attr = Define.Attribute(typeof(System.Data.Linq.Mapping.AssociationAttribute));
+
+        //    Define.InitAttributeArgs(() => new
+        //       {
+        //           Storage = efieldName,
+        //           Name = ename + "_" + e.Name,
+        //           ThisKey = string.Join(",", target.FieldName.Select(item=>GetName(item)).ToArray()),
+        //           OtherKey = string.Join(",", target.Properties.Select(item => GetName(item.SourceFieldExpression)).ToArray()),
+        //           IsForeignKey = true
+        //       }, attr);
+
+        //    eprop.AddAttribute(attr);
+        //}
+
         private void CreatePropFromRel(EntityDefinition e, SourceFragmentDefinition sf, 
             EntityDefinition relEntity, string [] props, SelfRelationTarget target)
         {
+            TypeDefinition t = Model.GetTypes().SingleOrDefault(item => item.IsEntityType && item.Entity == relEntity);
+            if (t == null)
+                t = new TypeDefinition("t"+relEntity.Name, relEntity);
+
+            EntityPropertyDefinition prop = new EntityPropertyDefinition(relEntity.Name, null, Field2DbRelations.PK,
+                null, AccessLevel.Private, AccessLevel.Public, t, sf, e
+            );
+            e.AddProperty(prop);
             for (int j = 0; j < target.FieldName.Length; j++)
             {
-                string prop = GetName(target.FieldName[j]);
+                //string prop = GetName(target.FieldName[j]);
                 ScalarPropertyDefinition pk = (ScalarPropertyDefinition)relEntity.GetActiveProperties().Single(item => item.PropertyAlias == props[j]);
-                e.AddProperty(new ScalarPropertyDefinition(e, prop, prop, Field2DbRelations.None,
-                    null, pk.PropertyType, new SourceFieldDefinition(
-                        sf, target.FieldName[j], pk.SourceTypeSize, false,
-                        pk.SourceType, false, null
-                    ), AccessLevel.Private, AccessLevel.Public)
+                //e.AddProperty(new ScalarPropertyDefinition(e, prop, prop, Field2DbRelations.PK,
+                //    null, pk.PropertyType, new SourceFieldDefinition(
+                //        sf, target.FieldName[j], pk.SourceTypeSize, false,
+                //        pk.SourceType, false, null
+                //    ), AccessLevel.Private, AccessLevel.Public)
+                //);
+                
+                prop.AddSourceField(props[j], target.FieldName[j], null,
+                    pk.SourceType, pk.SourceTypeSize, false, null
                 );
             }
         }
@@ -187,10 +297,12 @@ namespace LinqCodeGenerator
 
         private void FillEntity(CodeNamespace ns, EntityDefinition e, CodeDomGenerator.Language language)
         {
-            FillEntity(ns, e, language, null);
+            FillEntity(ns, e, language, null, null, null);
         }
 
-        private void FillEntity(CodeNamespace ns, EntityDefinition e, CodeDomGenerator.Language language, Action<CodeTypeDeclaration> addFields)
+        private void FillEntity(CodeNamespace ns, EntityDefinition e, CodeDomGenerator.Language language,
+            Action<CodeTypeDeclaration> addFields, Action<CodeTypeDeclaration> addProps,
+            Action<CodeConstructor> addCtor)
         {
             CodeTypeDeclaration cls = ns.AddClass(/*new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(e, true)*/ e.Name)
                 .Inherits(typeof(System.ComponentModel.INotifyPropertyChanging))
@@ -267,9 +379,12 @@ namespace LinqCodeGenerator
                 throw new NotSupportedException("M2M relation to self is not supported yet");
             }
 
+            if (addCtor != null)
+                addCtor(ctor);
+
             ctor.Statements.Add(Emit.stmt(() => CodeDom.Call(null, "OnCreated")));
 
-            AddProperties(e, cls);
+            AddProperties(e, cls, addProps);
 
             cls.AddEvent(typeof(System.ComponentModel.PropertyChangingEventHandler), MemberAttributes.Public, "PropertyChanging")
                 .Implements(typeof(System.ComponentModel.INotifyPropertyChanging));
@@ -336,7 +451,7 @@ namespace LinqCodeGenerator
                 string ename = GetName(rel.SourceFragment.Name);
 
                 EntityDefinition re = new EntityDefinition("relationEntity",
-                    GetName(rel.SourceFragment.Name), Model.Namespace);
+                    GetName(rel.SourceFragment.Name), null/*Model.Namespace*/);
 
                 string name = string.IsNullOrEmpty(t.AccessorName) ? WXMLCodeDomGeneratorNameHelper.GetMultipleForm(ename)
                     : t.AccessorName;
@@ -363,7 +478,7 @@ namespace LinqCodeGenerator
             }
         }
 
-        private void AddProperties(EntityDefinition e, CodeTypeDeclaration cls)
+        private void AddProperties(EntityDefinition e, CodeTypeDeclaration cls, Action<CodeTypeDeclaration> addProps)
         {
             foreach (PropertyDefinition p_ in e.GetActiveProperties())
             {
@@ -379,7 +494,7 @@ namespace LinqCodeGenerator
                            Emit.@return(() => CodeDom.@this.Field(fieldName))
                            ),
                        //set
-                       Emit.@if(() => CodeDom.Call<bool>(CodeDom.@this.Field(fieldName), "Equals")(CodeDom.VarRef("value")),
+                       Emit.@if(() => !Object.Equals(CodeDom.@this.Field(fieldName), CodeDom.VarRef("value")),
                                 Emit.stmt(() => CodeDom.@this.Call("On" + p.Name + "Changing")(CodeDom.VarRef("value"))),
                                 Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanging")),
                                 Emit.assignField(fieldName, () => CodeDom.VarRef("value")),
@@ -395,46 +510,65 @@ namespace LinqCodeGenerator
                 else if(p_ is EntityPropertyDefinition)
                 {
                     EntityPropertyDefinition p = p_ as EntityPropertyDefinition;
+                    
+                    var efieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name);
+
                     foreach (EntityPropertyDefinition.SourceField field in p.SourceFields)
                     {
-                        var fieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(field.SourceFieldExpression);
+                        string propName = GetName(field.SourceFieldExpression);
+                        var fieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(propName);
 
                         var prop = cls.AddProperty(GetSourceFieldType(p, field).ToCodeType(_settings),
-                           WXMLCodeDomGenerator.GetMemberAttribute(AccessLevel.Public), field.SourceFieldExpression,
+                           WXMLCodeDomGenerator.GetMemberAttribute(AccessLevel.Public) | MemberAttributes.Final, propName,
                            CodeDom.CombineStmts(
                                Emit.@return(() => CodeDom.@this.Field(fieldName))
                                ),
                            //set
                            Emit.@if(() => !Equals(CodeDom.@this.Field(fieldName), CodeDom.VarRef("value")),
-                                    Emit.stmt(() => CodeDom.@this.Call("On" + field.SourceFieldExpression + "Changing")(CodeDom.VarRef("value"))),
-                                    Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanging")),
-                                    Emit.assignField(fieldName, () => CodeDom.VarRef("value")),
-                                    Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanged")(field.SourceFieldExpression)),
-                                    Emit.stmt(() => CodeDom.@this.Call("On" + field.SourceFieldExpression + "Changed"))
-                               )
+                                Emit.@if(()=>CodeDom.Property<bool>(CodeDom.@this.Field(efieldName), "HasLoadedOrAssignedValue"),
+                                    Emit.@throw(()=>new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException())
+                                ),
+                                Emit.stmt(() => CodeDom.@this.Call("On" + propName + "Changing")(CodeDom.VarRef("value"))),
+                                Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanging")),
+                                Emit.assignField(fieldName, () => CodeDom.VarRef("value")),
+                                Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanged")(propName)),
+                                Emit.stmt(() => CodeDom.@this.Call("On" + propName + "Changed"))
+                           )
                         );
 
-                        var attr = AddPropertyAttribute(field, fieldName);
+                        var attr = AddPropertyAttribute(field, fieldName, p.HasAttribute(Field2DbRelations.PK));
 
                         prop.AddAttribute(attr);
                     }
-
-                    var efieldName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name);
 
                     CodeTypeReference pt = p.PropertyType.ToCodeType(_settings);
 
                     var relationProp = p.PropertyType.Entity.EntityRelations.Where(item => !item.Disabled)
                         .SingleOrDefault(item => item.PropertyAlias == p.PropertyAlias);
 
+                    string name = null;
+
                     if (relationProp == null)
                         relationProp = p.PropertyType.Entity.EntityRelations.Where(item => !item.Disabled)
-                            .Single(item => item.Entity.Identifier == p.Entity.Identifier);
+                            .SingleOrDefault(item => item.Entity.Identifier == p.Entity.Identifier);
 
-                    string name = string.IsNullOrEmpty(relationProp.AccessorName) ? WXMLCodeDomGeneratorNameHelper.GetMultipleForm(relationProp.Entity.Name)
-                        : relationProp.AccessorName;
+                    if (relationProp == null)
+                    {
+                        var rel = Model.ActiveRelations.OfType<RelationDefinition>().SingleOrDefault(item => item.Left.Entity == p.PropertyType.Entity || item.Right.Entity == p.PropertyType.Entity);
+
+                        LinkTarget lt = rel.Left;
+                        if (lt.Entity != p.PropertyType.Entity)
+                            lt = rel.Right;
+
+                        name = !string.IsNullOrEmpty(lt.AccessorName) ? lt.AccessorName
+                            : WXMLCodeDomGeneratorNameHelper.GetMultipleForm(e.Name);
+                    }
+                    else
+                        name = !string.IsNullOrEmpty(relationProp.AccessorName) ? relationProp.AccessorName
+                            : WXMLCodeDomGeneratorNameHelper.GetMultipleForm(relationProp.Entity.Name);
 
                     var eprop = cls.AddProperty(pt,
-                        WXMLCodeDomGenerator.GetMemberAttribute(p.PropertyAccessLevel), p.Name,
+                        WXMLCodeDomGenerator.GetMemberAttribute(p.PropertyAccessLevel) | MemberAttributes.Final, p.Name,
                         CodeDom.CombineStmts(
                             Emit.@return(() => CodeDom.Field(CodeDom.@this.Field(efieldName), "Entity"))
                             ),
@@ -450,8 +584,8 @@ namespace LinqCodeGenerator
                                 Emit.ifelse((object value) => !Equals(value, null),
                                     CodeDom.CombineStmts(
                                         Emit.stmt(()=>CodeDom.VarRef("value").Property(name).Call("Add")(CodeDom.@this))
-                                    ).Union(p.SourceFields.Select(field => Emit.assignField(new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(field.SourceFieldExpression), () => CodeDom.VarRef("value").Property(p.PropertyType.Entity.GetProperty(field.PropertyAlias).Name))).Cast<CodeStatement>()).ToArray(),
-                                    p.SourceFields.Select(field => Emit.assignField(new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(field.SourceFieldExpression), () => CodeDom.@default(GetSourceFieldType(p, field).ToCodeType(_settings)))).ToArray()
+                                    ).Union(p.SourceFields.Select(field => Emit.assignField(new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(GetName(field.SourceFieldExpression)), () => CodeDom.VarRef("value").Property(p.PropertyType.Entity.GetProperty(field.PropertyAlias).Name))).Cast<CodeStatement>()).ToArray(),
+                                    p.SourceFields.Select(field => Emit.assignField(new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(GetName(field.SourceFieldExpression)), () => CodeDom.@default(GetSourceFieldType(p, field).ToCodeType(_settings)))).ToArray()
                                  ),
                                  Emit.stmt(() => CodeDom.@this.Call("SendPropertyChanged")(p.Name))
                             )
@@ -462,6 +596,9 @@ namespace LinqCodeGenerator
                 else
                     throw new NotImplementedException();
             }
+
+            if (addProps != null)
+                addProps(cls);
 
             //relations
             foreach (EntityRelationDefinition r in e.EntityRelations.Where(item => !item.Disabled))
@@ -508,7 +645,7 @@ namespace LinqCodeGenerator
                 string ename = GetName(rel.SourceFragment.Name);
 
                 EntityDefinition re = new EntityDefinition("relationEntity",
-                    GetName(rel.SourceFragment.Name), Model.Namespace);
+                    GetName(rel.SourceFragment.Name), null/*Model.Namespace*/);
 
                 string name = string.IsNullOrEmpty(t.AccessorName) ? WXMLCodeDomGeneratorNameHelper.GetMultipleForm(ename)
                     : t.AccessorName;
@@ -530,10 +667,9 @@ namespace LinqCodeGenerator
                 Define.InitAttributeArgs(() => new
                 {
                     Storage = fldName,
-                    Name =
-                        e.Name + "_" + ename,
-                    ThisKey = string.Join(",", t.FieldName),
-                    OtherKey = string.Join(",", t.Properties.Select(item => item.SourceFieldExpression).ToArray())
+                    Name = e.Name + "_" + ename,
+                    ThisKey = string.Join(",", t.Properties.Select(item => GetName(item.SourceFieldExpression)).ToArray()),
+                    OtherKey = string.Join(",", t.FieldName.Select(item=>GetName(item)).ToArray())
                 }, attr);
 
                 prop.AddAttribute(attr);
@@ -550,6 +686,8 @@ namespace LinqCodeGenerator
             cls.AddField(typeof(System.ComponentModel.PropertyChangingEventArgs), MemberAttributes.Private | MemberAttributes.Static,
                          "emptyChangingEventArgs", () => new System.ComponentModel.PropertyChangingEventArgs(string.Empty));
 
+            WXMLCodeDomGeneratorNameHelper nameHelper = new WXMLCodeDomGeneratorNameHelper(Settings);
+
             foreach (PropertyDefinition p_ in e.GetActiveProperties())
             {
                 if (p_ is ScalarPropertyDefinition)
@@ -557,7 +695,7 @@ namespace LinqCodeGenerator
                     ScalarPropertyDefinition p = p_ as ScalarPropertyDefinition;
                     cls.AddField(p.PropertyType.ToCodeType(_settings),
                                  WXMLCodeDomGenerator.GetMemberAttribute(p.FieldAccessLevel),
-                                 new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name));
+                                 nameHelper.GetPrivateMemberName(p.Name));
                 }
                 else if (p_ is EntityPropertyDefinition)
                 {
@@ -567,15 +705,15 @@ namespace LinqCodeGenerator
                         TypeDefinition pt = GetSourceFieldType(p, field);
 
                         cls.AddField(pt.ToCodeType(_settings),
-                                     WXMLCodeDomGenerator.GetMemberAttribute(p.FieldAccessLevel),
-                                     new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(field.SourceFieldExpression));
+                            WXMLCodeDomGenerator.GetMemberAttribute(p.FieldAccessLevel),
+                            nameHelper.GetPrivateMemberName(GetName(field.SourceFieldExpression)));
                     }
 
                     CodeTypeReference ft = CodeDom.TypeRef(typeof (System.Data.Linq.EntityRef<>), p.PropertyType.ToCodeType(_settings));
 
                     cls.AddField(ft,
                          WXMLCodeDomGenerator.GetMemberAttribute(p.FieldAccessLevel),
-                         new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(p.Name)
+                         nameHelper.GetPrivateMemberName(p.Name)
                     );
                 }
             }
@@ -587,13 +725,13 @@ namespace LinqCodeGenerator
                 string name = string.IsNullOrEmpty(relation.AccessorName) ? WXMLCodeDomGeneratorNameHelper.GetMultipleForm(relation.Entity.Name)
                     : relation.AccessorName;
 
-                string clsName = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(relation.Entity, true);
+                string clsName = nameHelper.GetEntityClassName(relation.Entity, true);
 
                 CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsName);
 
                 cls.AddField(ft,
                      WXMLCodeDomGenerator.GetMemberAttribute(AccessLevel.Private),
-                     new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(name)
+                     nameHelper.GetPrivateMemberName(name)
                 );
             }
 
@@ -606,18 +744,18 @@ namespace LinqCodeGenerator
                 string ename = GetName(rel.SourceFragment.Name);
 
                 EntityDefinition re = new EntityDefinition("relationEntity",
-                    GetName(rel.SourceFragment.Name), Model.Namespace);
+                    GetName(rel.SourceFragment.Name), null/*Model.Namespace*/);
 
                 string name = string.IsNullOrEmpty(t.AccessorName) ? WXMLCodeDomGeneratorNameHelper.GetMultipleForm(ename)
                     : t.AccessorName;
 
-                string clsName = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(re, true);
+                string clsName = nameHelper.GetEntityClassName(re, true);
 
                 CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsName);
 
                 cls.AddField(ft,
                      WXMLCodeDomGenerator.GetMemberAttribute(AccessLevel.Private),
-                     new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(name)
+                     nameHelper.GetPrivateMemberName(name)
                 );
             }
 
@@ -743,14 +881,14 @@ namespace LinqCodeGenerator
             throw new TypeLoadException("Cannot load type " + type);
         }
 
-        private static CodeAttributeDeclaration AddPropertyAttribute(EntityPropertyDefinition p, string fieldName)
+        private CodeAttributeDeclaration AddPropertyAttribute(EntityPropertyDefinition p, string fieldName)
         {
             var attr = Define.Attribute(typeof(System.Data.Linq.Mapping.AssociationAttribute));
 
             Define.InitAttributeArgs(() => new { Storage = fieldName, Name = 
                 p.PropertyType.Entity.Name+"_"+p.Entity.Name,
-                ThisKey=string.Join(",", p.SourceFields.Select(item=>item.SourceFieldExpression).ToArray()),
-                OtherKey = string.Join(",", p.SourceFields.Select(item => item.PropertyAlias).Select(item=>p.PropertyType.Entity.GetProperty(item)).Cast<ScalarPropertyDefinition>().Select(item=>item.SourceFieldExpression).ToArray()),
+                ThisKey=string.Join(",", p.SourceFields.Select(item=>GetName(item.SourceFieldExpression)).ToArray()),
+                OtherKey = string.Join(",", p.SourceFields.Select(item => p.PropertyType.Entity.GetProperty(item.PropertyAlias).Name).ToArray()),
                 IsForeignKey=true
             }, attr);
 
@@ -796,7 +934,8 @@ namespace LinqCodeGenerator
             return attr;
         }
 
-        private static CodeAttributeDeclaration AddPropertyAttribute(SourceFieldDefinition p, string fieldName)
+        private static CodeAttributeDeclaration AddPropertyAttribute(SourceFieldDefinition p, string fieldName,
+            bool isPK)
         {
             var attr = Define.Attribute(typeof(System.Data.Linq.Mapping.ColumnAttribute));
             string nullable = " NULL";
@@ -809,7 +948,10 @@ namespace LinqCodeGenerator
 
             System.Data.Linq.Mapping.AutoSync async = System.Data.Linq.Mapping.AutoSync.Default;
 
-            Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.SourceFieldExpression, DbType = p.SourceType + size + nullable, AutoSync = async}, attr);
+            if (isPK)
+                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.SourceFieldExpression, DbType = p.SourceType + size + nullable, AutoSync = async, IsPrimaryKey = true }, attr);
+            else
+                Define.InitAttributeArgs(() => new { Storage = fieldName, Name = p.SourceFieldExpression, DbType = p.SourceType + size + nullable, AutoSync = async }, attr);
 
             return attr;
         }
@@ -837,8 +979,9 @@ namespace LinqCodeGenerator
                     foreach (EntityPropertyDefinition.SourceField field in p.SourceFields)
                     {
                         TypeDefinition pt = GetSourceFieldType(p, field);
-                        cls.AddMember(Define.PartialMethod(MemberAttributes.Private, (DynType value) => "On" + field.SourceFieldExpression + "Changing" + value.SetType(pt.ToCodeType(Settings))));
-                        lastMethod = Define.PartialMethod(MemberAttributes.Private, () => "On" + field.SourceFieldExpression + "Changed");
+                        string fldName = GetName(field.SourceFieldExpression);
+                        cls.AddMember(Define.PartialMethod(MemberAttributes.Private, (DynType value) => "On" + fldName + "Changing" + value.SetType(pt.ToCodeType(Settings))));
+                        lastMethod = Define.PartialMethod(MemberAttributes.Private, () => "On" + fldName + "Changed");
                         cls.AddMember(lastMethod);
                     }
                 }
@@ -865,7 +1008,7 @@ namespace LinqCodeGenerator
             foreach (RelationDefinitionBase rel in Model.ActiveRelations)
             {
                 EntityDefinition e = new EntityDefinition("relationEntity",
-                    GetName(rel.SourceFragment.Name), Model.Namespace);
+                    GetName(rel.SourceFragment.Name), null/*Model.Namespace*/);
 
                 CodeTypeReference t = new CodeTypeReference(typeof(System.Data.Linq.Table<>));
                 CodeTypeReference et = new CodeTypeReference(n.GetEntityClassName(e, true));
@@ -900,7 +1043,7 @@ namespace LinqCodeGenerator
             foreach (RelationDefinitionBase rel in Model.ActiveRelations)
             {
                 EntityDefinition e = new EntityDefinition("relationEntity",
-                    GetName(rel.SourceFragment.Name), Model.Namespace);
+                    GetName(rel.SourceFragment.Name), null/*Model.Namespace*/);
 
                 CodeTypeReference et = new CodeTypeReference(n.GetEntityClassName(e, true));
 
