@@ -119,6 +119,9 @@ namespace LinqCodeGenTests
             {
                 ContextName = "TestCtxDataContext"
             };
+
+            //model.Namespace = "LinqCodeGenTests";
+
             LinqCodeDomGenerator gen = new LinqCodeDomGenerator(model, new WXML.CodeDom.WXMLCodeDomGeneratorSettings());
 
             Console.WriteLine(gen.GenerateCode(LinqToCodedom.CodeDomGenerator.Language.CSharp));
@@ -127,7 +130,10 @@ namespace LinqCodeGenTests
 
             Assert.IsNotNull(assembly);
 
-            Type ctxType = assembly.GetType(model.LinqSettings.ContextName);
+            Type ctxType = assembly.GetType(
+                string.IsNullOrEmpty(model.Namespace) ? model.LinqSettings.ContextName
+                    : model.Namespace + "." + model.LinqSettings.ContextName
+            );
 
             Assert.IsNotNull(ctxType);
 
