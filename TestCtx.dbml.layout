@@ -2,36 +2,120 @@
 <ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 11, 8.5" name="TestCtx">
   <DataContextMoniker Name="/TestCtxDataContext" />
   <nestedChildShapes>
-    <classShape Id="de08c588-232e-4410-8249-42f7249807e4" absoluteBounds="0.75, 1, 2, 1.0016910807291666">
+    <classShape Id="de08c588-232e-4410-8249-42f7249807e4" absoluteBounds="0.5, 0.5, 2, 1.0016910807291666">
       <DataClassMoniker Name="/TestCtxDataContext/ent1" />
       <nestedChildShapes>
-        <elementListCompartment Id="ca12a0db-8f20-4415-956c-f82cc7e21997" absoluteBounds="0.765, 1.46, 1.9700000000000002, 0.44169108072916669" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <elementListCompartment Id="ca12a0db-8f20-4415-956c-f82cc7e21997" absoluteBounds="0.515, 0.96, 1.9700000000000002, 0.44169108072916669" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <classShape Id="9a178552-885b-49ca-8d8a-970c33e4be9f" absoluteBounds="0.75, 3.875, 2, 1.193992513020834">
+    <classShape Id="9a178552-885b-49ca-8d8a-970c33e4be9f" absoluteBounds="0.5, 3.5, 2, 1.193992513020834">
       <DataClassMoniker Name="/TestCtxDataContext/ent2" />
       <nestedChildShapes>
-        <elementListCompartment Id="4b63c12b-303a-4a3d-8f83-fdda9b7c68eb" absoluteBounds="0.765, 4.335, 1.9700000000000002, 0.63399251302083326" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <elementListCompartment Id="4b63c12b-303a-4a3d-8f83-fdda9b7c68eb" absoluteBounds="0.515, 3.96, 1.9700000000000002, 0.63399251302083326" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <classShape Id="3401e25a-d2db-4d7a-ad91-76217e2b3c17" absoluteBounds="3.5, 0.875, 2, 1.1939925130208333">
+    <classShape Id="3401e25a-d2db-4d7a-ad91-76217e2b3c17" absoluteBounds="0.5, 1.875, 2, 1.1939925130208333">
       <DataClassMoniker Name="/TestCtxDataContext/_1to2" />
       <nestedChildShapes>
-        <elementListCompartment Id="81252d97-679c-4983-b948-7f3ebc9149b4" absoluteBounds="3.515, 1.335, 1.9700000000000002, 0.63399251302083326" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <elementListCompartment Id="81252d97-679c-4983-b948-7f3ebc9149b4" absoluteBounds="0.51500000000000012, 2.335, 1.9700000000000002, 0.63399251302083326" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <associationConnector edgePoints="[(2.75 : 1.50084554036458); (3.5 : 1.50084554036458)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+    <associationConnector edgePoints="[(1.5 : 1.50169108072917); (1.5 : 1.875)]" fixedFrom="Algorithm" fixedTo="Algorithm">
       <AssociationMoniker Name="/TestCtxDataContext/ent1/ent1__1to2" />
       <nodes>
         <classShapeMoniker Id="de08c588-232e-4410-8249-42f7249807e4" />
         <classShapeMoniker Id="3401e25a-d2db-4d7a-ad91-76217e2b3c17" />
       </nodes>
     </associationConnector>
-    <associationConnector edgePoints="[(2.75 : 4.47199625651042); (4.5 : 4.47199625651042); (4.5 : 2.06899251302083)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+    <associationConnector edgePoints="[(1.5 : 3.5); (1.5 : 3.06899251302083)]" fixedFrom="Algorithm" fixedTo="Algorithm">
       <AssociationMoniker Name="/TestCtxDataContext/ent2/ent2__1to2" />
       <nodes>
         <classShapeMoniker Id="9a178552-885b-49ca-8d8a-970c33e4be9f" />
         <classShapeMoniker Id="3401e25a-d2db-4d7a-ad91-76217e2b3c17" />
+      </nodes>
+    </associationConnector>
+    <classShape Id="806f593b-7816-4080-aff6-69f8ad657871" absoluteBounds="0.5, 6.625, 2, 1.3862939453125">
+      <DataClassMoniker Name="/TestCtxDataContext/ent3" />
+      <nestedChildShapes>
+        <elementListCompartment Id="35d22f13-56ef-4e99-800b-52a6b5c07e68" absoluteBounds="0.51500000000000012, 7.085, 1.9700000000000002, 0.8262939453125" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="23577980-e76d-4347-b6b1-39b8336e8f65" absoluteBounds="0.5, 5, 2, 1.1939925130208333">
+      <DataClassMoniker Name="/TestCtxDataContext/_3to3" />
+      <nestedChildShapes>
+        <elementListCompartment Id="98d73e63-809d-4c82-b15b-b2601ef3da49" absoluteBounds="0.51499999999999968, 5.46, 1.9700000000000002, 0.63399251302083326" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <associationConnector edgePoints="[(1.5 : 6.625); (1.5 : 6.19399251302083)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/TestCtxDataContext/ent3/ent3__3to3" />
+      <nodes>
+        <classShapeMoniker Id="806f593b-7816-4080-aff6-69f8ad657871" />
+        <classShapeMoniker Id="23577980-e76d-4347-b6b1-39b8336e8f65" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(2.0625 : 6.625); (2.0625 : 6.19399251302083)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/TestCtxDataContext/ent3/ent3__3to31" />
+      <nodes>
+        <classShapeMoniker Id="806f593b-7816-4080-aff6-69f8ad657871" />
+        <classShapeMoniker Id="23577980-e76d-4347-b6b1-39b8336e8f65" />
+      </nodes>
+    </associationConnector>
+    <classShape Id="18efe0f7-f39c-4a1d-9e8c-41b52b6616f9" absoluteBounds="3.125, 4.875, 2, 1.3862939453125">
+      <DataClassMoniker Name="/TestCtxDataContext/complex_pk" />
+      <nestedChildShapes>
+        <elementListCompartment Id="66a00f41-d650-4d5a-9425-630f79ccd42f" absoluteBounds="3.1399999999999997, 5.335, 1.9700000000000002, 0.8262939453125" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="22533446-f0dd-4e84-aba7-3fd4b75a825b" absoluteBounds="3.125, 2.875, 2, 1.5785953776041666">
+      <DataClassMoniker Name="/TestCtxDataContext/complex_fk" />
+      <nestedChildShapes>
+        <elementListCompartment Id="58d64b6e-39ed-42e2-87dd-5e2a847102a9" absoluteBounds="3.1399999999999997, 3.335, 1.9700000000000002, 1.0185953776041665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <associationConnector edgePoints="[(4.125 : 4.875); (4.125 : 4.45359537760417)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/TestCtxDataContext/complex_pk/complex_pk_complex_fk" />
+      <nodes>
+        <classShapeMoniker Id="18efe0f7-f39c-4a1d-9e8c-41b52b6616f9" />
+        <classShapeMoniker Id="22533446-f0dd-4e84-aba7-3fd4b75a825b" />
+      </nodes>
+    </associationConnector>
+    <classShape Id="8e4ff393-c680-421d-b538-9fca490ab026" absoluteBounds="5.75, 0.5, 2, 1.5785953776041666">
+      <DataClassMoniker Name="/TestCtxDataContext/aspnet_Application" />
+      <nestedChildShapes>
+        <elementListCompartment Id="24e8064e-c2b2-4660-993c-e2d06580204a" absoluteBounds="5.765, 0.96, 1.9700000000000002, 1.0185953776041665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="1daad819-1727-4311-b044-4ac5a7555563" absoluteBounds="5.75, 2.5, 2, 4.8477197265625">
+      <DataClassMoniker Name="/TestCtxDataContext/aspnet_Membership" />
+      <nestedChildShapes>
+        <elementListCompartment Id="e1a10822-f187-4eaf-a40e-d2f768642904" absoluteBounds="5.765, 2.96, 1.9700000000000002, 4.2877197265625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <associationConnector edgePoints="[(7.09375 : 2.07859537760417); (7.09375 : 2.5)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/TestCtxDataContext/aspnet_Application/aspnet_Application_aspnet_Membership" />
+      <nodes>
+        <classShapeMoniker Id="8e4ff393-c680-421d-b538-9fca490ab026" />
+        <classShapeMoniker Id="1daad819-1727-4311-b044-4ac5a7555563" />
+      </nodes>
+    </associationConnector>
+    <classShape Id="4150df92-4232-4e7a-8e5f-0856be0ed165" absoluteBounds="3, 0.5, 2, 2.1554996744791666">
+      <DataClassMoniker Name="/TestCtxDataContext/aspnet_User" />
+      <nestedChildShapes>
+        <elementListCompartment Id="b7881d23-5ec6-4471-9a21-a6d38d8b95c9" absoluteBounds="3.0149999999999997, 0.96, 1.9700000000000002, 1.5954996744791665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <associationConnector edgePoints="[(5 : 2.00365068164062); (5.5 : 2.00365068164062); (5.5 : 2.32859537760417); (6.28125 : 2.32859537760417); (6.28125 : 2.5)]" manuallyRouted="true" fixedFrom="Algorithm" fixedTo="Caller">
+      <AssociationMoniker Name="/TestCtxDataContext/aspnet_User/aspnet_User_aspnet_Membership" />
+      <nodes>
+        <classShapeMoniker Id="4150df92-4232-4e7a-8e5f-0856be0ed165" />
+        <classShapeMoniker Id="1daad819-1727-4311-b044-4ac5a7555563" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(5.75 : 1.28929768880208); (5 : 1.28929768880208)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/TestCtxDataContext/aspnet_Application/aspnet_Application_aspnet_User" />
+      <nodes>
+        <classShapeMoniker Id="8e4ff393-c680-421d-b538-9fca490ab026" />
+        <classShapeMoniker Id="4150df92-4232-4e7a-8e5f-0856be0ed165" />
       </nodes>
     </associationConnector>
   </nestedChildShapes>
