@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
+using WXML.Model;
 using WXML.Model.Descriptors;
-using WXML.Model.Database.Providers;
 
-namespace WXML.Model.SourceConnector
+namespace WXML.SourceConnector
 {
     public class ModelToSourceConnector
     {

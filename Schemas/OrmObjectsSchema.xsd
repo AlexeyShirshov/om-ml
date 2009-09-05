@@ -892,19 +892,15 @@
       <xs:documentation>Entities schema</xs:documentation>
     </xs:annotation>
     <xs:key name="EntityId">
-      <xs:selector xpath="NS:Entities/NS:Entity | ./NS:Includes/NS:WXMLModel/NS:Entities/NS:Entity" />
+      <xs:selector xpath="NS:Entities/NS:Entity | .//NS:WXMLModel/NS:Entities/NS:Entity" />
       <xs:field xpath="@id" />
     </xs:key>
     <xs:key name="SourceFragmentId">
-      <xs:selector xpath="NS:SourceFragments/NS:SourceFragment | ./NS:Includes/NS:WXMLModel/NS:SourceFragments/NS:SourceFragment" />
+      <xs:selector xpath="NS:SourceFragments/NS:SourceFragment | .//NS:WXMLModel/NS:SourceFragments/NS:SourceFragment" />
       <xs:field xpath="@id" />
     </xs:key>
-    <!--<xs:key name="TableName">
-      <xs:selector xpath="NS:Tables/NS:Table" />
-      <xs:field xpath="." />
-    </xs:key>-->
     <xs:key name="TypeId">
-      <xs:selector xpath="NS:Types/NS:Type | ./NS:Includes/NS:WXMLModel/NS:Types/NS:Type" />
+      <xs:selector xpath="NS:Types/NS:Type | .//NS:WXMLModel/NS:Types/NS:Type" />
       <xs:field xpath="@id" />
     </xs:key>
   </xs:element>

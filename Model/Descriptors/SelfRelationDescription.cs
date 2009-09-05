@@ -11,6 +11,7 @@ namespace WXML.Model.Descriptors
         private readonly SelfRelationTarget _left;
         private readonly SelfRelationTarget _right;
         private readonly List<RelationConstantDescriptor> _constants;
+        private readonly Dictionary<string, object> _items = new Dictionary<string, object>();
 
         public override bool Equals(object obj)
         {
@@ -98,6 +99,14 @@ namespace WXML.Model.Descriptors
     	}
 
         public MergeAction Action { get; set; }
+
+        public Dictionary<string, object> Items
+        {
+            get
+            {
+                return _items;
+            }
+        }
     }
     
 	public class SelfRelationDescription : RelationDefinitionBase

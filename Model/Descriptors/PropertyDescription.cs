@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace WXML.Model.Descriptors
@@ -27,10 +28,11 @@ namespace WXML.Model.Descriptors
         private string _description;
         private AccessLevel _fieldAccessLevel;
         private AccessLevel _propertyAccessLevel;
-        
+        private readonly Dictionary<string, object> _items = new Dictionary<string, object>();
+
         protected PropertyDefinition() {}
 
-        public PropertyDefinition(string propertyName, string propertyAlias, TypeDefinition type, Field2DbRelations attributes, 
+        protected PropertyDefinition(string propertyName, string propertyAlias, TypeDefinition type, Field2DbRelations attributes, 
             string description, AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel, 
             EntityDefinition entity)
         {
@@ -166,6 +168,14 @@ namespace WXML.Model.Descriptors
             PropertyDefinition p = _Clone();
             p.Entity = entityDescription;
             return p;
+        }
+
+        public Dictionary<string, object> Items
+        {
+            get
+            {
+                return _items;
+            }
         }
     }
 
