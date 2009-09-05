@@ -19,11 +19,23 @@
           <Property fieldName="prop2" propertyName="prop2" table="tbl1" typeRef="tString"/>
         </Group>
         <Group name="grp1" hide="false">
-          <Property fieldName="prop3" propertyName="prop3" table="tbl1" typeRef="tString"/>
+          <Property fieldName="prop3" propertyName="prop3" table="tbl1" typeRef="tString" obsolete="Warning" />
           <Property fieldName="prop4" propertyName="prop4" table="tbl1" typeRef="tString"/>
         </Group>
 			</Properties>
 		</Entity>
+    <Entity id="e2" name="E2" baseEntity="e1">
+      <SourceFragments>
+        <!--<SourceFragment ref="tbl1"/>-->
+        <!--<SourceFragment ref="tbl2"/>-->
+        <!--<SourceFragment ref="tblS1"/>-->
+      </SourceFragments>
+      <Properties>
+        <Group name="grp1" hide="false">
+          <Property fieldName="prop4" propertyName="prop4" table="tbl1" typeRef="tString"/>
+        </Group>
+      </Properties>
+    </Entity>
 	</Entities>
 	<Types>
     <Type id="tInt32">

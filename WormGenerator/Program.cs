@@ -26,7 +26,7 @@ namespace WormCodeGenerator
 
             string outputLanguage;
             string outputFolder;
-            WXMLModel ormObjectsDef;
+            WXMLModel model;
             string inputFilename;
             CodeDomProvider codeDomProvider;
             bool split, separateFolder;
@@ -107,10 +107,10 @@ namespace WormCodeGenerator
                 outputFolder = cmdLine["o"];
             else
             {
-                outputFolder = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                outputFolder = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                 if (string.IsNullOrEmpty(outputFolder))
                 {
-                    outputFolder = System.IO.Path.GetPathRoot(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                    outputFolder = Path.GetPathRoot(System.Reflection.Assembly.GetExecutingAssembly().Location);
                 }
             }
 
@@ -168,7 +168,7 @@ namespace WormCodeGenerator
                 oneFile = true;
             }
 
-            if(!System.IO.File.Exists(inputFilename))
+            if(!File.Exists(inputFilename))
             {
                 Console.WriteLine("Error: source file {0} not found.", inputFilename);
                 return;
@@ -179,17 +179,17 @@ namespace WormCodeGenerator
             //    Console.WriteLine("Error: output folder not found.");
             //    return;
             //}
-            if(string.IsNullOrEmpty(System.IO.Path.GetDirectoryName(outputFolder)))
-                outputFolder = System.IO.Path.GetPathRoot(outputFolder + System.IO.Path.DirectorySeparatorChar.ToString());
+            if(string.IsNullOrEmpty(Path.GetDirectoryName(outputFolder)))
+                outputFolder = Path.GetPathRoot(outputFolder + Path.DirectorySeparatorChar.ToString());
             else
-                outputFolder = System.IO.Path.GetDirectoryName(outputFolder + System.IO.Path.DirectorySeparatorChar.ToString());
+                outputFolder = Path.GetDirectoryName(outputFolder + Path.DirectorySeparatorChar.ToString());
 
             try
             {
                 Console.Write("Parsing file '{0}'...   ", inputFilename);
                 using (XmlReader rdr = XmlReader.Create(inputFilename))
                 {
-                    ormObjectsDef = WXMLModel.LoadFromXml(rdr, new XmlUrlResolver());
+                    model = WXMLModel.LoadFromXml(rdr, new XmlUrlResolver());
                 }
                 Console.WriteLine("done!");
                 if(validateOnly)
@@ -218,7 +218,7 @@ namespace WormCodeGenerator
                 }
             }
 
-            var gen = new WXMLToWorm.WormCodeDomGenerator(ormObjectsDef, settings);
+            var gen = new WXMLToWorm.WormCodeDomGenerator(model, settings);
 
             
 			//settings.Split = split;
@@ -234,15 +234,15 @@ namespace WormCodeGenerator
 
             if (oneFile)
             {
-                string privateFolder = outputFolder + System.IO.Path.DirectorySeparatorChar.ToString();
+                string privateFolder = outputFolder + Path.DirectorySeparatorChar.ToString();
 
-                CodeCompileUnit unit = gen.GetFullSingleUnit(typeof(Microsoft.VisualBasic.VBCodeProvider).IsAssignableFrom(codeDomProvider.GetType()) ? LinqToCodedom.CodeDomGenerator.Language.VB : LinqToCodedom.CodeDomGenerator.Language.CSharp);
+                CodeCompileUnit unit = gen.GetFullSingleUnit(typeof(VBCodeProvider).IsAssignableFrom(codeDomProvider.GetType()) ? LinqToCodedom.CodeDomGenerator.Language.VB : LinqToCodedom.CodeDomGenerator.Language.CSharp);
 
-                if (!System.IO.Directory.Exists(privateFolder))
-                    System.IO.Directory.CreateDirectory(privateFolder);
+                if (!Directory.Exists(privateFolder))
+                    Directory.CreateDirectory(privateFolder);
 
-                string outputFileName = System.IO.Path.GetFullPath(privateFolder + System.IO.Path.DirectorySeparatorChar.ToString() +
-                        System.IO.Path.GetFileNameWithoutExtension(inputFilename));
+                string outputFileName = Path.GetFullPath(privateFolder + Path.DirectorySeparatorChar.ToString() +
+                        Path.GetFileNameWithoutExtension(inputFilename));
                 
                 GenerateCode(codeDomProvider, unit, outputFileName, testRun);
 
@@ -253,11 +253,11 @@ namespace WormCodeGenerator
                 Console.WriteLine("\t{0} single generated.");
             }
             else
-                GenerateMultipleFilesOutput(outputFolder, ormObjectsDef, codeDomProvider, separateFolder, 
+                GenerateMultipleFilesOutput(outputFolder, model, codeDomProvider, separateFolder, 
                     skipEntities, processEntities, testRun, gen);
         }
 
-        private static void GenerateMultipleFilesOutput(string outputFolder, WXMLModel ormObjectsDef, 
+        private static void GenerateMultipleFilesOutput(string outputFolder, WXMLModel model, 
             CodeDomProvider codeDomProvider, bool separateFolder, 
             IEnumerable<string> skipEntities, IEnumerable<string> processEntities, bool testRun, 
             WormCodeDomGenerator gen)
@@ -265,7 +265,7 @@ namespace WormCodeGenerator
             List<string> errorList = new List<string>();
             int totalEntities = 0;
             int totalFiles = 0;
-            foreach (EntityDefinition entity in ormObjectsDef.FileEntities)
+            foreach (EntityDefinition entity in model.OwnEntities)
             {
                 //bool skip = false;
                 //if (processEntities.Length != 0)
@@ -326,13 +326,15 @@ namespace WormCodeGenerator
 
             try
             {
-                var ctx = gen.GetLinqContext();
+                var ctx = gen.GetLinqContextCompliteUnit(typeof(VBCodeProvider).IsAssignableFrom(codeDomProvider.GetType()) ? LinqToCodedom.CodeDomGenerator.Language.VB : LinqToCodedom.CodeDomGenerator.Language.CSharp);
                 if (ctx != null)
                 {
                     GenerateCode(codeDomProvider, ctx,
-                                 Path.GetFullPath(outputFolder +
-                                                            Path.DirectorySeparatorChar.ToString() +
-                                                            ctx.Filename), testRun);
+                         Path.GetFullPath(
+                            outputFolder + 
+                            Path.DirectorySeparatorChar.ToString() +
+                            ctx.Filename
+                         ), testRun);
                     Console.Write(".");
                     totalFiles++;
                 }

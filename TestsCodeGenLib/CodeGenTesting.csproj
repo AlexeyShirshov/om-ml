@@ -72,41 +72,42 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.cs" />
     <Compile Include="TestCodeGen.cs" />
-    <Compile Include="TestEntityBasedClass.cs" />
+    <Compile Include="TestComplexHierarchy.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SchemaBased.xml">
+    <EmbeddedResource Include="Examples\SchemaBased.xml">
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="CompositePK.xml" />
-    <EmbeddedResource Include="deffered.xml" />
-    <Content Include="doc.xml">
+    <EmbeddedResource Include="Examples\CompositePK.xml" />
+    <EmbeddedResource Include="Examples\deffered.xml" />
+    <EmbeddedResource Include="Examples\v2-schema.xml" />
+    <Content Include="Examples\doc.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <EmbeddedResource Include="EntityBasedClassFiles\EntityBasedClassSample.class.xml" />
-    <EmbeddedResource Include="groups.xml" />
-    <EmbeddedResource Include="groups2.xml" />
-    <EmbeddedResource Include="m2mCheck1.xml" />
-    <EmbeddedResource Include="m2mCheck2.xml" />
-    <EmbeddedResource Include="m2mCheck3.xml" />
-    <EmbeddedResource Include="m2mCheck4.xml" />
-    <Content Include="entityRelations.xml" />
-    <Content Include="tables.xml">
+    <EmbeddedResource Include="Examples\v1-schema.xml" />
+    <EmbeddedResource Include="Examples\groups.xml" />
+    <EmbeddedResource Include="Examples\groups2.xml" />
+    <EmbeddedResource Include="Examples\m2mCheck1.xml" />
+    <EmbeddedResource Include="Examples\m2mCheck2.xml" />
+    <EmbeddedResource Include="Examples\m2mCheck3.xml" />
+    <EmbeddedResource Include="Examples\m2mCheck4.xml" />
+    <EmbeddedResource Include="Examples\linqctx.xml" />
+    <Content Include="Examples\tables.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="tablessub.xml">
+    <Content Include="Examples\tablessub.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="types.xml">
+    <EmbeddedResource Include="Examples\types.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="suppressed.xml" />
+    <EmbeddedResource Include="Examples\suppressed.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WXMLModel\WXMLModel.csproj">

@@ -54,9 +54,9 @@ namespace WXML.Model
 
             FillLinqSettings();
 
-            FillImports();           
+            FillImports();
 
-        	FillSourceFragments();
+            FillSourceFragments();
 
             FillTypes();
 
@@ -89,7 +89,7 @@ namespace WXML.Model
             extensionElement.SetAttribute("name", extension.Key.Name);
             if (extension.Key.Action != MergeAction.Merge)
                 extensionElement.SetAttribute("action", extension.Key.Action.ToString());
-            
+
             extensionElement.InnerXml = extension.Value.InnerXml;
         }
 
@@ -119,39 +119,38 @@ namespace WXML.Model
 
         private void FillImports()
         {
-            if(_model.Includes.Count == 0)
+            if (_model.Includes.Count == 0)
                 return;
             XmlNode importsNode = CreateElement("Includes");
             _ormXmlDocumentMain.DocumentElement.AppendChild(importsNode);
             foreach (WXMLModel objectsDef in _model.Includes)
             {
                 WXMLModelWriterSettings settings = (WXMLModelWriterSettings)_settings.Clone();
-                    //settings.DefaultMainFileName = _settings.DefaultIncludeFileName + _ormObjectsDef.Includes.IndexOf(objectsDef);
-                    WXMLDocumentSet set;
-                    set = Generate(objectsDef, _settings);
-                    _wxmlDocumentSet.AddRange(set);
-                    foreach (WXMLDocument ormXmlDocument in set)
+                //settings.DefaultMainFileName = _settings.DefaultIncludeFileName + _ormObjectsDef.Includes.IndexOf(objectsDef);
+                WXMLDocumentSet set = Generate(objectsDef, _settings);
+                _wxmlDocumentSet.AddRange(set);
+                foreach (WXMLDocument ormXmlDocument in set)
+                {
+                    if ((_settings.IncludeBehaviour & IncludeGenerationBehaviour.Inline) ==
+                        IncludeGenerationBehaviour.Inline)
                     {
-                        if ((_settings.IncludeBehaviour & IncludeGenerationBehaviour.Inline) ==
-                            IncludeGenerationBehaviour.Inline)
-                        {
-                            XmlNode importedSchemaNode =
-                                _ormXmlDocumentMain.ImportNode(ormXmlDocument.Document.DocumentElement, true);
-                            importsNode.AppendChild(importedSchemaNode);
-                        }
-                        else
-                        {
-                            XmlElement includeElement =
-                                _ormXmlDocumentMain.CreateElement("xi", "include", "http://www.w3.org/2001/XInclude");
-                            includeElement.SetAttribute("parse", "xml");
-
-                            string fileName = GetIncludeFileName(_model, objectsDef, settings);
-
-                            includeElement.SetAttribute("href", fileName);
-                            importsNode.AppendChild(includeElement);
-                        }
-
+                        XmlNode importedSchemaNode =
+                            _ormXmlDocumentMain.ImportNode(ormXmlDocument.Document.DocumentElement, true);
+                        importsNode.AppendChild(importedSchemaNode);
                     }
+                    else
+                    {
+                        XmlElement includeElement =
+                            _ormXmlDocumentMain.CreateElement("xi", "include", "http://www.w3.org/2001/XInclude");
+                        includeElement.SetAttribute("parse", "xml");
+
+                        string fileName = GetIncludeFileName(_model, objectsDef, settings);
+
+                        includeElement.SetAttribute("href", fileName);
+                        importsNode.AppendChild(includeElement);
+                    }
+
+                }
             }
         }
 
@@ -165,25 +164,25 @@ namespace WXML.Model
             string filename = GetFilename(_model, _settings);
             WXMLDocument doc = new WXMLDocument(filename, _ormXmlDocumentMain);
             _wxmlDocumentSet.Add(doc);
-          
+
         }
 
-        private string GetFilename(WXMLModel objectsDef, WXMLModelWriterSettings settings)
+        private static string GetFilename(WXMLModel model, WXMLModelWriterSettings settings)
         {
-            return string.IsNullOrEmpty(objectsDef.FileName)
+            return string.IsNullOrEmpty(model.FileName)
                        ? settings.DefaultMainFileName
-                       : objectsDef.FileName;
+                       : model.FileName;
         }
 
-        private string GetIncludeFileName(WXMLModel objectsDef, WXMLModel incldeObjectsDef, WXMLModelWriterSettings settings)
+        private static string GetIncludeFileName(WXMLModel model, WXMLModel model2include, WXMLModelWriterSettings settings)
         {
-            if (string.IsNullOrEmpty(incldeObjectsDef.FileName))
+            if (string.IsNullOrEmpty(model2include.FileName))
             {
                 string filename =
-                    settings.IncludeFileNamePattern.Replace("%MAIN_FILENAME%", GetFilename(objectsDef, settings)).
+                    settings.IncludeFileNamePattern.Replace("%MAIN_FILENAME%", GetFilename(model, settings)).
                         Replace(
-                        "%INCLUDE_NAME%", GetFilename(incldeObjectsDef, settings)) +
-                    objectsDef.Includes.IndexOf(incldeObjectsDef);
+                        "%INCLUDE_NAME%", GetFilename(model2include, settings)) +
+                    model.Includes.IndexOf(model2include);
                 return
                     (((settings.IncludeBehaviour & IncludeGenerationBehaviour.PlaceInFolder) ==
                       IncludeGenerationBehaviour.PlaceInFolder)
@@ -191,21 +190,21 @@ namespace WXML.Model
                          : string.Empty) + filename;
             }
             else
-                return incldeObjectsDef.FileName;
+                return model2include.FileName;
         }
 
         private void FillRelations()
         {
-            if (_model.Relations.Count == 0)
+            if (_model.OwnRelations.Count() == 0)
                 return;
             XmlNode relationsNode = CreateElement("EntityRelations");
             _ormXmlDocumentMain.DocumentElement.AppendChild(relationsNode);
-            foreach (RelationDefinitionBase rel in _model.Relations)
+            foreach (RelationDefinitionBase rel in _model.OwnRelations)
             {
                 XmlElement relationElement;
                 if (rel is RelationDefinition)
                 {
-					RelationDefinition relation = (RelationDefinition)rel;
+                    RelationDefinition relation = (RelationDefinition)rel;
 
                     relationElement = CreateElement("Relation");
 
@@ -220,9 +219,9 @@ namespace WXML.Model
                     leftElement.SetAttribute("entityProperties", string.Join(" ", relation.Left.EntityProperties));
                     leftElement.SetAttribute("fieldName", string.Join(" ", relation.Left.FieldName));
                     leftElement.SetAttribute("cascadeDelete", XmlConvert.ToString(relation.Left.CascadeDelete));
-					
+
                     if (!string.IsNullOrEmpty(relation.Left.AccessorName))
-						leftElement.SetAttribute("accessorName", relation.Left.AccessorName);
+                        leftElement.SetAttribute("accessorName", relation.Left.AccessorName);
 
                     if (!string.IsNullOrEmpty(relation.Left.AccessorDescription))
                         leftElement.SetAttribute("accessorDescription", relation.Left.AccessorDescription);
@@ -235,15 +234,15 @@ namespace WXML.Model
                     rightElement.SetAttribute("entityProperties", string.Join(" ", relation.Right.EntityProperties));
                     rightElement.SetAttribute("fieldName", string.Join(" ", relation.Right.FieldName));
                     rightElement.SetAttribute("cascadeDelete", XmlConvert.ToString(relation.Right.CascadeDelete));
-					
+
                     if (!string.IsNullOrEmpty(relation.Right.AccessorName))
-						rightElement.SetAttribute("accessorName", relation.Right.AccessorName);
+                        rightElement.SetAttribute("accessorName", relation.Right.AccessorName);
 
                     if (!string.IsNullOrEmpty(relation.Right.AccessorDescription))
                         rightElement.SetAttribute("accessorDescription", relation.Right.AccessorDescription);
 
                     if (relation.Right.AccessedEntityType != null)
-						rightElement.SetAttribute("accessedEntityType", relation.Right.AccessedEntityType.Identifier);
+                        rightElement.SetAttribute("accessedEntityType", relation.Right.AccessedEntityType.Identifier);
 
                     if (relation.UnderlyingEntity != null)
                     {
@@ -256,7 +255,7 @@ namespace WXML.Model
                 }
                 else
                 {
-					SelfRelationDescription relation = (SelfRelationDescription)rel;
+                    SelfRelationDescription relation = (SelfRelationDescription)rel;
 
                     relationElement = CreateElement("SelfRelation");
 
@@ -272,9 +271,9 @@ namespace WXML.Model
 
                     directElement.SetAttribute("fieldName", string.Join(" ", relation.Direct.FieldName));
                     directElement.SetAttribute("cascadeDelete", XmlConvert.ToString(relation.Direct.CascadeDelete));
-					
+
                     if (!string.IsNullOrEmpty(relation.Direct.AccessorName))
-						directElement.SetAttribute("accessorName", relation.Direct.AccessorName);
+                        directElement.SetAttribute("accessorName", relation.Direct.AccessorName);
 
                     if (!string.IsNullOrEmpty(relation.Direct.AccessorDescription))
                         directElement.SetAttribute("accessorDescription", relation.Direct.AccessorDescription);
@@ -285,15 +284,15 @@ namespace WXML.Model
                     XmlElement reverseElement = CreateElement("Reverse");
                     reverseElement.SetAttribute("fieldName", string.Join(" ", relation.Reverse.FieldName));
                     reverseElement.SetAttribute("cascadeDelete", XmlConvert.ToString(relation.Reverse.CascadeDelete));
-					
+
                     if (!string.IsNullOrEmpty(relation.Reverse.AccessorName))
-						reverseElement.SetAttribute("accessorName", relation.Reverse.AccessorName);
+                        reverseElement.SetAttribute("accessorName", relation.Reverse.AccessorName);
 
                     if (!string.IsNullOrEmpty(relation.Reverse.AccessorDescription))
                         reverseElement.SetAttribute("accessorDescription", relation.Reverse.AccessorDescription);
 
                     if (relation.Reverse.AccessedEntityType != null)
-						reverseElement.SetAttribute("accessedEntityType", relation.Reverse.AccessedEntityType.Identifier);
+                        reverseElement.SetAttribute("accessedEntityType", relation.Reverse.AccessedEntityType.Identifier);
 
                     if (relation.UnderlyingEntity != null)
                     {
@@ -301,7 +300,7 @@ namespace WXML.Model
                     }
                     relationElement.AppendChild(directElement);
                     relationElement.AppendChild(reverseElement);
-                    
+
                 }
                 if (rel.Constants.Count > 0)
                 {
@@ -322,7 +321,7 @@ namespace WXML.Model
                     relationElement.SetAttribute("action", rel.Action.ToString());
 
                 relationsNode.AppendChild(relationElement);
-			}
+            }
         }
 
         private void FillEntities()
@@ -330,7 +329,7 @@ namespace WXML.Model
             XmlNode entitiesNode = CreateElement("Entities");
             _ormXmlDocumentMain.DocumentElement.AppendChild(entitiesNode);
 
-            foreach (EntityDefinition entity in _model.GetEntities())
+            foreach (EntityDefinition entity in _model.OwnEntities)
             {
                 XmlElement entityElement = CreateElement("Entity");
 
@@ -340,37 +339,37 @@ namespace WXML.Model
                     entityElement.SetAttribute("description", entity.Description);
                 if (entity.Namespace != entity.Model.Namespace)
                     entityElement.SetAttribute("namespace", entity.Namespace);
-				if(entity.Behaviour != EntityBehaviuor.Default)
-					entityElement.SetAttribute("behaviour", entity.Behaviour.ToString());
-				if (entity.UseGenerics)
-					entityElement.SetAttribute("useGenerics", XmlConvert.ToString(entity.UseGenerics));
-				if (entity.MakeInterface)
-					entityElement.SetAttribute("makeInterface", XmlConvert.ToString(entity.MakeInterface));
+                if (entity.Behaviour != EntityBehaviuor.Default)
+                    entityElement.SetAttribute("behaviour", entity.Behaviour.ToString());
+                if (entity.UseGenerics)
+                    entityElement.SetAttribute("useGenerics", XmlConvert.ToString(entity.UseGenerics));
+                if (entity.MakeInterface)
+                    entityElement.SetAttribute("makeInterface", XmlConvert.ToString(entity.MakeInterface));
                 if (entity.BaseEntity != null)
                     entityElement.SetAttribute("baseEntity", entity.BaseEntity.Identifier);
-				if (entity.Disabled)
-					entityElement.SetAttribute("disabled", XmlConvert.ToString(entity.Disabled));
+                if (entity.Disabled)
+                    entityElement.SetAttribute("disabled", XmlConvert.ToString(entity.Disabled));
                 if (entity.Action != MergeAction.Merge)
                     entityElement.SetAttribute("action", entity.Action.ToString());
                 if (!string.IsNullOrEmpty(entity.FamilyName) && entity.FamilyName != entity.Name)
                     entityElement.SetAttribute("familyName", entity.FamilyName);
 
-				if (entity.CacheCheckRequired)
-					entityElement.SetAttribute("cacheCheckRequired", XmlConvert.ToString(entity.CacheCheckRequired));
+                if (entity.CacheCheckRequired)
+                    entityElement.SetAttribute("cacheCheckRequired", XmlConvert.ToString(entity.CacheCheckRequired));
 
 
                 XmlElement tablesElement = CreateElement("SourceFragments");
-				if(!entity.InheritsBaseTables)
-				{
-				    tablesElement.SetAttribute("inheritsBase", XmlConvert.ToString(entity.InheritsBaseTables));
-				    FillEntityTables(entity.GetSourceFragments(), tablesElement);
-				}
-				else
-				{
+                if (!entity.InheritsBaseTables)
+                {
+                    tablesElement.SetAttribute("inheritsBase", XmlConvert.ToString(entity.InheritsBaseTables));
+                    FillEntityTables(entity.GetSourceFragments(), tablesElement);
+                }
+                else
+                {
                     FillEntityTables(entity.SelfSourceFragments, tablesElement);
-				}
+                }
 
-                entityElement.AppendChild(tablesElement);	
+                entityElement.AppendChild(tablesElement);
 
                 FillEntityProperties(entityElement, entity);
 
@@ -410,7 +409,7 @@ namespace WXML.Model
                         propertiesNode.AppendChild(groupNode);
 
                         foreach (var gp in entity.SelfProperties
-                            .Where(item=>group == item.Group))
+                            .Where(item => group == item.Group))
                         {
                             FillEntityProperties(gp, groupNode);
                         }
@@ -419,17 +418,17 @@ namespace WXML.Model
                 else
                     FillEntityProperties(prop, propertiesNode);
             }
-            
+
             entityElement.AppendChild(propertiesNode);
         }
 
         private void FillEntityRelations(XmlNode entityElement, EntityDefinition entity)
         {
-            if (entity.EntityRelations.Count() > 0)
+            if (entity.One2ManyRelations.Count() > 0)
             {
                 XmlNode relationsNode = CreateElement("Relations");
 
-                foreach (var entityRelation in entity.EntityRelations)
+                foreach (var entityRelation in entity.One2ManyRelations)
                 {
                     var relationNode = CreateElement("Relation");
 
@@ -499,9 +498,9 @@ namespace WXML.Model
                 throw new NotSupportedException(rp.GetType().ToString());
 
             propertyElement.SetAttribute("propertyName", rp.Name);
-            if(rp.Attributes != Field2DbRelations.None)
+            if (rp.Attributes != Field2DbRelations.None)
             {
-                propertyElement.SetAttribute("attributes", 
+                propertyElement.SetAttribute("attributes",
                     Enum.GetName(typeof(Field2DbRelations), rp.Attributes));
             }
 
@@ -510,28 +509,28 @@ namespace WXML.Model
 
             if (rp.PropertyType != null)
                 propertyElement.SetAttribute("typeRef", rp.PropertyType.Identifier);
-            
+
             if (!string.IsNullOrEmpty(rp.Description))
                 propertyElement.SetAttribute("description", rp.Description);
-            
+
             if (rp.FieldAccessLevel != AccessLevel.Private)
                 propertyElement.SetAttribute("classfieldAccessLevel", rp.FieldAccessLevel.ToString());
-            
+
             if (rp.PropertyAccessLevel != AccessLevel.Public)
                 propertyElement.SetAttribute("propertyAccessLevel", rp.PropertyAccessLevel.ToString());
-            
+
             if (rp.PropertyAlias != rp.Name)
                 propertyElement.SetAttribute("propertyAlias", rp.PropertyAlias);
-            
+
             if (rp.Disabled)
                 propertyElement.SetAttribute("disabled", XmlConvert.ToString(true));
-            
+
             if (rp.Obsolete != ObsoleteType.None)
                 propertyElement.SetAttribute("obsolete", rp.Obsolete.ToString());
-            
-            if(!string.IsNullOrEmpty(rp.ObsoleteDescripton))
+
+            if (!string.IsNullOrEmpty(rp.ObsoleteDescripton))
                 propertyElement.SetAttribute("obsoleteDescription", rp.ObsoleteDescripton);
-            
+
             if (rp.EnablePropertyChanged)
                 propertyElement.SetAttribute("enablePropertyChanged", XmlConvert.ToString(rp.EnablePropertyChanged));
 
@@ -602,25 +601,27 @@ namespace WXML.Model
 
         private void FillTypes()
         {
+            if (_model.OwnTypes.Count() == 0) return;
+            
             XmlNode typesNode = CreateElement("Types");
             _ormXmlDocumentMain.DocumentElement.AppendChild(typesNode);
-            foreach (TypeDefinition type in _model.GetTypes())
+            foreach (TypeDefinition type in _model.OwnTypes)
             {
                 XmlElement typeElement = CreateElement("Type");
 
                 typeElement.SetAttribute("id", type.Identifier);
 
                 XmlElement typeSubElement;
-                if(type.IsClrType)
+                if (type.IsClrType)
                 {
                     typeSubElement = CreateElement("ClrType");
                     typeSubElement.SetAttribute("name", type.ClrType.FullName);
                 }
-                else if(type.IsUserType)
+                else if (type.IsUserType)
                 {
                     typeSubElement = CreateElement("UserType");
                     typeSubElement.SetAttribute("name", type.GetTypeName(null));
-                    if(type.UserTypeHint.HasValue && type.UserTypeHint != UserTypeHintFlags.None)
+                    if (type.UserTypeHint.HasValue && type.UserTypeHint != UserTypeHintFlags.None)
                     {
                         typeSubElement.SetAttribute("hint", type.UserTypeHint.ToString().Replace(",", string.Empty));
                     }
@@ -635,20 +636,20 @@ namespace WXML.Model
             }
         }
 
-		private void FillSourceFragments()
-		{
-			XmlElement tablesNode = CreateElement("SourceFragments");
-			_ormXmlDocumentMain.DocumentElement.AppendChild(tablesNode);
-			foreach (SourceFragmentDefinition table in _model.GetSourceFragments())
-			{
-				XmlElement tableElement = CreateElement("SourceFragment");
-				tableElement.SetAttribute("id", table.Identifier);
-				tableElement.SetAttribute("name", table.Name);
-				if(!string.IsNullOrEmpty(table.Selector))
-					tableElement.SetAttribute("selector", table.Selector);
-				tablesNode.AppendChild(tableElement);
-			}
-		}
+        private void FillSourceFragments()
+        {
+            XmlElement tablesNode = CreateElement("SourceFragments");
+            _ormXmlDocumentMain.DocumentElement.AppendChild(tablesNode);
+            foreach (SourceFragmentDefinition table in _model.OwnSourceFragments)
+            {
+                XmlElement tableElement = CreateElement("SourceFragment");
+                tableElement.SetAttribute("id", table.Identifier);
+                tableElement.SetAttribute("name", table.Name);
+                if (!string.IsNullOrEmpty(table.Selector))
+                    tableElement.SetAttribute("selector", table.Selector);
+                tablesNode.AppendChild(tableElement);
+            }
+        }
 
         private XmlElement CreateElement(string name)
         {
@@ -662,13 +663,13 @@ namespace WXML.Model
 
             if (!string.IsNullOrEmpty(_model.SchemaVersion))
                 _ormXmlDocumentMain.DocumentElement.SetAttribute("schemaVersion", _model.SchemaVersion);
-			
+
             if (!string.IsNullOrEmpty(_model.EntityBaseTypeName))
-				_ormXmlDocumentMain.DocumentElement.SetAttribute("entityBaseType", _model.EntityBaseTypeName);
-			
+                _ormXmlDocumentMain.DocumentElement.SetAttribute("entityBaseType", _model.EntityBaseTypeName);
+
             if (_model.EnableCommonPropertyChangedFire)
-				_ormXmlDocumentMain.DocumentElement.SetAttribute("enableCommonPropertyChangedFire",
-				                                                 XmlConvert.ToString(_model.EnableCommonPropertyChangedFire));
+                _ormXmlDocumentMain.DocumentElement.SetAttribute("enableCommonPropertyChangedFire",
+                                                                 XmlConvert.ToString(_model.EnableCommonPropertyChangedFire));
             if (!_model.GenerateEntityName)
                 _ormXmlDocumentMain.DocumentElement.SetAttribute("generateEntityName",
                                                                  XmlConvert.ToString(_model.GenerateEntityName));
@@ -679,7 +680,7 @@ namespace WXML.Model
                 commentBuilder.AppendLine(comment);
             }
 
-            if(_model.UserComments.Count > 0)
+            if (_model.UserComments.Count > 0)
             {
                 commentBuilder.AppendLine();
                 foreach (string comment in _model.UserComments)

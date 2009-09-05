@@ -7,6 +7,7 @@ using System.Xml;
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using WXML.CodeDom;
+using WXML.CodeDom.CodeDomExtensions;
 using WXML.Model;
 using WXMLToWorm;
 
@@ -183,9 +184,7 @@ namespace TestsCodeGenLib
             }
         }
 
-        
-
-        public void TestCSCodeInternal(Stream stream)
+        public static void TestCSCodeInternal(Stream stream)
         {
             CodeDomProvider prov = new Microsoft.CSharp.CSharpCodeProvider();
             WXMLCodeDomGeneratorSettings settings = new WXMLCodeDomGeneratorSettings();
@@ -201,33 +200,45 @@ namespace TestsCodeGenLib
            
         }
 
+        public class TestXmlUrlResolver : XmlUrlResolver
+        {
+            public override object GetEntity(Uri absoluteUri, string role, Type ofObjectToReturn)
+            {
+                if (absoluteUri.Segments[absoluteUri.Segments.Length - 1].EndsWith(".xml") && !File.Exists(absoluteUri.AbsolutePath))
+                {
+                    return Resources.GetXmlDocumentStream(Path.GetFileNameWithoutExtension(absoluteUri.AbsolutePath));
+                }
+                return base.GetEntity(absoluteUri, role, ofObjectToReturn);
+            }
+        }
+
         private static void CompileCode(CodeDomProvider prov, WXMLCodeDomGeneratorSettings settings, XmlReader reader)
         {
-            WXMLModel odef = null;
-            using (reader)
-            {
-                odef = WXMLModel.LoadFromXml(reader);
-            }
-            WormCodeDomGenerator gen = new WormCodeDomGenerator(odef, settings);
-            Dictionary<string,WXML.CodeDom.CodeDomExtensions.CodeCompileFileUnit> dic =
-                gen.GetFullDom(typeof(Microsoft.VisualBasic.VBCodeProvider).IsAssignableFrom(prov.GetType()) ? LinqToCodedom.CodeDomGenerator.Language.VB : LinqToCodedom.CodeDomGenerator.Language.CSharp);
+            WXMLModel model = WXMLModel.LoadFromXml(reader, new TestXmlUrlResolver());
+            WormCodeDomGenerator gen = new WormCodeDomGenerator(model, settings);
+            Dictionary<string,CodeCompileFileUnit> dic =
+                gen.GetCompileUnits(typeof(Microsoft.VisualBasic.VBCodeProvider).IsAssignableFrom(prov.GetType()) ? LinqToCodedom.CodeDomGenerator.Language.VB : LinqToCodedom.CodeDomGenerator.Language.CSharp);
             
-            CompilerParameters prms = new CompilerParameters();
-            prms.GenerateExecutable = false;
-            prms.GenerateInMemory = true;
-            prms.IncludeDebugInformation = false;
-            prms.TreatWarningsAsErrors = false;
-            prms.OutputAssembly = "testAssembly.dll";
+            CompilerParameters prms = new CompilerParameters
+            {
+                GenerateExecutable = false,
+                GenerateInMemory = true,
+                IncludeDebugInformation = false,
+                TreatWarningsAsErrors = false,
+                OutputAssembly = "testAssembly.dll"
+            };
             prms.ReferencedAssemblies.Add("System.dll");
             prms.ReferencedAssemblies.Add("System.Data.dll");
             prms.ReferencedAssemblies.Add("System.XML.dll");
             prms.ReferencedAssemblies.Add("CoreFramework.dll");
             prms.ReferencedAssemblies.Add("Worm.Orm.dll");
+            if (model.LinqSettings != null && model.LinqSettings.Enable)
+                prms.ReferencedAssemblies.Add("Worm.Linq.dll");
             prms.TempFiles.KeepFiles = true;
 
             CodeCompileUnit[] units = new CodeCompileUnit[dic.Values.Count];
             int idx = 0;
-            foreach (CodeCompileUnit unit in dic.Values)
+            foreach (CodeCompileFileUnit unit in dic.Values)
             {
                 units[idx++] = unit;
             }
@@ -244,7 +255,7 @@ namespace TestsCodeGenLib
             }
 
             CodeCompileUnit dd = new CodeCompileUnit();
-            foreach (CodeCompileUnit unit in dic.Values)
+            foreach (CodeCompileFileUnit unit in dic.Values)
             {
                 dd.Namespaces.AddRange(unit.Namespaces);
             }
@@ -318,6 +329,24 @@ namespace TestsCodeGenLib
             using (Stream stream = Resources.GetXmlDocumentStream("SchemaBased"))
             {
                 TestCSCodeInternal(stream);
+            }
+        }
+
+        [TestMethod, Ignore]
+        public void TestCSLinqContext()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("linqctx"))
+            {
+                TestCSCodeInternal(stream);
+            }
+        }
+
+        [TestMethod, Ignore]
+        public void TestVBLinqContext()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("linqctx"))
+            {
+                TestVBCodeInternal(stream);
             }
         }
 

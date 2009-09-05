@@ -15,7 +15,7 @@ namespace TestsCodeGenLib
         {
             const string extension = "xml";
 
-            string resourceName = string.Format("{0}.{1}.{2}", assembly.GetName().Name, documentName, extension);
+            string resourceName = string.Format("{0}.Examples.{1}.{2}", assembly.GetName().Name, documentName, extension);
 
             return assembly.GetManifestResourceStream(resourceName);
         }

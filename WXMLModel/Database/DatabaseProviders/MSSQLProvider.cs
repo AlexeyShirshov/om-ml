@@ -46,29 +46,21 @@ namespace WXML.Model.Database.Providers
                         left join (
 	                        select cc.table_name,cc.table_schema,cc.column_name,tc.constraint_type,cc.constraint_name from INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc 
 	                        join INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc on tc.table_name = cc.table_name and tc.table_schema = cc.table_schema and cc.constraint_name = tc.constraint_name --and tc.constraint_type is not null
+                            where tc.constraint_type != 'FOREIGN KEY' or exists(
+                                select * from INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc 
+                                join INFORMATION_SCHEMA.TABLE_CONSTRAINTS rtc on rtc.constraint_name = rc.unique_constraint_name
+                                where rc.constraint_name = cc.constraint_name 
+                                    ZZZZZ
+                                    WWWWW
+                            )
                         ) cc on t.table_name = cc.table_name and t.table_schema = cc.table_schema and c.column_name = cc.column_name
 						where t.TABLE_TYPE = 'BASE TABLE'
-						--and (
-						--((select count(*) from INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc 
-						--join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc on 
-						--tc.table_name = cc.table_name and tc.table_schema = cc.table_schema and cc.constraint_name = tc.constraint_name
-						--where t.table_name = tc.table_name and t.table_schema = tc.table_schema
-						--and tc.constraint_type = 'PRIMARY KEY'
-						--) > 0) or 
-						--((select count(*) from INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc 
-						--join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc on 
-						--tc.table_name = cc.table_name and tc.table_schema = cc.table_schema and cc.constraint_name = tc.constraint_name
-						--where t.table_name = tc.table_name and t.table_schema = tc.table_schema
-						--and tc.constraint_type = 'UNIQUE'
-						--) > 0))
-						--and (select count(*) from INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu 
-						--	where ccu.table_name = t.table_name and ccu.table_schema = t.table_schema and ccu.constraint_name = cc.constraint_name) < 2
-						--and (tc.constraint_type <> 'CHECK' or tc.constraint_type is null)
 						YYYYY
 						XXXXX
 						order by t.table_schema,t.table_name,c.ordinal_position";
 
                     PrepareCmd(cmd, schemas, namelike, "t");
+                    PrepareCmd(cmd, schemas, namelike, "ZZZZZ", "WWWWW", false, "rtc");
 
                     RaiseOnDatabaseConnecting(conn.ConnectionString);
 
@@ -93,6 +85,12 @@ namespace WXML.Model.Database.Providers
 
         private static void PrepareCmd(DbCommand cmd, string schemas, string namelike, params string[] aliases)
         {
+            PrepareCmd(cmd, schemas, namelike, "YYYYY", "XXXXX", true, aliases);
+        }
+
+        private static void PrepareCmd(DbCommand cmd, string schemas, string namelike,
+            string schemaReplace, string tableReplace, bool addParams, params string[] aliases)
+        {
             StringBuilder yyyyy = new StringBuilder();
             if (!string.IsNullOrEmpty(schemas))
             {
@@ -105,7 +103,7 @@ namespace WXML.Model.Database.Providers
                 StringBuilder ss = new StringBuilder();
                 foreach (string s in schemas.Split(','))
                 {
-                    ss.AppendFormat("'{0}',", s);
+                    ss.AppendFormat("'{0}',", s.Trim());
                 }
                 ss.Length -= 1;
                 foreach (string alias in aliases)
@@ -113,13 +111,13 @@ namespace WXML.Model.Database.Providers
                     yyyyy.AppendLine("and " + alias + string.Format(".table_schema {1}in ({0})", ss.ToString(), r));
                 }
             }
-            cmd.CommandText = cmd.CommandText.Replace("YYYYY", yyyyy.ToString());
+            cmd.CommandText = cmd.CommandText.Replace(schemaReplace, yyyyy.ToString());
 
             StringBuilder sb = new StringBuilder();
 
             if (!string.IsNullOrEmpty(namelike))
             {
-                int i = 1;
+                int startNum = 1;
                 string r = string.Empty;
                 string cond = "or";
                 if (namelike.StartsWith("(") && namelike.EndsWith(")"))
@@ -134,21 +132,26 @@ namespace WXML.Model.Database.Providers
                     sb.Append("and (");
                     foreach (string nl in namelike.Split(','))
                     {
-                        DbParameter tn = cmd.CreateParameter();
-                        tn.ParameterName = "tn" + i;
-                        tn.Value = nl;
-                        tn.Direction = ParameterDirection.Input;
-                        cmd.Parameters.Add(tn);
+                        if (addParams)
+                        {
+                            DbParameter tn = cmd.CreateParameter();
+                            tn.ParameterName = "tn" + startNum;
+                            tn.Value = nl.Trim();
+                            tn.Direction = ParameterDirection.Input;
+                            cmd.Parameters.Add(tn);
+                        }
                         //{2}.table_schema+
-                        sb.AppendFormat("{2}.table_name {1}like @tn{0} {3}", i, r, alias, cond).AppendLine();
-                        i++;
+                        sb.AppendFormat("{2}.table_name {1}like @tn{0} {3}", startNum, r, alias, cond).AppendLine();
+                        startNum++;
                     }
                     sb.Length -= cond.Length + 3;
                     sb.Append(")");
                 }
             }
 
-            cmd.CommandText = cmd.CommandText.Replace("XXXXX", sb.ToString());
+            cmd.CommandText = cmd.CommandText.Replace(tableReplace, sb.ToString());
+
+            //return startNum;
         }
 
         protected override DbConnection GetDBConn()
@@ -275,6 +278,8 @@ namespace WXML.Model.Database.Providers
 					join INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc on rc.unique_constraint_name = cc.constraint_name
 					join INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc on tc.constraint_name = rc.constraint_name
 					join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc2 on cc2.constraint_name = tc.constraint_name and cc2.table_schema = tc.table_schema and cc2.table_name = tc.table_name
+                    join INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS pkOrd ON pkOrd.constraint_name = cc.constraint_name and pkOrd.column_name = cc.column_name
+                    join INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS fkOrd ON fkOrd.constraint_name = cc2.constraint_name and fkOrd.column_name = cc2.column_name and fkOrd.ordinal_position = pkOrd.ordinal_position
 					where tc.constraint_type = 'FOREIGN KEY'
                     YYYYY
                     XXXXX

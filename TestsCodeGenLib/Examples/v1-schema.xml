@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<oos:WXMLModel defaultNamespace="def" schemaVersion="v1"
+  xmlns:oos="http://wise-orm.com/WXMLSchema.xsd">
+  <oos:Includes>
+    <xi:include parse="xml" href="types.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+  </oos:Includes>
+	<oos:SourceFragments>
+		<oos:SourceFragment id="tblEntity1" name="entity1" selector="dbo" />
+    <oos:SourceFragment id="tblEntity2" name="entity2" selector="dbo" />
+	</oos:SourceFragments>
+	<oos:Entities>
+		<oos:Entity id="eEntity1" name="Entity1">
+			<oos:SourceFragments>
+				<oos:SourceFragment ref="tblEntity1"/>
+			</oos:SourceFragments>
+			<oos:Properties>
+				<oos:Property attributes="PrimaryKey" fieldName="id" propertyName="Identifier1" table="tblEntity1" typeRef="tInt32" />
+			</oos:Properties>
+		</oos:Entity>
+    <oos:Entity id="eEntity2" name="Entity2">
+      <oos:SourceFragments>
+        <oos:SourceFragment ref="tblEntity2"/>
+      </oos:SourceFragments>
+      <oos:Properties>
+        <oos:Property attributes="PrimaryKey" fieldName="id" propertyName="Identifier1" table="tblEntity2" typeRef="tInt32" />
+        <oos:EntityProperty propertyName="Entity1" typeRef="tEntity1" table="tblEntity2">
+          <oos:fields relatedProperty="Identifier1" sourceFieldDefault="ent1_id" />
+        </oos:EntityProperty>
+      </oos:Properties>
+    </oos:Entity>
+	</oos:Entities>
+  <oos:Types>
+    <oos:Type id="tEntity1">
+      <oos:Entity ref="eEntity1" />
+    </oos:Type>
+  </oos:Types>
+</oos:WXMLModel>

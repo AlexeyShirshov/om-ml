@@ -89,26 +89,12 @@ namespace WXML.Model
             _entities.Remove(e);
         }
 
-        //public IList<EntityDefinition> FlatEntities
-        //{
-        //    get
-        //    {
-        //        IList<EntityDefinition> baseFlatEntities = ((BaseSchema == null) ? new List<EntityDefinition>() : BaseSchema.FlatEntities);
-        //        var entities = GetActiveEntities();
-        //        var list = new List<EntityDefinition>();
-        //        list.AddRange(entities);
+        public void AddRelation(RelationDefinitionBase r)
+        {
+            _relations.Add(r);
+        }
 
-        //        foreach (EntityDefinition baseEntityDescription in baseFlatEntities)
-        //        {
-        //            string name = baseEntityDescription.Name;
-        //            if (!list.Exists(entityDescription => entityDescription.Name == name))
-        //                list.Add(baseEntityDescription);
-        //        }
-        //        return list;
-        //    }
-        //}
-
-        public List<RelationDefinitionBase> Relations
+        public IEnumerable<RelationDefinitionBase> OwnRelations
         {
             get
             {
@@ -116,12 +102,19 @@ namespace WXML.Model
             }
         }
 
-        public List<RelationDefinitionBase> ActiveRelations
+        public IEnumerable<RelationDefinitionBase> GetRelations()
         {
-            get
+            IEnumerable<RelationDefinitionBase> r = _relations;
+            foreach (WXMLModel model in Includes)
             {
-                return _relations.FindAll(r => !r.Disabled);
+                r = r.Union(model.GetRelations());
             }
+            return r;
+        }
+
+        public IEnumerable<RelationDefinitionBase> GetActiveRelations()
+        {
+            return GetRelations().Where(r => !r.Disabled);
         }
 
         public string Namespace { get; set; }
@@ -193,7 +186,7 @@ namespace WXML.Model
             set;
         }
 
-        public IEnumerable<EntityDefinition> FileEntities
+        public IEnumerable<EntityDefinition> OwnEntities
         {
             get
             {
@@ -278,9 +271,9 @@ namespace WXML.Model
                 .SingleOrDefault(match => match.Identifier == entityId);
 
             if (entity == null && Includes.Count != 0)
-                foreach (WXMLModel objectsDef in Includes)
+                foreach (WXMLModel model in Includes)
                 {
-                    entity = objectsDef.GetEntity(entityId);
+                    entity = model.GetEntity(entityId);
                     if (entity != null)
                         break;
                 }
@@ -292,9 +285,9 @@ namespace WXML.Model
         public IEnumerable<EntityDefinition> GetEntities()
         {
             IEnumerable<EntityDefinition> e = _entities;
-            foreach (WXMLModel objectsDef in Includes)
+            foreach (WXMLModel model in Includes)
             {
-                e = e.Union(objectsDef.GetEntities());
+                e = e.Union(model.GetEntities());
             }
             return e;
         }
@@ -302,9 +295,9 @@ namespace WXML.Model
         public IEnumerable<EntityDefinition> GetActiveEntities()
         {
             IEnumerable<EntityDefinition> e = _entities.Where(item => !item.Disabled);
-            foreach (WXMLModel objectsDef in Includes)
+            foreach (WXMLModel model in Includes)
             {
-                e = e.Union(objectsDef.GetActiveEntities());
+                e = e.Union(model.GetActiveEntities());
             }
             return e;
         }
@@ -318,9 +311,9 @@ namespace WXML.Model
         {
             var table = _sourceFragments.Find(match => match.Identifier == tableId);
             if (table == null && Includes.Count > 0)
-                foreach (WXMLModel objectsDef in Includes)
+                foreach (WXMLModel model in Includes)
                 {
-                    table = objectsDef.GetSourceFragment(tableId, false);
+                    table = model.GetSourceFragment(tableId, false);
                     if (table != null)
                         break;
                 }
@@ -332,11 +325,19 @@ namespace WXML.Model
         public IEnumerable<SourceFragmentDefinition> GetSourceFragments()
         {
             IEnumerable<SourceFragmentDefinition> sf = _sourceFragments;
-            foreach (WXMLModel objectsDef in Includes)
+            foreach (WXMLModel model in Includes)
             {
-                sf = sf.Union(objectsDef.GetSourceFragments());
+                sf = sf.Union(model.GetSourceFragments());
             }
             return sf;
+        }
+
+        public IEnumerable<SourceFragmentDefinition> OwnSourceFragments
+        {
+            get
+            {
+                return _sourceFragments;
+            }
         }
 
         public TypeDefinition GetType(string typeId, bool throwNotFoundException)
@@ -346,9 +347,9 @@ namespace WXML.Model
             {
                 type = _types.Find(match => match.Identifier == typeId);
                 if (type == null && Includes.Count != 0)
-                    foreach (WXMLModel objectsDef in Includes)
+                    foreach (WXMLModel model in Includes)
                     {
-                        type = objectsDef.GetType(typeId, false);
+                        type = model.GetType(typeId, false);
                         if (type != null)
                             break;
                     }
@@ -361,11 +362,19 @@ namespace WXML.Model
         public IEnumerable<TypeDefinition> GetTypes()
         {
             IEnumerable<TypeDefinition> t = _types;
-            foreach (WXMLModel objectsDef in Includes)
+            foreach (WXMLModel model in Includes)
             {
-                t = t.Union(objectsDef.GetTypes());
+                t = t.Union(model.GetTypes());
             }
             return t;
+        }
+
+        public IEnumerable<TypeDefinition> OwnTypes
+        {
+            get
+            {
+                return _types;
+            }
         }
 
         #region Merge

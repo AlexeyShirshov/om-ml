@@ -152,7 +152,7 @@ namespace WXML.SourceConnector
 
                 foreach (EntityDefinition oe_ in
                     from k in _model.GetActiveEntities()
-                    where k != e && !e.EntityRelations.Any(item => 
+                    where k != e && !e.One2ManyRelations.Any(item => 
                         !item.Disabled && item.Entity.Identifier == k.Identifier)
                     select k)
                 {
@@ -165,7 +165,7 @@ namespace WXML.SourceConnector
                     int idx = 1;
                     foreach (EntityPropertyDefinition pd in entityProps)
                     {
-                        int cnt = _model.ActiveRelations.OfType<RelationDefinition>().Count(r =>
+                        int cnt = _model.GetActiveRelations().OfType<RelationDefinition>().Count(r =>
                             (r.Left.Entity.Identifier == oe.Identifier && r.Right.Entity.Identifier == e.Identifier) ||
                             (r.Left.Entity.Identifier == e.Identifier && r.Right.Entity.Identifier == oe.Identifier));
 
@@ -202,7 +202,11 @@ namespace WXML.SourceConnector
                 if (rb != relation1to1.Default && _db.GetSourceFields(sf)
                     .Where(item=>item.IsPK)
                     .SelectMany(item=>item.Constraints)
-                    .Count(item=>item.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName) == 1)
+                    .Count(item=>item.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName) == 1 && 
+                    _db.GetSourceFields(sf)
+                        .Where(item => item.IsPK)
+                        .Any(item=>item.IsFK)
+                )
                 {
                     switch (rb)
                     {
@@ -249,11 +253,18 @@ namespace WXML.SourceConnector
                             sfr.Conditions.AddRange(conds);
                             masterEntity.AddSourceFragment(new SourceFragmentRefDefinition(sf));
 
-                            foreach (ScalarPropertyDefinition property in e.GetProperties()
+                            foreach (PropertyDefinition property in e.GetProperties()
                                 .Where(item=>!item.HasAttribute(Field2DbRelations.PK)))
                             {
+                                if (masterEntity.GetProperties().Any(item=>item.PropertyAlias == property.PropertyAlias))
+                                {
+                                    property.PropertyAlias = e.Name + "_" + property.PropertyAlias;
+                                    property.Name = e.Name + "_" + property.Name;
+                                }
                                 masterEntity.AddProperty(property);
                             }
+
+                            _model.RemoveEntity(e);
 
                             break;
                         case relation1to1.Hierarchy:
@@ -302,7 +313,7 @@ namespace WXML.SourceConnector
             SourceConstraint fk = _db.GetSourceFields(sf)
                 .Where(item => item.IsPK)
                 .SelectMany(item => item.Constraints)
-                .Single();
+                .Single(item => item.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName);
 
             SourceFragmentDefinition m = null;
             conditions = new List<SourceFragmentRefDefinition.Condition>();
@@ -390,7 +401,7 @@ namespace WXML.SourceConnector
                                 newRel.Right.AccessorName = newRel.Entity.Name + postFix;
 
                         }
-                        _model.Relations.Add(newRel);
+                        _model.AddRelation(newRel);
                     }
                 }
                 else
@@ -398,14 +409,14 @@ namespace WXML.SourceConnector
                     RelationDefinition newRel = new RelationDefinition(
                         targets[0], targets[1], GetSourceFragment(sf), null);
 
-                    if (!_model.Relations.OfType<RelationDefinition>().Any(m => m.Equals(newRel)))
+                    if (!_model.GetRelations().OfType<RelationDefinition>().Any(m => m.Equals(newRel)))
                     {
                         if (_model.HasSimilarRelationM2M(newRel))
                         {
                             if (string.IsNullOrEmpty(newRel.Left.AccessorName) ||
                                 string.IsNullOrEmpty(newRel.Right.AccessorName))
                             {
-                                var lst = from r in _model.Relations.OfType<RelationDefinition>()
+                                var lst = from r in _model.GetRelations().OfType<RelationDefinition>()
                                       where
                                           !ReferenceEquals(r.Left, newRel.Left) &&
                                           !ReferenceEquals(r.Right, newRel.Right) &&
@@ -446,18 +457,18 @@ namespace WXML.SourceConnector
                                 }
                             }
                         }
-                        _model.Relations.Add(newRel);
+                        _model.AddRelation(newRel);
                     }
                 }
             }
 
-            foreach (SelfRelationDescription rdb in _model.ActiveRelations.OfType<SelfRelationDescription>())
+            foreach (SelfRelationDescription rdb in _model.GetActiveRelations().OfType<SelfRelationDescription>())
             {
                 NormalizeRelationAccessors(rdb, rdb.Right.AccessorName, rdb.Entity);
                 NormalizeRelationAccessors(rdb, rdb.Left.AccessorName, rdb.Entity);
             }
 
-            foreach (RelationDefinition rdb in _model.ActiveRelations.OfType<RelationDefinition>())
+            foreach (RelationDefinition rdb in _model.GetActiveRelations().OfType<RelationDefinition>())
             {
                 NormalizeRelationAccessors(rdb, rdb.Right.AccessorName, rdb.Right.Entity);
                 NormalizeRelationAccessors(rdb, rdb.Left.AccessorName, rdb.Left.Entity);
@@ -470,13 +481,13 @@ namespace WXML.SourceConnector
             if (string.IsNullOrEmpty(searchedName)) return;
 
             var q1 =
-                from r in _model.ActiveRelations.OfType<SelfRelationDescription>()
+                from r in _model.GetActiveRelations().OfType<SelfRelationDescription>()
                 where r != relation && r.Entity.Identifier == rdbEntity.Identifier &&
                     (r.Left.AccessorName == searchedName || r.Right.AccessorName == searchedName)
                 select r as RelationDefinitionBase;
 
             var q2 =
-                from r in _model.ActiveRelations.OfType<RelationDefinition>()
+                from r in _model.GetActiveRelations().OfType<RelationDefinition>()
                 where r != relation &&
                     (r.Right.Entity.Identifier == rdbEntity.Identifier &&
                         r.Left.AccessorName == searchedName) ||
@@ -535,7 +546,10 @@ namespace WXML.SourceConnector
 
             string propName = propAlias;
 
-            EntityPropertyDefinition ep = (EntityPropertyDefinition) e.SelfProperties
+            EntityPropertyDefinition ep = null;
+            //try
+            //{
+            ep = (EntityPropertyDefinition) e.SelfProperties
                 .SingleOrDefault(item=>item.Identifier == propAlias);
             
             if (ep == null)
@@ -577,12 +591,17 @@ namespace WXML.SourceConnector
                 .Select(item=>item.FKField)
                 .Where(item=>item.IsPK))
             {
-                string pkPropAlias = Trim(GetName(pkField.SourceFieldExpression), transforRawNamesToReadableForm);
+                string pkPropAlias = GetName(pkField.SourceFieldExpression);
+
+                if (!_db.GetSourceFields(pkField.SourceFragment).Any(item => GetName(item.SourceFieldExpression).Equals(Trim(pkPropAlias, transforRawNamesToReadableForm), StringComparison.InvariantCultureIgnoreCase)))
+                    pkPropAlias = Trim(pkPropAlias, transforRawNamesToReadableForm);
+
+                //string pkPropAlias = Trim(GetName(pkField.SourceFieldExpression), transforRawNamesToReadableForm);
                 if (capitalizeNames)
                     pkPropAlias = Capitalize(pkPropAlias);
 
                 string pkPropName = pkPropAlias;
-                ScalarPropertyDefinition pe = (ScalarPropertyDefinition) e.SelfProperties
+                PropertyDefinition pe = e.SelfProperties
                     .SingleOrDefault(pd =>pd.Identifier == pkPropAlias);
                 Field2DbRelations attrs = pkField.GetAttributes();
                 TypeDefinition pkType = GetClrType(pkField.SourceType, pkField.IsNullable);
@@ -593,7 +612,7 @@ namespace WXML.SourceConnector
                     if (cnt > 0)
                     {
                         pkPropName = pkPropName + cnt;
-                        pkPropAlias = pkPropAlias + cnt;
+                        //pkPropAlias = pkPropAlias + cnt;
                     }
 
                     pe = new ScalarPropertyDefinition(e, pkPropName, pkPropAlias, attrs, 
@@ -604,13 +623,38 @@ namespace WXML.SourceConnector
                 }
                 else
                 {
-                    pe.Attributes |= attrs;
-                    pe.PropertyType = pkType;
-                    pe.SourceField = pkField;
+                    if (pe is ScalarPropertyDefinition)
+                    {
+                        pe.Attributes |= attrs;
+                        pe.PropertyType = pkType;
+                        ((ScalarPropertyDefinition)pe).SourceField = pkField;
+                    }
+                    else
+                    {
+                        int cnt = e.SelfProperties.Count(p => p.Identifier == pkPropAlias);
+                        if (cnt > 0)
+                        {
+                            if (e.SelfProperties.Any(item => item.Identifier == GetName(pkField.SourceFieldExpression)))
+                                pkPropAlias = pkPropAlias + cnt;
+                            else
+                                pkPropAlias = GetName(pkField.SourceFieldExpression);
+                        }
+                        pkPropName = pkPropAlias;
+
+                        pe = new ScalarPropertyDefinition(e, pkPropName, pkPropAlias, attrs,
+                            "Auto generated from column " + pkField.SourceFieldExpression,
+                            pkType, pkField, AccessLevel.Private, AccessLevel.Public);
+
+                        e.AddProperty(pe);
+                    }
                 }
                 RaiseOnPropertyCreated(pe, pkCreated);
             }
-
+            //}
+            //catch
+            //{
+            //    int i = 10;
+            //}
             return ep;
         }
 
@@ -682,53 +726,6 @@ namespace WXML.SourceConnector
             return columnName;
         }
 
-        //protected Dictionary<string, EntityDefinition> Process1to1Relations(Dictionary<DatabaseColumn, DatabaseColumn> columns,
-        //    List<Pair<string>> defferedCols, WXMLModel odef, bool escape,
-        //    List<Pair<DatabaseColumn, PropertyDefinition>> notFound, relation1to1 rb)
-        //{
-        //    List<Pair<string>> defferedCols2 = new List<Pair<string>>();
-        //    Dictionary<string, EntityDefinition> dic = new Dictionary<string, EntityDefinition>();
-        //    do
-        //    {
-        //        foreach (Pair<string> p in defferedCols)
-        //        {
-        //            string columnName = null;
-        //            TypeDefinition td = GetRelatedType(p.Second, columns, odef, escape, defferedCols, ref columnName);
-        //            if (td == null)
-        //            {
-        //                defferedCols2.Add(p);
-        //                continue;
-        //            }
-
-        //            if (td.Entity != null)
-        //            {
-        //                EntityDefinition ed = td.Entity;
-        //                string[] ss = p.First.Split('.');
-        //                PropertyDefinition pd = AppendColumns(columns, ed, ss[0], ss[1], p.Second, escape, notFound, defferedCols, rb);
-        //                var t = new SourceFragmentRefDefinition(GetSourceFragment(odef, ss[0], ss[1], escape));
-        //                dic[GetEntityName(t.Selector, t.Name)] = ed;
-        //                if (!ed.GetSourceFragments().Contains(t))
-        //                {
-        //                    ed.AddSourceFragment(t);
-        //                    PropertyDefinition pkProperty = ed.GetPkProperties().Single();
-        //                    t.AnchorTable = ed.GetSourceFragments().First();
-        //                    t.JoinType = SourceFragmentRefDefinition.JoinTypeEnum.outer;
-        //                    t.Conditions.Add(new SourceFragmentRefDefinition.Condition(
-        //                        pkProperty.FieldName, columnName));
-        //                }
-        //                DatabaseColumn c = new DatabaseColumn(t.Selector, t.Name, columnName, false, null, false, 1);
-        //                foreach (Pair<DatabaseColumn, PropertyDefinition> p2 in notFound.FindAll((ff) => ff.First.Equals(c)))
-        //                {
-        //                    p2.Second.PropertyType = td;
-        //                }
-        //            }
-        //        }
-        //        defferedCols = new List<Pair<string>>(defferedCols2);
-        //        defferedCols2.Clear();
-        //    } while (defferedCols.Count != 0);
-        //    return dic;
-        //}
-
         private SourceFragmentDefinition GetSourceFragment(SourceFragmentDefinition sf)
         {
             var t = _model.GetSourceFragment(sf.Identifier);
@@ -740,255 +737,6 @@ namespace WXML.SourceConnector
 
             return t;
         }
-
-//        protected PropertyDefinition AppendColumns(Dictionary<DatabaseColumn, DatabaseColumn> columns, EntityDefinition ed,
-//            string schema, string table, string constraint, bool escape, List<Pair<DatabaseColumn,PropertyDefinition>> notFound,
-//            List<Pair<string>> defferedCols, relation1to1 rb)
-//        {
-//            using (DbConnection conn = GetDBConn(_server, _m, _db, _i, _user, _psw))
-//            {
-//                using (DbCommand cmd = conn.CreateCommand())
-//                {
-//                    cmd.CommandType = CommandType.Text;
-//                    cmd.CommandText = @"select c.table_schema,c.table_name,c.column_name,is_nullable,data_type,tc.constraint_type,cc.constraint_name, " + AppendIdentity() + @",(select count(*) from INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc 
-//                        join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc on 
-//                        tc.table_name = cc.table_name and tc.table_schema = cc.table_schema and cc.constraint_name = tc.constraint_name
-//                        where c.table_name = tc.table_name and c.table_schema = tc.table_schema
-//                        and tc.constraint_type = 'PRIMARY KEY'
-//                        ) pk_cnt,c.character_maximum_length from INFORMATION_SCHEMA.columns c
-//						left join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc on c.table_name = cc.table_name and c.table_schema = cc.table_schema and c.column_name = cc.column_name and cc.constraint_name != @cns
-//						left join INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc on c.table_name = cc.table_name and c.table_schema = cc.table_schema and cc.constraint_name = tc.constraint_name
-//						where c.table_name = @tbl and c.table_schema = @schema
-//						and (tc.constraint_type != 'PRIMARY KEY' or tc.constraint_type is null)";
-//                    DbParameter tbl = cmd.CreateParameter();
-//                    tbl.ParameterName = "tbl";
-//                    tbl.Value = table;
-//                    cmd.Parameters.Add(tbl);
-
-//                    DbParameter s = cmd.CreateParameter();
-//                    s.ParameterName = "schema";
-//                    s.Value = schema;
-//                    cmd.Parameters.Add(s);
-
-//                    //DbParameter rt = cmd.CreateParameter();
-//                    //rt.ParameterName = "rtbl";
-//                    //rt.Value = ed.SourceFragments[0].Name.Trim(new char[] { '[', ']' });
-//                    //cmd.Parameters.Add(rt);
-
-//                    //DbParameter rs = cmd.CreateParameter();
-//                    //rs.ParameterName = "rsch";
-//                    //rs.Value = ed.SourceFragments[0].Selector.Trim(new char[] { '[', ']' });
-//                    //cmd.Parameters.Add(rs);
-
-//                    DbParameter cns = cmd.CreateParameter();
-//                    cns.ParameterName = "cns";
-//                    cns.Value = constraint;
-//                    cmd.Parameters.Add(cns);
-
-//                    conn.Open();
-
-//                    using (DbDataReader reader = cmd.ExecuteReader())
-//                    {
-//                        while (reader.Read())
-//                        {
-//                            DatabaseColumn c = DatabaseColumn.Create(reader);
-//                            if (!columns.ContainsKey(c))
-//                            {
-//                                columns.Add(c, c);
-//                                bool cr;
-//                                Pair<DatabaseColumn, PropertyDefinition> pfd = null;
-//                                PropertyDefinition pd = AppendColumn(columns, c, ed, out cr, escape, (clm) => pfd = new Pair<DatabaseColumn, PropertyDefinition>(clm, null), defferedCols, rb);
-//                                if (pfd != null)
-//                                {
-//                                    pfd.Second = pd;
-//                                    notFound.Add(pfd);
-//                                }
-//                                if (String.IsNullOrEmpty(pd.Description))
-//                                {
-//                                    pd.Description = "Autogenerated from table " + schema + "." + table;
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            return null;
-//        }
-
-        //protected TypeDefinition GetType(DatabaseColumn c, IDictionary<DatabaseColumn, DatabaseColumn> columns,
-        //    WXMLModel odef, bool escape, Action<DatabaseColumn> notFound, List<Pair<string>> defferedCols)
-        //{
-        //    TypeDefinition t = null;
-
-        //    if (c.IsFK)
-        //    {
-        //        t = GetRelatedType(c, columns, odef, escape, notFound, defferedCols);
-        //    }
-        //    else
-        //    {
-        //        t = GetClrType(c.DbType, c.IsNullable, odef);
-        //    }
-        //    return t;
-        //}
-        
-        //private TypeDefinition GetRelatedType(SourceConstraint fk, 
-        //    List<SourceFragmentDefinition> tables2skip, relation1to1 rb, 
-        //    bool transforRawNamesToReadableForm, bool capitalizeNames)
-        //{
-        //    var rels = _db.GetFKRelations(fk);
-        //    SourceFragmentDefinition m = rels.First().PKField.SourceFragment;
-        //    EntityDefinition e = GetEntity(m, rb, tables2skip, transforRawNamesToReadableForm, capitalizeNames);
-        //    string id = "t" + e.Name;
-        //    return _model.GetType(id, false) ?? new TypeDefinition(id, e);
-        //}
-
-//        protected TypeDefinition GetRelatedType(DatabaseColumn col, IDictionary<DatabaseColumn, DatabaseColumn> columns,
-//            WXMLModel odef, bool escape, Action<DatabaseColumn> notFound, List<Pair<string>> defferedCols)
-//        {
-//            using (DbConnection conn = GetDBConn(_server, _m, _db, _i, _user, _psw))
-//            {
-//                using (DbCommand cmd = conn.CreateCommand())
-//                {
-//                    cmd.CommandType = CommandType.Text;
-//                    cmd.CommandText = @"select tc.table_schema,tc.table_name,cc.column_name from INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-//						join INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc on tc.constraint_name = rc.unique_constraint_name
-//						join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc on tc.table_name = cc.table_name and tc.table_schema = cc.table_schema and tc.constraint_name = cc.constraint_name
-//						where rc.constraint_name = @cn";
-//                    DbParameter cn = cmd.CreateParameter();
-//                    cn.ParameterName = "cn";
-//                    cn.Value = col.FKName;
-//                    cmd.Parameters.Add(cn);
-
-//                    conn.Open();
-
-//                    using (DbDataReader reader = cmd.ExecuteReader())
-//                    {
-//                        while (reader.Read())
-//                        {
-//                            DatabaseColumn c = new DatabaseColumn(reader.GetString(reader.GetOrdinal("table_schema")),
-//                                reader.GetString(reader.GetOrdinal("table_name")),
-//                                reader.GetString(reader.GetOrdinal("column_name")), false, null, false, 1);
-//                            if (columns.ContainsKey(c))
-//                            {
-//                                string id = "t" + Capitalize(c.Table);
-//                                TypeDefinition t = odef.GetType(id, false);
-//                                if (t == null)
-//                                {
-//                                    bool cr;
-//                                    EntityDefinition e = GetEntity(odef, c.Schema, c.Table, out cr, escape);
-//                                    t = new TypeDefinition(id, e);
-//                                    odef.AddType(t);
-//                                    if (cr)
-//                                    {
-//                                        Console.WriteLine("\tCreate class {0} ({1})", e.Name, e.Identifier);
-//                                        //_ents.Add(e.Identifier, null);
-//                                    }
-//                                }
-//                                return t;
-//                            }
-//                            else
-//                            {
-//                                Pair<string> p = defferedCols.Find((pp) => pp.First == c.FullTableName);
-//                                if (p != null)
-//                                {
-//                                    string clm = null;
-//                                    reader.Close();
-//                                    try
-//                                    {
-//                                        return GetRelatedType(p.Second, columns, odef, escape, defferedCols, ref clm);
-//                                    }
-//                                    catch (InvalidDataException)
-//                                    {
-//                                        notFound(c);
-//                                        return GetClrType(col.DbType, col.IsNullable, odef);
-//                                    }
-//                                }
-//                                else
-//                                {
-//                                    notFound(c);
-//                                    return GetClrType(col.DbType, col.IsNullable, odef);
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            return null;
-//        }
-
-//        protected TypeDefinition GetRelatedType(string constraint, IDictionary<DatabaseColumn, DatabaseColumn> columns,
-//            WXMLModel odef, bool escape, List<Pair<string>> defferedCols, ref string clm)
-//        {
-//            using (DbConnection conn = GetDBConn(_server, _m, _db, _i, _user, _psw))
-//            {
-//                using (DbCommand cmd = conn.CreateCommand())
-//                {
-//                    cmd.CommandType = CommandType.Text;
-//                    cmd.CommandText = @"select tc.table_schema,tc.table_name,cc.column_name, (
-//                        select ccu.column_name from INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu where ccu.CONSTRAINT_NAME = @cn
-//                        ) clm  from INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-//						join INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc on tc.constraint_name = rc.unique_constraint_name
-//						join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc on tc.table_name = cc.table_name and tc.table_schema = cc.table_schema and tc.constraint_name = cc.constraint_name
-//						where rc.constraint_name = @cn";
-//                    DbParameter cn = cmd.CreateParameter();
-//                    cn.ParameterName = "cn";
-//                    cn.Value = constraint;
-//                    cmd.Parameters.Add(cn);
-
-//                    conn.Open();
-
-//                    using (DbDataReader reader = cmd.ExecuteReader())
-//                    {
-//                        while (reader.Read())
-//                        {
-//                            DatabaseColumn c = new DatabaseColumn(reader.GetString(reader.GetOrdinal("table_schema")),
-//                                reader.GetString(reader.GetOrdinal("table_name")),
-//                                reader.GetString(reader.GetOrdinal("column_name")), false, null, false, 1);
-//                            clm = reader.GetString(reader.GetOrdinal("clm"));
-//                            if (columns.ContainsKey(c))
-//                            {
-//                                string id = "t" + Capitalize(c.Table);
-//                                TypeDefinition t = odef.GetType(id, false);
-//                                if (t == null)
-//                                {
-//                                    bool cr;
-//                                    t = new TypeDefinition(id, GetEntity(odef, c.Schema, c.Table, out cr, escape));
-//                                    if (cr)
-//                                    {
-//                                        Pair<string> p = defferedCols.Find((pp) => pp.First == c.FullTableName);
-//                                        if (p != null)
-//                                        {
-//                                            //odef.RemoveEntity(t.Entity);
-//                                            reader.Close();
-//                                            return GetRelatedType(p.Second, columns, odef, escape, defferedCols, ref clm);
-//                                        }
-//                                        else
-//                                        {
-//                                            odef.RemoveEntity(t.Entity);
-//                                            throw new InvalidDataException(String.Format("Entity for column {0} was referenced but not created.", c.ToString()));
-//                                        }
-//                                    }
-//                                    odef.AddType(t);
-//                                }
-//                                return t;
-//                            }
-//                            else
-//                            {
-//                                Pair<string> p = defferedCols.Find((pp) => pp.First == c.FullTableName);
-//                                if (p != null)
-//                                {
-//                                    reader.Close();
-//                                    return GetRelatedType(p.Second, columns, odef, escape, defferedCols, ref clm);
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            return null;
-//        }
-//
-//        #endregion
 
         #region Static helpers
 

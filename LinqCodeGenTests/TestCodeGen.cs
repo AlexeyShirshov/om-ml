@@ -109,7 +109,7 @@ namespace LinqCodeGenTests
 
             SourceToModelConnector c = new SourceToModelConnector(sv, model);
 
-            c.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, false);
+            c.ApplySourceViewToModel(false, relation1to1.Default, true, false);
 
             Assert.AreEqual(3, model.GetSourceFragments().Count());
 
@@ -120,7 +120,7 @@ namespace LinqCodeGenTests
                 ContextName = "TestCtxDataContext"
             };
 
-            //model.Namespace = "LinqCodeGenTests";
+            model.Namespace = "LinqCodeGenTests";
 
             LinqCodeDomGenerator gen = new LinqCodeDomGenerator(model, new WXML.CodeDom.WXMLCodeDomGeneratorSettings());
 
@@ -150,6 +150,77 @@ namespace LinqCodeGenTests
             foreach (PropertyInfo pi in ctxType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
             {
                 PropertyInfo rpi = rctxType.GetProperties().Single(item => item.Name == pi.Name);
+
+                Assert.AreEqual(rpi.Attributes, pi.Attributes);
+                Assert.AreEqual(rpi.CanRead, pi.CanRead);
+                Assert.AreEqual(rpi.CanWrite, pi.CanWrite);
+
+                Assert.AreEqual(rpi.GetGetMethod().Attributes, pi.GetGetMethod().Attributes);
+
+                IListSource ent1s = (IListSource)pi.GetValue(ctx, null);
+
+                Assert.IsNotNull(ent1s.GetList());
+
+                Assert.AreEqual(((IListSource)rpi.GetValue(realCtx, null)).GetList().Count, ent1s.GetList().Count);
+            }
+        }
+
+        [TestMethod]
+        public void TestCompareLinqCtxMoreTables()
+        {
+            MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
+
+            SourceView sv = p.GetSourceView(null, "ent1,ent2,1to2,ent3,3to3,complex_pk,complex_fk,aspnet_Applications,aspnet_Membership,aspnet_Users");
+
+            Assert.AreEqual(10, sv.GetSourceFragments().Count());
+
+            WXMLModel model = new WXMLModel();
+
+            SourceToModelConnector c = new SourceToModelConnector(sv, model);
+
+            c.ApplySourceViewToModel(false, relation1to1.Default, false, false);
+
+            Assert.AreEqual(10, model.GetSourceFragments().Count());
+
+            Assert.AreEqual(8, model.GetEntities().Count());
+
+            model.LinqSettings = new LinqSettingsDescriptor()
+            {
+                ContextName = "TestCtxDataContext"
+            };
+
+            model.Namespace = "LinqCodeGenTests";
+
+            LinqCodeDomGenerator gen = new LinqCodeDomGenerator(model, new WXML.CodeDom.WXMLCodeDomGeneratorSettings());
+
+            Console.WriteLine(gen.GenerateCode(LinqToCodedom.CodeDomGenerator.Language.CSharp));
+
+            Assembly assembly = gen.Compile(LinqToCodedom.CodeDomGenerator.Language.CSharp);
+
+            Assert.IsNotNull(assembly);
+
+            Type ctxType = assembly.GetType(
+                string.IsNullOrEmpty(model.Namespace) ? model.LinqSettings.ContextName
+                    : model.Namespace + "." + model.LinqSettings.ContextName
+            );
+
+            Assert.IsNotNull(ctxType);
+
+            DataContext ctx = (DataContext)Activator.CreateInstance(ctxType, GetTestDBConnectionString());
+
+            Assert.IsNotNull(ctx);
+
+            ctx.Log = Console.Out;
+
+            TestCtxDataContext realCtx = new TestCtxDataContext(GetTestDBConnectionString());
+
+            Type rctxType = typeof(TestCtxDataContext);
+
+            foreach (PropertyInfo pi in ctxType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
+            {
+                PropertyInfo rpi = rctxType.GetProperties().SingleOrDefault(item => item.Name == pi.Name);
+
+                Assert.IsNotNull(rpi, "Cannot find property {0}", pi.Name);
 
                 Assert.AreEqual(rpi.Attributes, pi.Attributes);
                 Assert.AreEqual(rpi.CanRead, pi.CanRead);

@@ -547,15 +547,15 @@ namespace WXMLToWorm.CodeDomExtensions
 
         private void OnPopulateM2mMembers()
         {
-            if (m_entityClass.Entity.GetAllRelations(false).Count == 0)
+            if (m_entityClass.Entity.GetOwnM2MRelations(false).Count == 0)
                 return;
 
             CodeMemberMethod method;
             // список релейшенов относящихся к данной сущности
-            List<RelationDefinition> usedM2MRelation = m_entityClass.Entity.GetRelations(false);
+            List<RelationDefinition> usedM2MRelation = m_entityClass.Entity.GetM2MRelations(false);
 
             List<SelfRelationDescription> usedM2MSelfRelation;
-            usedM2MSelfRelation = m_entityClass.Entity.GetSelfRelations(false);
+            usedM2MSelfRelation = m_entityClass.Entity.GetM2MSelfRelations(false);
 
             if (m_entityClass.Entity.BaseEntity == null || usedM2MSelfRelation.Count > 0 || usedM2MRelation.Count > 0)
             {
@@ -1103,10 +1103,10 @@ namespace WXMLToWorm.CodeDomExtensions
 
         private void OnPopulateM2MRealationsInterface()
         {
-            if (m_entityClass.Entity.GetAllRelations(false).Count == 0)
+            if (m_entityClass.Entity.GetOwnM2MRelations(false).Count == 0)
                 return;
             
-            if (m_entityClass.Entity.BaseEntity != null && m_entityClass.Entity.BaseEntity.GetAllRelations(false).Count > 0)
+            if (m_entityClass.Entity.BaseEntity != null && m_entityClass.Entity.BaseEntity.GetOwnM2MRelations(false).Count > 0)
                 return;
 
             BaseTypes.Add(new CodeTypeReference(typeof(ISchemaWithM2M)));

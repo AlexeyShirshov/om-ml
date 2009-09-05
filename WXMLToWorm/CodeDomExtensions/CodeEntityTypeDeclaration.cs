@@ -59,7 +59,7 @@ namespace WXMLToWorm.CodeDomExtensions
             var relationDescType = new CodeTypeReference(typeof(RelationDescEx));
 
             #region Relation
-            foreach (var relation in m_entity.GetRelations(false))
+            foreach (var relation in m_entity.GetM2MRelations(false))
             {
                 if (relation.Left.Entity == relation.Right.Entity)
                     throw new ArgumentException("To realize m2m relation on self use SelfRelation instead.");
@@ -73,7 +73,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 {
                     // существуют похожие релейшены, но не имеющие имени акссесора
                     var lst =
-                        link.Entity.GetRelations(false).FindAll(
+                        link.Entity.GetM2MRelations(false).FindAll(
                             r =>
                             r.Left != link && r.Right != link &&
                             ((r.Left.Entity == m_entity && string.IsNullOrEmpty(r.Right.AccessorName))
@@ -153,7 +153,7 @@ namespace WXMLToWorm.CodeDomExtensions
             #endregion
 
             #region SelfRelation
-            foreach (var relation in m_entity.GetSelfRelations(false))
+            foreach (var relation in m_entity.GetM2MSelfRelations(false))
             {
                 var accessorName = relation.Direct.AccessorName;
 
@@ -350,7 +350,7 @@ namespace WXMLToWorm.CodeDomExtensions
         {
             var relationDescType = new CodeTypeReference(typeof(RelationDescEx));
 
-            foreach (var entityRelation in m_entity.GetEntityRelations(false))
+            foreach (var entityRelation in m_entity.GetActiveOne2ManyRelations())
             {
                 string accessorName = string.IsNullOrEmpty(entityRelation.AccessorName) ? WXMLCodeDomGeneratorNameHelper.GetMultipleForm(entityRelation.Entity.Name) : entityRelation.AccessorName;
 

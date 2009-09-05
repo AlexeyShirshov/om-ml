@@ -200,7 +200,7 @@ namespace WXMLTests
             Worm_CodeGen_Core_OrmXmlParserAccessor parser;
             using (XmlReader rdr = XmlReader.Create(GetFile("groups")))
             {
-                object privateParser = Worm_CodeGen_Core_OrmXmlParserAccessor.CreatePrivate(rdr);
+                object privateParser = Worm_CodeGen_Core_OrmXmlParserAccessor.CreatePrivate(rdr, new TestXmlUrlResolver());
                 parser = new Worm_CodeGen_Core_OrmXmlParserAccessor(privateParser);
                 parser.Read();
             }
@@ -210,15 +210,14 @@ namespace WXMLTests
             parser.FillImports();
             parser.FillTypes();
 
+            WXMLModel model = parser.Model;
 
-            WXMLModel ormObjectDef = parser.Model;
-
-            EntityDefinition entity = ormObjectDef.GetEntities()
+            EntityDefinition entity = model.GetEntities()
                 .Single(match => match.Identifier == "e1");
 
             parser.FillProperties(entity);
 
-            Assert.AreEqual<int>(6, entity.SelfProperties.Count());
+            Assert.AreEqual<int>(7, entity.SelfProperties.Count());
 
             PropertyDefinition prop = entity.GetProperty("Identifier1");
             Assert.IsNull(prop);
@@ -418,7 +417,16 @@ namespace WXMLTests
         {
             using (Stream stream = Resources.GetXmlDocumentStream("SchemaBased"))
             {
-                TestFileEquality(stream);
+                TestFileEquality(stream, "SchemaBasedNewVersion");
+            }
+        }
+
+        [TestMethod]
+        public void TestGroupEquality()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("groups"))
+            {
+                TestFileEquality(stream, "groups");
             }
         }
 
@@ -459,25 +467,25 @@ namespace WXMLTests
         {
             using (Stream stream = Resources.GetXmlDocumentStream("SchemaBasedNewVersion"))
             {
-                TestFileEquality(stream);
+                TestFileEquality(stream, "SchemaBasedNewVersion");
             }
         }
 
-        private static void TestFileEquality(Stream stream)
+        private static void TestFileEquality(Stream stream, string actualResourceName)
         {
             WXMLDocumentSet wxmlDocumentSet;
             using (XmlReader rdr = XmlReader.Create(stream))
             {
 
-                WXMLModel schemaDef = WXMLModel.LoadFromXml(rdr, new TestXmlUrlResolver());
-                wxmlDocumentSet = schemaDef.GetWXMLDocumentSet(new WXMLModelWriterSettings());
+                WXMLModel model = WXMLModel.LoadFromXml(rdr, new TestXmlUrlResolver());
+                wxmlDocumentSet = model.GetWXMLDocumentSet(new WXMLModelWriterSettings());
 
             }
 
             XmlDocument xmlDocument = wxmlDocumentSet[0].Document;
             xmlDocument.RemoveChild(xmlDocument.DocumentElement.PreviousSibling);
 
-            Assert.AreEqual<string>(Resources.GetXmlDocument("SchemaBasedNewVersion").OuterXml, xmlDocument.OuterXml);
+            Assert.AreEqual<string>(Resources.GetXmlDocument(actualResourceName).OuterXml, xmlDocument.OuterXml);
         }
 
 
@@ -485,11 +493,12 @@ namespace WXMLTests
         {
             public override object GetEntity(Uri absoluteUri, string role, Type ofObjectToReturn)
             {
-                if (absoluteUri.Segments[absoluteUri.Segments.Length - 1].EndsWith(".xml"))
+                if (absoluteUri.Segments[absoluteUri.Segments.Length - 1].EndsWith(".xml") && !File.Exists(absoluteUri.AbsolutePath))
                 {
-                    return
-                        File.OpenRead(@"C:\Projects\Framework\Worm\Worm-XMediaDependent\TestsCodeGenLib\" +
-                                      absoluteUri.Segments[absoluteUri.Segments.Length - 1]);
+                    return GetFile(Path.GetFileNameWithoutExtension(absoluteUri.AbsolutePath));
+                    //return
+                    //    File.OpenRead(@"C:\Projects\Framework\Worm\Worm-XMediaDependent\TestsCodeGenLib\" +
+                    //                  absoluteUri.Segments[absoluteUri.Segments.Length - 1]);
                 }
                 return base.GetEntity(absoluteUri, role, ofObjectToReturn);
             }

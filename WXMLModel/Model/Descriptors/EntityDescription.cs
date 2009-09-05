@@ -88,7 +88,7 @@ namespace WXML.Model.Descriptors
         {
             if (InheritsBaseTables && _baseEntity != null)
                 return _sourceFragments.Union(_baseEntity.GetSourceFragments(),
-                    new EqualityComparer<SourceFragmentRefDefinition, string>((item) => item.Identifier)
+                    new EqualityComparer<SourceFragmentRefDefinition, string>(item => item.Identifier)
                 ).OrderBy(item=>_sourceFragments.Any(p=>p.Identifier == item.Identifier)?2:1);
             return _sourceFragments;
         }
@@ -246,10 +246,10 @@ namespace WXML.Model.Descriptors
             return table;
         }
 
-        public List<RelationDefinition> GetRelations(bool withDisabled)
+        public List<RelationDefinition> GetM2MRelations(bool withDisabled)
         {
             List<RelationDefinition> l = new List<RelationDefinition>();
-            foreach (RelationDefinitionBase rel in _model.Relations)
+            foreach (RelationDefinitionBase rel in _model.GetRelations())
             {
                 RelationDefinition match = rel as RelationDefinition;
                 if (match != null && (match.IsEntityTakePart(this)) &&
@@ -262,7 +262,7 @@ namespace WXML.Model.Descriptors
             FillUniqueRelations(l, relationUniques);
             if (BaseEntity != null)
             {
-                var baseEntityRealation = from r in BaseEntity.GetRelations(withDisabled)
+                var baseEntityRealation = from r in BaseEntity.GetM2MRelations(withDisabled)
                                           where !l.Contains(r)
                                           select r;
                 FillUniqueRelations(baseEntityRealation, relationUniques);
@@ -281,11 +281,11 @@ namespace WXML.Model.Descriptors
             foreach (var relationDescription in baseEntityRealation)
             {
                 string key = string.Join("$$$", new[]
-	                                                {
-	                                                    relationDescription.SourceFragment.Name,
-	                                                    relationDescription.Left.ToString(),
-	                                                    relationDescription.Right.ToString(),
-	                                                });
+                {
+                    relationDescription.SourceFragment.Name,
+                    relationDescription.Left.ToString(),
+                    relationDescription.Right.ToString(),
+                });
                 if (relationDescription.UnderlyingEntity != null)
                 {
                     EntityDefinition superBaseEntity = relationDescription.UnderlyingEntity.RootEntity;
@@ -296,14 +296,13 @@ namespace WXML.Model.Descriptors
                 if (!relationUniques.TryGetValue(key, out val))
                     val = 0;
                 relationUniques[key] = ++val;
-
             }
         }
 
-        public List<SelfRelationDescription> GetSelfRelations(bool withDisabled)
+        public List<SelfRelationDescription> GetM2MSelfRelations(bool withDisabled)
         {
             List<SelfRelationDescription> l = new List<SelfRelationDescription>();
-            foreach (RelationDefinitionBase rel in _model.Relations)
+            foreach (RelationDefinitionBase rel in _model.GetRelations())
             {
                 SelfRelationDescription match = rel as SelfRelationDescription;
                 if (match != null && (match.IsEntityTakePart(this)) &&
@@ -316,7 +315,7 @@ namespace WXML.Model.Descriptors
             FillUniqueRelations(l, relationUniques);
             if (BaseEntity != null)
             {
-                var baseEntityRealation = BaseEntity.GetRelations(withDisabled);
+                var baseEntityRealation = BaseEntity.GetM2MRelations(withDisabled);
                 FillUniqueRelations(baseEntityRealation, relationUniques);
             }
             foreach (var relationUnique in relationUniques)
@@ -327,11 +326,11 @@ namespace WXML.Model.Descriptors
             return l;
         }
 
-        public List<RelationDefinitionBase> GetAllRelations(bool withDisabled)
+        public List<RelationDefinitionBase> GetOwnM2MRelations(bool withDisabled)
         {
             List<RelationDefinitionBase> l = new List<RelationDefinitionBase>();
 
-            foreach (RelationDefinitionBase relation in _model.Relations)
+            foreach (RelationDefinitionBase relation in _model.GetRelations())
             {
                 if (relation.IsEntityTakePart(this) && (!relation.Disabled || withDisabled))
                 {
@@ -380,7 +379,7 @@ namespace WXML.Model.Descriptors
         private readonly List<EntityRelationDefinition> _relations = new List<EntityRelationDefinition>();
         private string _familyName;
 
-        public IEnumerable<EntityRelationDefinition> EntityRelations
+        public IEnumerable<EntityRelationDefinition> One2ManyRelations
         {
             get
             {
@@ -388,9 +387,9 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public IEnumerable<EntityRelationDefinition> GetEntityRelations(bool withDisabled)
+        public IEnumerable<EntityRelationDefinition> GetActiveOne2ManyRelations()
         {
-            return EntityRelations.Where(r => !r.Disabled);
+            return One2ManyRelations.Where(r => !r.Disabled);
         }
 
         //public string QualifiedIdentifier
@@ -613,7 +612,7 @@ namespace WXML.Model.Descriptors
                 {
                     multitable = entity.GetSourceFragments().Count() > 1;
                     entity = entity.BaseEntity;
-                };
+                }
                 return multitable;
                 //return GetSourceFragments().Count() > 1;
             }

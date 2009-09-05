@@ -181,7 +181,7 @@ namespace WXMLToWorm
             _model = ormObjectsDefinition;
         }
 
-        public Dictionary<string, CodeCompileFileUnit> GetFullDom(LinqToCodedom.CodeDomGenerator.Language language)
+        public Dictionary<string, CodeCompileFileUnit> GetEntitiesCompliteUnits(LinqToCodedom.CodeDomGenerator.Language language)
         {
             var result = new Dictionary<string, CodeCompileFileUnit>(_model.GetActiveEntities().Count());
             foreach (EntityDefinition entity in _model.GetActiveEntities())
@@ -200,13 +200,19 @@ namespace WXMLToWorm
             return result;
         }
 
-        //[ThreadStatic]
-        //internal static EntityGeneratorController s_ctrl;
+        public Dictionary<string, CodeCompileFileUnit> GetCompileUnits(CodeDomGenerator.Language language)
+        {
+            var r = GetEntitiesCompliteUnits(language);
+            var ctx = GetLinqContextCompliteUnit(language);
+            if (ctx != null)
+                r.Add(ctx.Filename, ctx);
+            return r;
+        }
 
-        public CodeCompileFileUnit GetFullSingleUnit(LinqToCodedom.CodeDomGenerator.Language language)
+        public CodeCompileFileUnit GetFullSingleUnit(CodeDomGenerator.Language language)
         {
             CodeCompileFileUnit unit = new CodeCompileFileUnit();
-            foreach (CodeCompileFileUnit u in GetFullDom(language).Values)
+            foreach (CodeCompileFileUnit u in GetEntitiesCompliteUnits(language).Values)
             {
                 foreach (CodeNamespace n in u.Namespaces)
                 {
@@ -225,7 +231,7 @@ namespace WXMLToWorm
                     }
                 }
             }
-            CodeCompileFileUnit linq = GetLinqContext();
+            CodeCompileFileUnit linq = GetLinqContextCompliteUnit(language);
             if (linq != null)
                 foreach (CodeNamespace n in linq.Namespaces)
                 {
@@ -235,25 +241,26 @@ namespace WXMLToWorm
             return unit;
         }
 
-        public CodeCompileFileUnit GetLinqContext()
+        public CodeCompileFileUnit GetLinqContextCompliteUnit(CodeDomGenerator.Language language)
         {
-            if (_model.LinqSettings == null) return null;
+            if (_model.LinqSettings == null || !_model.LinqSettings.Enable) return null;
 
             var ctx = new CodeLinqContextDeclaration(Settings, _model.LinqSettings);
 
-            ctx.Entities.AddRange(_model.FileEntities);
+            ctx.Entities.AddRange(_model.OwnEntities);
 
             var result = new CodeCompileFileUnit
-                             {
-                                 Filename =
-                                     !string.IsNullOrEmpty(_model.LinqSettings.FileName)
-                                         ? _model.LinqSettings.FileName
-                                         : ctx.Name
-                             };
+            {
+                Filename = !string.IsNullOrEmpty(_model.LinqSettings.FileName)
+                    ? _model.LinqSettings.FileName
+                    : ctx.Name
+            };
 
             var ns = new CodeNamespace(_model.Namespace);
             ns.Types.Add(ctx);
-            result.Namespaces.Add(ns);
+            //result.Namespaces.Add(ns);
+
+            CodeDomTreeProcessor.ProcessNS(result, language, new[]{ns});
 
             return result;
 
@@ -285,7 +292,7 @@ namespace WXMLToWorm
             return null;
         }
 
-        public IList<CodeCompileFileUnit> GetEntityCompileUnits(string entityId, LinqToCodedom.CodeDomGenerator.Language language)
+        public IList<CodeCompileFileUnit> GetEntityCompileUnits(string entityId, CodeDomGenerator.Language language)
         {
             //using (new EntityGeneratorController(this))
             {
@@ -328,9 +335,11 @@ namespace WXMLToWorm
 
                     #region определение класса сущности
 
+                    WXMLCodeDomGeneratorNameHelper nameHelper = new WXMLCodeDomGeneratorNameHelper(Settings);
+
                     CodeCompileFileUnit entityUnit = new CodeCompileFileUnit
                     {
-                        Filename = new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityFileName(entity)
+                        Filename = nameHelper.GetEntityFileName(entity)
                     };
                     result.Add(entityUnit);
 
@@ -355,7 +364,7 @@ namespace WXMLToWorm
                     if (!_model.GenerateSchemaOnly)
                     {
                         // дескрипшн
-                        WXMLCodeDomGenerator.SetMemberDescription(entityClass, entity.Description);
+                        SetMemberDescription(entityClass, entity.Description);
 
                         // интерфес сущности
 
@@ -375,12 +384,12 @@ namespace WXMLToWorm
                             {
                                 entityType =
                                     new CodeTypeReference(_model.EntityBaseType.IsEntityType
-                                                              ? new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(
+                                                              ? nameHelper.GetEntityClassName(
                                                                     _model.EntityBaseType.Entity,
                                                                     true)
                                                               : _model.EntityBaseType.GetTypeName(Settings));
                                 entityType.TypeArguments.Add(
-                                    new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(entity)));
+                                    new CodeTypeReference(nameHelper.GetEntityClassName(entity)));
                             }
 
                             entityClass.BaseTypes.Add(entityType);
@@ -389,7 +398,7 @@ namespace WXMLToWorm
 
                         else
                             entityClass.BaseTypes.Add(
-                                new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(entity.BaseEntity, true)));
+                                new CodeTypeReference(nameHelper.GetEntityClassName(entity.BaseEntity, true)));
 
                         RaiseEntityClassCreated(nameSpace, entityClass);
 
@@ -507,13 +516,13 @@ namespace WXMLToWorm
                             instancedPropertyAliasClassCtor.Statements.Add(
                                 new CodeAssignStatement(
                                     new CodeFieldReferenceExpression(new CodeThisReferenceExpression(),
-                                                                     new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName("objectAlias")),
+                                                                     nameHelper.GetPrivateMemberName("objectAlias")),
                                     new CodeArgumentReferenceExpression("objectAlias")));
 
                             instancedPropertyAliasClass.Members.Add(instancedPropertyAliasClassCtor);
 
                             var instancedPropertyAliasfield = new CodeMemberField(new CodeTypeReference(typeof(QueryAlias)),
-                                                            new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName("objectAlias"));
+                                                            nameHelper.GetPrivateMemberName("objectAlias"));
                             instancedPropertyAliasClass.Members.Add(instancedPropertyAliasfield);
 
                             instancedPropertyAliasClass.Members.Add(
@@ -524,7 +533,7 @@ namespace WXMLToWorm
                                 //                                          instancedPropertyAliasClass.Name), "entityAlias")},
                                 Define.Operator(new CodeTypeReference(typeof(QueryAlias)),
                                     (DynType entityAlias) => CodeDom.TypedSeq(OperatorType.Implicit,
-                                        entityAlias.SetType(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(entity) + "." + instancedPropertyAliasClass.Name)),
+                                        entityAlias.SetType(nameHelper.GetEntityClassName(entity) + "." + instancedPropertyAliasClass.Name)),
                                     new CodeMethodReturnStatement(
                                         new CodeFieldReferenceExpression(
                                             new CodeArgumentReferenceExpression("entityAlias"),
@@ -553,7 +562,7 @@ namespace WXMLToWorm
                            {
                                Name = "CreateAlias",
                                ReturnType =
-                                new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(entity) + "." +
+                                new CodeTypeReference(nameHelper.GetEntityClassName(entity) + "." +
                                                       propertyAliasClass.Name),
                                Attributes = MemberAttributes.Public | MemberAttributes.Static | MemberAttributes.Final,
                            };
@@ -562,7 +571,7 @@ namespace WXMLToWorm
                             createMethod.Statements.Add(
                                 new CodeMethodReturnStatement(
                                     new CodeObjectCreateExpression(
-                                        new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(entity, true) + "." +
+                                        new CodeTypeReference(nameHelper.GetEntityClassName(entity, true) + "." +
                                                               propertyAliasClass.Name))));
                             entityClass.Members.Add(createMethod);
 
@@ -570,7 +579,7 @@ namespace WXMLToWorm
                             {
                                 Name = "WrapAlias",
                                 ReturnType =
-                                    new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(entity) + "." +
+                                    new CodeTypeReference(nameHelper.GetEntityClassName(entity) + "." +
                                                           instancedPropertyAliasClass.Name),
                                 Attributes = MemberAttributes.Public | MemberAttributes.Static | MemberAttributes.Final,
                             };
@@ -582,7 +591,7 @@ namespace WXMLToWorm
                             getMethod.Statements.Add(
                                 new CodeMethodReturnStatement(
                                     new CodeObjectCreateExpression(
-                                        new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(entity, true) + "." +
+                                        new CodeTypeReference(nameHelper.GetEntityClassName(entity, true) + "." +
                                                               instancedPropertyAliasClass.Name), new CodeArgumentReferenceExpression("objectAlias"))));
                             entityClass.Members.Add(getMethod);
                         }
@@ -716,24 +725,23 @@ namespace WXMLToWorm
                     #region custom attribute EntityAttribute
 
                     entityClass.CustomAttributes = new CodeAttributeDeclarationCollection(
-                        new[]
-			                {
-			                    new CodeAttributeDeclaration(
-			                        new CodeTypeReference(typeof (EntityAttribute)),
-			                        new CodeAttributeArgument(
-			                            new CodeTypeOfExpression(
-			                                new CodeTypeReference(
-			                                    new WXMLCodeDomGeneratorNameHelper(Settings).GetEntitySchemaDefClassQualifiedName(entity))
-			                                )
-			                            ),
-			                        new CodeAttributeArgument(
-			                            new CodePrimitiveExpression(_model.SchemaVersion)
-			                            ),
-			                        new CodeAttributeArgument(
-			                            "EntityName",
-			                            WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(Settings,entity)
-			                            )
-			                        ),
+                        new[]{
+                            new CodeAttributeDeclaration(
+		                        new CodeTypeReference(typeof (EntityAttribute)),
+		                        new CodeAttributeArgument(
+		                            new CodeTypeOfExpression(
+		                                new CodeTypeReference(
+		                                    nameHelper.GetEntitySchemaDefClassQualifiedName(entity))
+		                                )
+		                            ),
+		                        new CodeAttributeArgument(
+		                            new CodePrimitiveExpression(entity.Model.SchemaVersion)
+		                            ),
+		                        new CodeAttributeArgument(
+		                            "EntityName",
+		                            WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(Settings,entity)
+		                            )
+		                        ),
 			                }
                         );
 
@@ -799,8 +807,8 @@ namespace WXMLToWorm
 
                     #region сущность реализует связь
 
-                    RelationDefinitionBase relation = _model.ActiveRelations
-                        .Find(match => match.UnderlyingEntity == entity);
+                    RelationDefinitionBase relation = _model.GetActiveRelations()
+                        .SingleOrDefault(item => item.UnderlyingEntity == entity);
 
                     if (relation != null)
                     {
@@ -2330,7 +2338,7 @@ namespace WXMLToWorm
                 )
             );
             
-            if (!propertyDesc.HasAttribute(WXML.Model.Field2DbRelations.ReadOnly))
+            if (!propertyDesc.HasAttribute(Field2DbRelations.ReadOnly))
             {
 
                 property.SetStatements.Add(

@@ -52,7 +52,7 @@ namespace WXML.Model
 
             parser.Read();
 
-            parser.FillObjectsDef();
+            parser.FillModel();
 
             return parser._model;
         }
@@ -78,11 +78,11 @@ namespace WXML.Model
                     }
                 }
             }
-            parser.FillObjectsDef();
+            parser.FillModel();
             return parser._model;                
         }
 
-        private void FillObjectsDef()
+        private void FillModel()
         {
             FillFileDescriptions();
 
@@ -218,7 +218,7 @@ namespace WXML.Model
 
         internal protected void FillEntities()
         {
-            foreach (EntityDefinition entity in _model.FileEntities)
+            foreach (EntityDefinition entity in _model.OwnEntities)
             {
                 XmlElement entityElement = (XmlElement)_ormXmlDocument.DocumentElement.SelectSingleNode(
                         string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX,
@@ -717,7 +717,7 @@ namespace WXML.Model
                 if (!string.IsNullOrEmpty(mergeAction))
                     relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
                 
-                _model.Relations.Add(relation);
+                _model.AddRelation(relation);
 
 			    XmlNodeList constantsNodeList =
 			        relationElement.SelectNodes(string.Format("{0}:Constants/{0}:Constant", WXMLModel.NS_PREFIX), _nsMgr);
@@ -803,7 +803,7 @@ namespace WXML.Model
                 if (!string.IsNullOrEmpty(mergeAction))
                     relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
 
-				_model.Relations.Add(relation);
+				_model.AddRelation(relation);
 			}
 			#endregion
         }
@@ -891,7 +891,6 @@ namespace WXML.Model
             schema = ResourceManager.GetXmlSchema(SCHEMA_NAME);
             schemaSet.Add(schema);
             
-
             XmlReaderSettings xmlReaderSettings = new XmlReaderSettings
             {
                 CloseInput = false,

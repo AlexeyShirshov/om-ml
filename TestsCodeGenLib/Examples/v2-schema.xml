@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<oos:WXMLModel defaultNamespace="Adv" schemaVersion="v2"
+  xmlns:oos="http://wise-orm.com/WXMLSchema.xsd">
+  <oos:Includes>
+    <xi:include parse="xml" href="v1-schema.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+  </oos:Includes>
+	<oos:Entities>
+		<oos:Entity id="advEntity1" name="Entity1" baseEntity="eEntity1">
+			<oos:SourceFragments />
+		</oos:Entity>
+    <oos:Entity id="advEntity2" name="Entity2" baseEntity="eEntity2">
+      <oos:SourceFragments />
+    </oos:Entity>
+	</oos:Entities>
+</oos:WXMLModel>
