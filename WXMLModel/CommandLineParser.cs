@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Specialized;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
@@ -7,12 +6,20 @@ namespace CommandLine.Utility
 {
     /// <summary>
     /// Arguments class
-    /// </summary>
+    /// Valid parameters forms:
+    /// {-,/,--}param{ ,=,:}((",')value(",'))
+    /// </summary> 
+    /// <example>
+    /// -param1 value1 --param2 /param3:"Test-:-work" /param4=happy -param5 '--=nice=--'
+    /// </example>
     public class Arguments{
         // Variables
-        private Dictionary<String,String> _parameters;
+        private readonly Dictionary<String,String> _parameters;
 
-        // Constructor
+        /// <summary>
+        /// Creates Arguments class
+        /// </summary>
+        /// <param name="Args">command line array (separated by space)</param>
         public Arguments(string[] Args)
         {
 			_parameters = new Dictionary<String,String>();
@@ -25,11 +32,6 @@ namespace CommandLine.Utility
             string Parameter = null;
             string[] Parts;
 
-            // Valid parameters forms:
-            // {-,/,--}param{ ,=,:}((",')value(",'))
-            // Examples: 
-            // -param1 value1 --param2 /param3:"Test-:-work" 
-            //   /param4=happy -param5 '--=nice=--'
             foreach(string Txt in Args)
             {
                 // Look for new parameters (-,/ or --) and a

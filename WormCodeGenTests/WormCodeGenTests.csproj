@@ -7,8 +7,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{FD0ADB48-33C6-4399-9943-6ACAB857CF53}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>TestsCodeGenLib</RootNamespace>
-    <AssemblyName>TestsCodeGenLib</AssemblyName>
+    <RootNamespace>WormCodeGenTests</RootNamespace>
+    <AssemblyName>WormCodeGenTests</AssemblyName>
     <WarningLevel>4</WarningLevel>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <SccProjectName>SAK</SccProjectName>
@@ -85,9 +85,9 @@
     <EmbeddedResource Include="Examples\CompositePK.xml" />
     <EmbeddedResource Include="Examples\deffered.xml" />
     <EmbeddedResource Include="Examples\v2-schema.xml" />
-    <Content Include="Examples\doc.xml">
+    <EmbeddedResource Include="Examples\keyless.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </EmbeddedResource>
     <EmbeddedResource Include="Examples\v1-schema.xml" />
     <EmbeddedResource Include="Examples\groups.xml" />
     <EmbeddedResource Include="Examples\groups2.xml" />

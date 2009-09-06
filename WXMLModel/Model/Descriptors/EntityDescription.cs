@@ -97,11 +97,11 @@ namespace WXML.Model.Descriptors
         {
             if (_baseEntity != null)
                 return 
-                    SelfProperties
+                    OwnProperties
                         .Union(_baseEntity.GetProperties().Select(item => item.Clone(this)),
                             new EqualityComparer<PropertyDefinition, string>(item=>item.PropertyAlias))
-                        .OrderBy(item=>SelfProperties.Any(p=>p.Identifier == item.Identifier)?2:1);
-            return SelfProperties;
+                        .OrderBy(item=>OwnProperties.Any(p=>p.Identifier == item.Identifier)?2:1);
+            return OwnProperties;
         }
 
         public void RemoveSourceFragment(SourceFragmentRefDefinition sf)
@@ -139,7 +139,7 @@ namespace WXML.Model.Descriptors
             _sourceFragments.Clear();
         }
 
-        public IEnumerable<PropertyDefinition> SelfProperties
+        public IEnumerable<PropertyDefinition> OwnProperties
         {
             get { return _properties; }
         }
@@ -565,7 +565,7 @@ namespace WXML.Model.Descriptors
         {
             get
             {
-                return SelfProperties.Any(p => !p.Disabled && !string.IsNullOrEmpty(p.DefferedLoadGroup));
+                return OwnProperties.Any(p => !p.Disabled && !string.IsNullOrEmpty(p.DefferedLoadGroup));
             }
         }
 
@@ -626,7 +626,7 @@ namespace WXML.Model.Descriptors
 
             while (be != null)
             {
-                baseProperties.AddRange(be.SelfProperties);
+                baseProperties.AddRange(be.OwnProperties);
                 be = be.BaseEntity;
             }
 
@@ -651,7 +651,7 @@ namespace WXML.Model.Descriptors
             if (string.IsNullOrEmpty(pe.PropertyAlias))
                 throw new ArgumentException(string.Format("Property {0} has no PropertyAlias", pe.Identifier));
 
-            if (SelfProperties.Any(item => item.PropertyAlias == pe.PropertyAlias))
+            if (OwnProperties.Any(item => item.PropertyAlias == pe.PropertyAlias))
             {
                 string t = pe.Entity==null?"unknown":pe.Entity.Identifier;
                 
@@ -660,7 +660,7 @@ namespace WXML.Model.Descriptors
                     pe.PropertyAlias, Identifier, t));
             }
 
-            if (SelfProperties.Any(item => item.Name == pe.Name))
+            if (OwnProperties.Any(item => item.Name == pe.Name))
             {
                 string t = pe.Entity == null ? "unknown" : pe.Entity.Identifier;
 
@@ -713,7 +713,7 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public IEnumerable<SourceFragmentRefDefinition> SelfSourceFragments
+        public IEnumerable<SourceFragmentRefDefinition> OwnSourceFragments
         {
             get
             {

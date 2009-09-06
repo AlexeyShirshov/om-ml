@@ -2,7 +2,7 @@ using System.Reflection;
 using System.Xml;
 using System.IO;
 
-namespace TestsCodeGenLib
+namespace WormCodeGenTests
 {
     public class Resources
     {

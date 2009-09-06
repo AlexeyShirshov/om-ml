@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WXML.Model;
 using WXML.Model.Database.Providers;
 using WXML.Model.Descriptors;
+using WXML.SourceConnector;
 
 namespace WXMLTests
 {
@@ -82,36 +83,27 @@ namespace WXMLTests
         }
 
         [TestMethod]
-        public void TestSourceView()
+        public void TestGenerateScript()
         {
-            MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
-            SourceView view = p.GetSourceView();
+            var p = new MSSQLProvider(GetTestDB(), null);
 
-            Assert.AreEqual(133, view.GetSourceFields().Count());
+            var sv = p.GetSourceView(null, "ent1");
 
-            Assert.AreEqual(32, view.GetSourceFragments().Count());
-        }
+            var model = new WXMLModel();
 
-        [TestMethod]
-        public void TestSourceViewPatterns()
-        {
-            MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
+            var smc = new SourceToModelConnector(sv, model);
+            smc.ApplySourceViewToModel();
 
-            Assert.AreEqual(11, p.GetSourceView(null, "aspnet_%").GetSourceFragments().Count());
+            Assert.AreEqual(1, model.GetActiveEntities().Count());
+            Assert.AreEqual(1, model.GetSourceFragments().Count());
 
-            Assert.AreEqual(21, p.GetSourceView(null, "(aspnet_%)").GetSourceFragments().Count());
+            var msc = new ModelToSourceConnector(new SourceView(), model);
 
-            Assert.AreEqual(16, p.GetSourceView(null, "(aspnet_%,ent%)").GetSourceFragments().Count());
+            string script = msc.GenerateSourceScript(p, false);
 
-            Assert.AreEqual(1, p.GetSourceView(null, "guid_table").GetSourceFragments().Count());
+            Assert.IsFalse(string.IsNullOrEmpty(script));
 
-            Assert.AreEqual(1, p.GetSourceView("test", null).GetSourceFragments().Count());
-
-            Assert.AreEqual(32, p.GetSourceView("test,dbo", null).GetSourceFragments().Count());
-
-            Assert.AreEqual(31, p.GetSourceView("(test)", null).GetSourceFragments().Count());
-
-            Assert.AreEqual(3, p.GetSourceView(null, "ent1,ent2,1to2").GetSourceFragments().Count());
+            Console.WriteLine(script);
         }
 
         public static string GetTestDB()

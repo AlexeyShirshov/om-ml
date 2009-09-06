@@ -47,7 +47,7 @@ namespace WXML.CodeDom
                 // prefix for file name
                 settings.FileNamePrefix +
                 // class name of the entity
-                GetEntityClassName(entity) +
+                GetEntityClassName(entity, false) +
                 // suffix for file name
                 settings.FileNameSuffix;
             return baseName;
@@ -68,10 +68,10 @@ namespace WXML.CodeDom
         /// </summary>
         /// <param name="entity">The entity.</param>
         /// <returns></returns>
-        public string GetEntityClassName(EntityDefinition entity)
-        {
-            return GetEntityClassName(entity, false);
-        }
+        //public string GetEntityClassName(EntityDefinition entity)
+        //{
+        //    return GetEntityClassName(entity, false);
+        //}
 
         /// <summary>
         /// Gets class name of the entity using settings
@@ -106,7 +106,7 @@ namespace WXML.CodeDom
             string ns = string.Empty;
 
             if (qualified && !string.IsNullOrEmpty(entity.Namespace))
-                ns += entity.Namespace + ".";
+                ns = entity.Namespace + ".";
 
             return ns + className;
         }
@@ -121,15 +121,15 @@ namespace WXML.CodeDom
             WXMLCodeDomGeneratorSettings settings = GetSettings();
             return
                 // name of the entity class name
-                GetEntityClassName(entity) +
+                GetEntityClassName(entity, false) +
                 // entity
                 settings.EntitySchemaDefClassNameSuffix +
                 (entity.Model.AddVersionToSchemaName ? entity.Model.SchemaVersion : String.Empty);
         }
 
-        public string GetEntitySchemaDefClassQualifiedName(EntityDefinition entity)
+        public string GetEntitySchemaDefClassQualifiedName(EntityDefinition entity, bool addNamespace)
         {
-            return string.Format("{0}.{1}", GetEntityClassName(entity, true), GetEntitySchemaDefClassName(entity));
+            return string.Format("{0}.{1}", GetEntityClassName(entity, addNamespace), GetEntitySchemaDefClassName(entity));
         }
 
         public string GetEntityInterfaceName(EntityDefinition entity)

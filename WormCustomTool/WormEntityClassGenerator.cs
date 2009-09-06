@@ -25,12 +25,12 @@ namespace Worm.CodeGen.VSTool
 
     class Enumer : IEnumerable<Pair>
     {
-        private WXMLModel _ormObjectsDef;
+        private WXMLModel _model;
         private List<Pair> _units;
 
-        public Enumer(WXMLModel ormObjectsDef, string ext)
+        public Enumer(WXMLModel model, string ext)
         {
-            _ormObjectsDef = ormObjectsDef;
+            _model = model;
 
             //Create the CodeCompileUnit from the passed-in XML file
             WXMLCodeDomGeneratorSettings settings = new WXMLCodeDomGeneratorSettings();
@@ -56,9 +56,9 @@ namespace Worm.CodeGen.VSTool
             //settings.Split = false;
 
             //ormObjectsDef.GenerateSchemaOnly
-            WormCodeDomGenerator generator = new WormCodeDomGenerator(ormObjectsDef, settings);
+            WormCodeDomGenerator generator = new WormCodeDomGenerator(model, settings);
 
-            if (ormObjectsDef.GenerateSingleFile)
+            if (model.GenerateSingleFile)
             {
                 CodeCompileFileUnit compileUnit = generator.GetFullSingleUnit(language);
                 _units = new List<Pair>() { new Pair() { Unit = compileUnit } };
@@ -66,7 +66,7 @@ namespace Worm.CodeGen.VSTool
             else
             {
                 _units = new List<Pair>();
-                foreach (var entity in ormObjectsDef.GetActiveEntities())
+                foreach (var entity in model.GetActiveEntities())
                 {
                     _units.Add(new Pair() { Unit = generator.GetEntityCompileUnits(entity.Identifier, language)[0] });
                 }

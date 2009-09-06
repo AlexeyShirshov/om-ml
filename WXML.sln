@@ -26,8 +26,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCustomTool", "WormCusto
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLDatabase", "DatabaseConnector\WXMLDatabase.csproj", "{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGenTesting", "TestsCodeGenLib\CodeGenTesting.csproj", "{FD0ADB48-33C6-4399-9943-6ACAB857CF53}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LINQ to SQL", "LINQ to SQL", "{C316B8E1-2755-4D7A-B913-6B6EECDFC643}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqCodeGenerator", "LinqCodeGenerator\LinqCodeGenerator.csproj", "{38B63D82-9F09-495B-9D24-F838A3BB8BB0}"
@@ -49,6 +47,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Help", "Help", "{A7B4E429-0
 		Help\wxml.shfbproj = Help\wxml.shfbproj
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenTests", "WormCodeGenTests\WormCodeGenTests.csproj", "{FD0ADB48-33C6-4399-9943-6ACAB857CF53}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
 		SccNumberOfProjects = 10
@@ -59,38 +59,38 @@ Global
 		SccProjectTopLevelParentUniqueName1 = WXML.sln
 		SccProjectName1 = DatabaseConnector
 		SccLocalPath1 = DatabaseConnector
-		SccProjectUniqueName2 = TestsCodeGenLib\\CodeGenTesting.csproj
+		SccProjectUniqueName2 = WormCustomTool\\WormCustomTool.csproj
 		SccProjectTopLevelParentUniqueName2 = WXML.sln
-		SccProjectName2 = TestsCodeGenLib
-		SccLocalPath2 = TestsCodeGenLib
-		SccProjectUniqueName3 = WormCustomTool\\WormCustomTool.csproj
+		SccProjectName2 = WormCustomTool
+		SccLocalPath2 = WormCustomTool
+		SccProjectUniqueName3 = WormGenerator\\WormCodeGenerator.csproj
 		SccProjectTopLevelParentUniqueName3 = WXML.sln
-		SccProjectName3 = WormCustomTool
-		SccLocalPath3 = WormCustomTool
-		SccProjectUniqueName4 = WormGenerator\\WormCodeGenerator.csproj
+		SccProjectName3 = WormGenerator
+		SccLocalPath3 = WormGenerator
+		SccProjectUniqueName4 = WXMLModel\\WXMLModel.csproj
 		SccProjectTopLevelParentUniqueName4 = WXML.sln
-		SccProjectName4 = WormGenerator
-		SccLocalPath4 = WormGenerator
-		SccProjectUniqueName5 = WXMLModel\\WXMLModel.csproj
+		SccProjectName4 = WXMLModel
+		SccLocalPath4 = WXMLModel
+		SccProjectUniqueName5 = WXMLToWorm\\WXMLToWorm.csproj
 		SccProjectTopLevelParentUniqueName5 = WXML.sln
-		SccProjectName5 = WXMLModel
-		SccLocalPath5 = WXMLModel
-		SccProjectUniqueName6 = WXMLToWorm\\WXMLToWorm.csproj
+		SccProjectName5 = WXMLToWorm
+		SccLocalPath5 = WXMLToWorm
+		SccProjectUniqueName6 = LinqCodeGenerator\\LinqCodeGenerator.csproj
 		SccProjectTopLevelParentUniqueName6 = WXML.sln
-		SccProjectName6 = WXMLToWorm
-		SccLocalPath6 = WXMLToWorm
-		SccProjectUniqueName7 = LinqCodeGenerator\\LinqCodeGenerator.csproj
+		SccProjectName6 = LinqCodeGenerator
+		SccLocalPath6 = LinqCodeGenerator
+		SccProjectUniqueName7 = LinqCodeGenTests\\LinqCodeGenTests.csproj
 		SccProjectTopLevelParentUniqueName7 = WXML.sln
-		SccProjectName7 = LinqCodeGenerator
-		SccLocalPath7 = LinqCodeGenerator
-		SccProjectUniqueName8 = LinqCodeGenTests\\LinqCodeGenTests.csproj
+		SccProjectName7 = LinqCodeGenTests
+		SccLocalPath7 = LinqCodeGenTests
+		SccProjectUniqueName8 = WXMLTests\\WXMLTests.csproj
 		SccProjectTopLevelParentUniqueName8 = WXML.sln
-		SccProjectName8 = LinqCodeGenTests
-		SccLocalPath8 = LinqCodeGenTests
-		SccProjectUniqueName9 = WXMLTests\\WXMLTests.csproj
+		SccProjectName8 = WXMLTests
+		SccLocalPath8 = WXMLTests
+		SccProjectUniqueName9 = WormCodeGenTests\\WormCodeGenTests.csproj
 		SccProjectTopLevelParentUniqueName9 = WXML.sln
-		SccProjectName9 = WXMLTests
-		SccLocalPath9 = WXMLTests
+		SccProjectName9 = WormCodeGenTests
+		SccLocalPath9 = WormCodeGenTests
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = WXML.vsmdi
@@ -153,16 +153,6 @@ Global
 		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
 		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug AddIn|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug AddIn|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug_Trace|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug_Trace|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.Build.0 = Release|Any CPU
 		{38B63D82-9F09-495B-9D24-F838A3BB8BB0}.Debug AddIn|Any CPU.ActiveCfg = Debug|Any CPU
 		{38B63D82-9F09-495B-9D24-F838A3BB8BB0}.Debug AddIn|Any CPU.Build.0 = Debug|Any CPU
 		{38B63D82-9F09-495B-9D24-F838A3BB8BB0}.Debug_Trace|Any CPU.ActiveCfg = Debug|Any CPU
@@ -193,6 +183,16 @@ Global
 		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.DebugNonUserInstance|Any CPU.Build.0 = Debug|Any CPU
 		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug AddIn|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug AddIn|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug_Trace|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug_Trace|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -344,9 +344,9 @@ namespace WXML.Model
             if (!string.IsNullOrEmpty(enableCommonPropertyChangedFireAttr))
 				_model.EnableCommonPropertyChangedFire = XmlConvert.ToBoolean(enableCommonPropertyChangedFireAttr);
 
-            string schemaOnly = _ormXmlDocument.DocumentElement.GetAttribute("generateSchemaOnly");
-            if (!string.IsNullOrEmpty(schemaOnly))
-                _model.GenerateSchemaOnly = XmlConvert.ToBoolean(schemaOnly);
+            string mode = _ormXmlDocument.DocumentElement.GetAttribute("generateMode");
+            if (!string.IsNullOrEmpty(mode))
+                _model.GenerateMode = (GenerateModeEnum)Enum.Parse(typeof(GenerateModeEnum), mode);
 
             string addVersionToSchemaName = _ormXmlDocument.DocumentElement.GetAttribute("addVersionToSchemaName");
             if (!string.IsNullOrEmpty(addVersionToSchemaName))
@@ -857,15 +857,13 @@ namespace WXML.Model
                     var joinNodes = tableElement.SelectNodes(string.Format("{0}:join", WXMLModel.NS_PREFIX), _nsMgr);
                     foreach (XmlElement joinNode in joinNodes)
                     {
-                        //string cmergeAction = joinNode.GetAttribute("action");
-
                         SourceFragmentRefDefinition.Condition condition = new SourceFragmentRefDefinition.Condition(
                             joinNode.GetAttribute("refColumn"),
                             joinNode.GetAttribute("anchorColumn")
                         );
 
-                        //if (!string.IsNullOrEmpty(cmergeAction))
-                        //    condition.Action = (MergeAction)Enum.Parse(typeof(MergeAction), cmergeAction);
+                        if (string.IsNullOrEmpty(condition.RightColumn))
+                            condition.RightConstant = joinNode.GetAttribute("constant");
 
                         tableRef.Conditions.Add(condition);
                     }

@@ -15,32 +15,34 @@ namespace WXML.CodeDom
                                              propertyDesc.PropertyAlias);
         }
 
-        public static CodeExpression GetEntityNameReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDefinition entityDescription)
+        public static CodeExpression GetEntityNameReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDefinition entityDescription, bool addNamespace)
         {
-            string className = new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(entityDescription, true) + ".Descriptor";
+            string className = new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(entityDescription, addNamespace) + ".Descriptor";
             return new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(className), "EntityName");
         }
 
-        public static CodeExpression GetEntityClassReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDefinition entityDesc)
+        public static CodeExpression GetEntityClassReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDefinition entityDesc, bool addNamespace)
         {
-            string className = new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(entityDesc, true);
+            string className = new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(entityDesc, addNamespace);
             return new CodeTypeReferenceExpression(className);
         }
 
-        public static CodeTypeReference GetEntityClassTypeReference(WXMLCodeDomGeneratorSettings settings, EntityDefinition entityDesc)
+        public static CodeTypeReference GetEntityClassTypeReference(WXMLCodeDomGeneratorSettings settings, 
+            EntityDefinition entityDesc, bool appendNamespace)
         {
-            string className = new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(entityDesc);
+            string className = new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(entityDesc, appendNamespace);
             return new CodeTypeReference(className);
         }
 
-        public static CodeTypeOfExpression GetEntityClassTypeReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDefinition entityDesc)
+        public static CodeTypeOfExpression GetEntityClassTypeReferenceExpression(WXMLCodeDomGeneratorSettings settings,
+            EntityDefinition entityDesc, bool appendNamespace)
         {
-            return new CodeTypeOfExpression(GetEntityClassTypeReference(settings, entityDesc));
+            return new CodeTypeOfExpression(GetEntityClassTypeReference(settings, entityDesc, appendNamespace));
         }
 
-        public static CodeExpression GetPropertyReferenceExpression(WXMLCodeDomGeneratorSettings settings, ScalarPropertyDefinition propertyDesc)
+        public static CodeExpression GetPropertyReferenceExpression(WXMLCodeDomGeneratorSettings settings, ScalarPropertyDefinition propertyDesc, bool addNamespace)
         {
-            return new CodePropertyReferenceExpression(GetEntityClassReferenceExpression(settings, propertyDesc.Entity), propertyDesc.Name);
+            return new CodePropertyReferenceExpression(GetEntityClassReferenceExpression(settings, propertyDesc.Entity, addNamespace), propertyDesc.Name);
         }
 
         const string REGION_PROPERTIES = "Properties";

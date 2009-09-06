@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -11,7 +12,7 @@ using WXML.CodeDom.CodeDomExtensions;
 using WXML.Model;
 using WXMLToWorm;
 
-namespace TestsCodeGenLib
+namespace WormCodeGenTests
 {
     /// <summary>
     /// Summary description for TestCodeGen
@@ -186,8 +187,12 @@ namespace TestsCodeGenLib
 
         public static void TestCSCodeInternal(Stream stream)
         {
+            TestCSCodeInternal(stream, new WXMLCodeDomGeneratorSettings());
+        }
+
+        public static void TestCSCodeInternal(Stream stream, WXMLCodeDomGeneratorSettings settings)
+        {
             CodeDomProvider prov = new Microsoft.CSharp.CSharpCodeProvider();
-            WXMLCodeDomGeneratorSettings settings = new WXMLCodeDomGeneratorSettings();
             settings.LanguageSpecificHacks = LanguageSpecificHacks.CSharp;
             //settings.RemoveOldM2M = true;
 			//settings.Split = false;
@@ -216,16 +221,14 @@ namespace TestsCodeGenLib
         {
             WXMLModel model = WXMLModel.LoadFromXml(reader, new TestXmlUrlResolver());
             WormCodeDomGenerator gen = new WormCodeDomGenerator(model, settings);
-            Dictionary<string,CodeCompileFileUnit> dic =
-                gen.GetCompileUnits(typeof(Microsoft.VisualBasic.VBCodeProvider).IsAssignableFrom(prov.GetType()) ? LinqToCodedom.CodeDomGenerator.Language.VB : LinqToCodedom.CodeDomGenerator.Language.CSharp);
-            
+            CompilerResults result;
             CompilerParameters prms = new CompilerParameters
             {
                 GenerateExecutable = false,
                 GenerateInMemory = true,
                 IncludeDebugInformation = false,
-                TreatWarningsAsErrors = false,
-                OutputAssembly = "testAssembly.dll"
+                TreatWarningsAsErrors = false/*,
+                OutputAssembly = "testAssembly.dll"*/
             };
             prms.ReferencedAssemblies.Add("System.dll");
             prms.ReferencedAssemblies.Add("System.Data.dll");
@@ -236,14 +239,24 @@ namespace TestsCodeGenLib
                 prms.ReferencedAssemblies.Add("Worm.Linq.dll");
             prms.TempFiles.KeepFiles = true;
 
-            CodeCompileUnit[] units = new CodeCompileUnit[dic.Values.Count];
-            int idx = 0;
-            foreach (CodeCompileFileUnit unit in dic.Values)
+            CodeCompileUnit singleUnit = new CodeCompileUnit();
+            if (settings.SingleFile.HasValue ? settings.SingleFile.Value : model.GenerateSingleFile)
             {
-                units[idx++] = unit;
+                singleUnit = gen.GetFullSingleUnit(typeof(Microsoft.VisualBasic.VBCodeProvider).IsAssignableFrom(prov.GetType()) ? LinqToCodedom.CodeDomGenerator.Language.VB : LinqToCodedom.CodeDomGenerator.Language.CSharp);
+                result = prov.CompileAssemblyFromDom(prms, singleUnit);
+            }
+            else
+            {
+                Dictionary<string,CodeCompileFileUnit> dic =
+                    gen.GetCompileUnits(typeof(Microsoft.VisualBasic.VBCodeProvider).IsAssignableFrom(prov.GetType()) ? LinqToCodedom.CodeDomGenerator.Language.VB : LinqToCodedom.CodeDomGenerator.Language.CSharp);
+                
+                foreach (CodeCompileFileUnit unit in dic.Values)
+                {
+                    singleUnit.Namespaces.AddRange(unit.Namespaces);
+                }
+                result = prov.CompileAssemblyFromDom(prms, new List<CodeCompileFileUnit>(dic.Values).Cast<CodeCompileUnit>().ToArray());
             }
 
-            CompilerResults result = prov.CompileAssemblyFromDom(prms, units);
             if(result.Errors.HasErrors)
             {
                 StringBuilder sb = new StringBuilder();
@@ -254,14 +267,7 @@ namespace TestsCodeGenLib
                 Assert.Fail(sb.ToString());
             }
 
-            CodeCompileUnit dd = new CodeCompileUnit();
-            foreach (CodeCompileFileUnit unit in dic.Values)
-            {
-                dd.Namespaces.AddRange(unit.Namespaces);
-            }
-            CodeGeneratorOptions opt = new CodeGeneratorOptions();
-
-            prov.GenerateCodeFromCompileUnit(dd, Console.Out, opt);
+            prov.GenerateCodeFromCompileUnit(singleUnit, Console.Out, new CodeGeneratorOptions());
 
             //foreach (CompilerError error in result.Errors)
             //{
@@ -350,11 +356,83 @@ namespace TestsCodeGenLib
             }
         }
 
+        [TestMethod]
+        public void TestTypesInProperties_CS()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("SchemaBased"))
+            {
+                TestCSCodeInternal(stream, new WXMLCodeDomGeneratorSettings { UseTypeInProps = true });
+            }
+        }
+
+        [TestMethod]
+        public void TestTypesInProperties_VB()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("SchemaBased"))
+            {
+                TestVBCodeInternal(stream, new WXMLCodeDomGeneratorSettings { UseTypeInProps = true});
+            }
+        }
+
+        [TestMethod]
+        public void TestEntityWithoutPK_CS()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("keyless"))
+            {
+                TestCSCodeInternal(stream);
+            }
+        }
+
+        [TestMethod]
+        public void TestEntityWithoutPK_VB()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("keyless"))
+            {
+                TestVBCodeInternal(stream);
+            }
+        }
+
+        [TestMethod]
+        public void TestCheckCacheRequired()
+        {
+            Assert.Inconclusive();
+        }
+
+        [TestMethod]
+        public void TestGenerateSchemaOnly()
+        {
+            Assert.Inconclusive();
+        }
+
+        [TestMethod]
+        public void TestGenerateEntityOnly()
+        {
+            Assert.Inconclusive();
+        }
+
+        [TestMethod]
+        public void TestWriteSchemaBased()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("SchemaBased"))
+            {
+                WXMLModel model = WXMLModel.LoadFromXml(XmlReader.Create(stream), new TestXmlUrlResolver());
+                Assert.IsNotNull(model);
+
+                var wxmlDocumentSet = model.GetWXMLDocumentSet(new WXMLModelWriterSettings());
+
+                Assert.IsNotNull(wxmlDocumentSet);
+            }
+        }
+
         public void TestVBCodeInternal(Stream stream)
+        {
+            TestVBCodeInternal(stream, new WXMLCodeDomGeneratorSettings());
+        }
+
+        public void TestVBCodeInternal(Stream stream, WXMLCodeDomGeneratorSettings settings)
         {
             CodeDomProvider prov = new Microsoft.VisualBasic.VBCodeProvider();
 
-            WXMLCodeDomGeneratorSettings settings = new WXMLCodeDomGeneratorSettings();
             settings.LanguageSpecificHacks = LanguageSpecificHacks.VisualBasic;
             //settings.RemoveOldM2M = true;
 

@@ -10,16 +10,26 @@ namespace WXML.SourceConnector
         private readonly SourceView _db;
         private readonly WXMLModel _model;
 
-        public ModelToSourceConnector(SourceView db, WXMLModel model)
+        public ModelToSourceConnector(SourceView sourceView, WXMLModel model)
         {
-            _db = db;
+            _db = sourceView;
             _model = model;
+        }
+
+        public SourceView SourceView
+        {
+            get { return _db; }
+        }
+
+        public WXMLModel Model
+        {
+            get { return _model; }
         }
 
         public string GenerateSourceScript(ISourceProvider provider, bool unicodeStrings)
         {
-            var props = _model.GetActiveEntities().SelectMany(item =>
-                item.SelfProperties.Where(p => !p.Disabled && p.SourceFragment != null)
+            var props = Model.GetActiveEntities().SelectMany(item =>
+                item.OwnProperties.Where(p => !p.Disabled && p.SourceFragment != null)
             );
 
             StringBuilder script = new StringBuilder();
@@ -28,7 +38,7 @@ namespace WXML.SourceConnector
             {
                 SourceFragmentDefinition sf = s;
 
-                var targetSF = _db.GetSourceFragments().SingleOrDefault(item => 
+                var targetSF = SourceView.GetSourceFragments().SingleOrDefault(item => 
                     item.Name == sf.Name && item.Selector == sf.Selector);
 
                 if (targetSF == null)

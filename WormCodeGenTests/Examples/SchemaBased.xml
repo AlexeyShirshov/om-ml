@@ -1,12 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<oos:WXMLModel defaultNamespace="XMedia.Framework.Media.Objects" schemaVersion="1" xmlns:oos="http://wise-orm.com/WXMLSchema.xsd">
+<oos:WXMLModel defaultNamespace="TestObjects" schemaVersion="1" 
+               xmlns:oos="http://wise-orm.com/WXMLSchema.xsd">
 	<oos:SourceFragments>
 		<oos:SourceFragment id="tblAlbums" name="albums" selector="dbo" />
 		<oos:SourceFragment id="tblArtists" name="artists" selector="dbo" />
 		<oos:SourceFragment id="tblAl2Ar" name="al2ar" selector="dbo" />
 		<oos:SourceFragment id="tblSiteAccess" name="sites_access" selector="dbo"/>
 		<oos:SourceFragment id="tbla2b" name="a2b" selector="dbo" />
-		<oos:SourceFragment id="tblal2al" name="al2al" selector="dbo" />
+    <oos:SourceFragment id="tblal2al" name="al2al" selector="dbo" />
+		<oos:SourceFragment id="tblSites" name="sites" selector="dbo" />
 	</oos:SourceFragments>
 	<oos:Types>
 		<oos:Type id="tAlbum">
@@ -42,12 +44,18 @@
 		<oos:Type id="tGuidnullable">
 			<oos:ClrType name="System.Nullable`1[[System.Guid, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
 		</oos:Type>
+    <oos:Type id="tMemberAttributes">
+      <oos:ClrType name="System.CodeDom.MemberAttributes" />
+    </oos:Type>
 	</oos:Types>
 	<oos:Entities>
 		<oos:Entity id="eArtist" name="Artist" description="Artist Description" makeInterface="true" >
       <oos:SourceFragments>
 				<oos:SourceFragment ref="tblArtists"/>
-				<oos:SourceFragment ref="tblSiteAccess"/>
+        <oos:SourceFragment ref="tblSiteAccess" type="inner" anchorTableRef="tblArtists">
+          <oos:join refColumn="object_id" anchorColumn="id" />
+          <oos:join refColumn="object_type" constant="artist" />
+        </oos:SourceFragment>
 			</oos:SourceFragments>
 			<oos:Properties>
 				<oos:Property propertyName="ID" attributes="PK" table="tblArtists" fieldName="id" typeRef="tInt32" description="Property ID Description"/>
@@ -59,16 +67,30 @@
 				<oos:Property propertyName="TestNullabe" table="tblArtists" fieldName="nulableint" typeRef="tInt32Nullable" description="Property Title Description" propertyAccessLevel="Assembly"/>
 				<oos:Property propertyName="TestDisabled" table="tblArtists" fieldName="disabled" typeRef="tInt32Nullable" description="Property Title Description" propertyAccessLevel="Assembly" disabled="true"/>
 			</oos:Properties>
-		</oos:Entity>
+      <oos:Relations>
+        <oos:Relation entity="Album2ArtistRelation" accessorDescription="rtrt" />
+      </oos:Relations>
+    </oos:Entity>
     <oos:Entity id="eAlbum" name="Album" description="Album Description" namespace="AlbumNS">
       <oos:SourceFragments>
 				<oos:SourceFragment ref="tblAlbums"/>
-				<oos:SourceFragment ref="tblSiteAccess"/>
+        <oos:SourceFragment ref="tblSiteAccess" anchorTableRef="tblAlbums">
+          <oos:join refColumn="object_type" constant="album" />
+          <oos:join refColumn="object_id" anchorColumn="id" />
+        </oos:SourceFragment>
+        <oos:SourceFragment ref="tblSites" anchorTableRef="tblSiteAccess">
+          <oos:join refColumn="id" anchorColumn="sid" />
+          <oos:join refColumn="x" constant="y" />
+        </oos:SourceFragment>
 			</oos:SourceFragments>
 			<oos:Properties>
 				<oos:Property propertyName="ID" attributes="PK" table="tblAlbums" fieldName="id" typeRef="tInt32" description="Property ID Description"/>
 				<oos:Property propertyName="Title" table="tblAlbums" fieldName="title" typeRef="tString" description="Property Title Description" propertyAccessLevel="Assembly"/>
+        <oos:Property propertyName="Code" table="tblAlbums" fieldName="code" typeRef="tMemberAttributes" />
 			</oos:Properties>
+      <oos:Relations>
+        <oos:Relation entity="Album2ArtistRelation" />
+      </oos:Relations>
 		</oos:Entity>
 		<oos:Entity id="Album2ArtistRelation" name="Album2ArtistRelation" description="Album2ArtistRelation Description" namespace="xRelations">
       <oos:SourceFragments>
@@ -105,9 +127,10 @@
 		<oos:Relation table="tblAl2Ar" underlyingEntity="Album2ArtistRelation">
       <oos:Constants>
         <oos:Constant name="ttt" value="xxx"/>
+        <oos:Constant name="ttt2" value="xxx2"/>
       </oos:Constants>
-			<oos:Left entity="eArtist" entityProperties="ID" fieldName="artist_id" cascadeDelete="false" accessorName="Artist"/>
-			<oos:Right entity="eAlbum" entityProperties="ID" fieldName="album_id" cascadeDelete="true" accessorName="Album"/>
+			<oos:Left entity="eArtist" entityProperties="ID" fieldName="artist_id" cascadeDelete="false" accessorName="Artist" accessorDescription="xxx" />
+			<oos:Right entity="eAlbum" entityProperties="ID" fieldName="album_id" cascadeDelete="true" accessorName="Album" accessorDescription="yyy" />
 		</oos:Relation>
 		<oos:Relation table="tblSiteAccess" disabled="true">
 			<oos:Left entity="eArtist" entityProperties="ID" fieldName="artist_id1" cascadeDelete="false"/>
@@ -118,12 +141,12 @@
 			<oos:Right entity="eA2B" entityProperties="ID" fieldName="artist_id2" cascadeDelete="true" />
 		</oos:Relation>
 	  <oos:SelfRelation table="tblal2al" entity="eAlbum" entityProperties="ID">
-		<oos:Direct fieldName="a1_id" cascadeDelete="false" accessorName="A1"/>
-		<oos:Reverse fieldName="a2_id" cascadeDelete="false"/>
+		  <oos:Direct fieldName="a1_id" cascadeDelete="false" accessorName="A1" accessorDescription="xxx" />
+		  <oos:Reverse fieldName="a2_id" cascadeDelete="false" accessorDescription="yyy" />
 	  </oos:SelfRelation>
 	  <oos:SelfRelation table="tbla2b" entity="eArtist" underlyingEntity="eA2B" entityProperties="ID">
-		<oos:Direct fieldName="band_id" cascadeDelete="false" accessorName="Artist"/>
-		<oos:Reverse fieldName="artist_id" cascadeDelete="false" accessorName="Band"/>
+		  <oos:Direct fieldName="band_id" cascadeDelete="false" accessorName="Artist"/>
+		  <oos:Reverse fieldName="artist_id" cascadeDelete="false" accessorName="Band"/>
 	  </oos:SelfRelation>
 	</oos:EntityRelations>
 </oos:WXMLModel>
