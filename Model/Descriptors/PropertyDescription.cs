@@ -130,7 +130,7 @@ namespace WXML.Model.Descriptors
         {
             get
             {
-                return !Entity.SelfProperties.Any(item => !item.Disabled && item.Identifier == Identifier);
+                return !Entity.OwnProperties.Any(item => !item.Disabled && item.Identifier == Identifier);
             }
             //set { _fromBase = value; }
         }

@@ -69,6 +69,21 @@ namespace WXML.Model.Descriptors
             get { return _fields; }
         }
 
+        public bool RemoveSourceField(SourceField field)
+        {
+            return _fields.Remove(field);
+        }
+
+        public bool RemoveSourceField(string propertyAlias)
+        {
+            return RemoveSourceField(_fields.Find(item => item.PropertyAlias == propertyAlias));
+        }
+
+        public bool RemoveSourceFieldByExpression(string sourceExpression)
+        {
+            return RemoveSourceField(_fields.Find(item => item.SourceFieldExpression == sourceExpression));
+        }
+
         public void AddSourceField(string propertyAlias, string fieldName)
         {
             AddSourceField(propertyAlias, fieldName, null, null, null, true, null);

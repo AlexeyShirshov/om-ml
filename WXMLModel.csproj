@@ -73,7 +73,7 @@
   <ItemGroup>
     <Compile Include="CodeDom\CodeCompileFileUnit.cs" />
     <Compile Include="Model\Descriptors\EntityProperty.cs" />
-    <Compile Include="Model\SourceModel\SourceProvider.cs" />
+    <Compile Include="Model\SourceModel\ISourceProvider.cs" />
     <Compile Include="Model\SourceModel\SourceReferences.cs" />
     <Compile Include="Model\SourceModel\SourceView.cs" />
     <Compile Include="Model\SourceModel\SourceConstraint.cs" />

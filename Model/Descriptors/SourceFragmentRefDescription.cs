@@ -10,12 +10,17 @@ namespace WXML.Model.Descriptors
         {
             public string LeftColumn { get; protected set; }
             public string RightColumn { get; protected set; }
-            //public MergeAction Action { get; set; }
+            public string RightConstant { get; set; }
 
             public Condition(string leftColumn, string rightColumn)
             {
-                this.LeftColumn = leftColumn;
-                this.RightColumn = rightColumn;
+                LeftColumn = leftColumn;
+                RightColumn = rightColumn;
+            }
+
+            public Condition(string leftColumn)
+            {
+                LeftColumn = leftColumn;
             }
         }
 

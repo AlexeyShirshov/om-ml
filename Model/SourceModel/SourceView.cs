@@ -24,9 +24,14 @@ namespace WXML.Model.Descriptors
                    select c;
         }
 
-        public IEnumerable<SourceFieldDefinition> GetSourceFields()
+        public List<SourceFieldDefinition> SourceFields
         {
-            return _columns;
+            get { return _columns; }
+        }
+
+        public List<SourceReferences> References
+        {
+            get { return _references; }
         }
 
         public SourceFragmentDefinition GetOrCreateSourceFragment(string selector, string name)

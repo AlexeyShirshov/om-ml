@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WXML.Model.Descriptors
+﻿namespace WXML.Model.Descriptors
 {
     public class RelationConstantDescriptor
     {

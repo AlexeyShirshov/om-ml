@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using WXML.Model;
 
 namespace WXML.CodeDom
 {
     public class WXMLCodeDomGeneratorSettings
     {
-        private bool _split = false;
+        private bool _split;
         private string _entitySchemaDefClassNameSuffix = "SchemaDef";
         private string _privateMembersPrefix = "_";
         private string _fileNamePrefix = string.Empty;
@@ -98,11 +99,9 @@ namespace WXML.CodeDom
             set { _classNameSuffix = value; }
         }
 
-        //public bool Partial
-        //{
-        //    get { return _partial; }
-        //    set { _partial = value; }
-        //}
+        public bool? SingleFile { get; set; }
+
+        public GenerateModeEnum? GenerateMode { get; set; }
     }
 
     //public enum OrmObjectGeneratorBehaviour

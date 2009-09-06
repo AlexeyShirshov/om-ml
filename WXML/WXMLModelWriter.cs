@@ -366,7 +366,7 @@ namespace WXML.Model
                 }
                 else
                 {
-                    FillEntityTables(entity.SelfSourceFragments, tablesElement);
+                    FillEntityTables(entity.OwnSourceFragments, tablesElement);
                 }
 
                 entityElement.AppendChild(tablesElement);
@@ -391,7 +391,7 @@ namespace WXML.Model
         {
             XmlNode propertiesNode = CreateElement("Properties");
             HashSet<PropertyGroup> group2skip = new HashSet<PropertyGroup>();
-            foreach (PropertyDefinition prop in entity.SelfProperties)
+            foreach (PropertyDefinition prop in entity.OwnProperties)
             {
                 PropertyGroup group = prop.Group;
                 if (group != null)
@@ -408,7 +408,7 @@ namespace WXML.Model
 
                         propertiesNode.AppendChild(groupNode);
 
-                        foreach (var gp in entity.SelfProperties
+                        foreach (var gp in entity.OwnProperties
                             .Where(item => group == item.Group))
                         {
                             FillEntityProperties(gp, groupNode);
@@ -476,9 +476,11 @@ namespace WXML.Model
                     {
                         XmlElement join = CreateElement("join");
                         join.SetAttribute("refColumn", c.LeftColumn);
-                        join.SetAttribute("anchorColumn", c.RightColumn);
-                        //if (c.Action != MergeAction.Merge)
-                        //    join.SetAttribute("action", c.Action.ToString());
+
+                        if (!string.IsNullOrEmpty(c.RightColumn))
+                            join.SetAttribute("anchorColumn", c.RightColumn);
+                        else
+                            join.SetAttribute("constant", c.RightConstant);
 
                         tableElement.AppendChild(join);
                     }
@@ -658,21 +660,33 @@ namespace WXML.Model
 
         private void FillFileDescriptions()
         {
+            XmlElement root = _ormXmlDocumentMain.DocumentElement;
+
             if (!string.IsNullOrEmpty(_model.Namespace))
-                _ormXmlDocumentMain.DocumentElement.SetAttribute("defaultNamespace", _model.Namespace);
+                root.SetAttribute("defaultNamespace", _model.Namespace);
 
             if (!string.IsNullOrEmpty(_model.SchemaVersion))
-                _ormXmlDocumentMain.DocumentElement.SetAttribute("schemaVersion", _model.SchemaVersion);
+                root.SetAttribute("schemaVersion", _model.SchemaVersion);
 
             if (!string.IsNullOrEmpty(_model.EntityBaseTypeName))
-                _ormXmlDocumentMain.DocumentElement.SetAttribute("entityBaseType", _model.EntityBaseTypeName);
+                root.SetAttribute("entityBaseType", _model.EntityBaseTypeName);
 
             if (_model.EnableCommonPropertyChangedFire)
-                _ormXmlDocumentMain.DocumentElement.SetAttribute("enableCommonPropertyChangedFire",
-                                                                 XmlConvert.ToString(_model.EnableCommonPropertyChangedFire));
+                root.SetAttribute("enableCommonPropertyChangedFire",
+                    XmlConvert.ToString(_model.EnableCommonPropertyChangedFire));
+            
             if (!_model.GenerateEntityName)
-                _ormXmlDocumentMain.DocumentElement.SetAttribute("generateEntityName",
-                                                                 XmlConvert.ToString(_model.GenerateEntityName));
+                root.SetAttribute("generateEntityName",
+                    XmlConvert.ToString(_model.GenerateEntityName));
+
+            if (_model.GenerateMode != GenerateModeEnum.Full)
+                root.SetAttribute("generateMode", _model.GenerateMode.ToString());
+
+            if (_model.AddVersionToSchemaName)
+                root.SetAttribute("addVersionToSchemaName", "true");
+
+            if (_model.GenerateSingleFile)
+                root.SetAttribute("singleFile", "true");
 
             StringBuilder commentBuilder = new StringBuilder();
             foreach (string comment in _model.SystemComments)
@@ -691,7 +705,7 @@ namespace WXML.Model
 
             XmlComment commentsElement =
                 _ormXmlDocumentMain.CreateComment(commentBuilder.ToString());
-            _ormXmlDocumentMain.InsertBefore(commentsElement, _ormXmlDocumentMain.DocumentElement);
+            _ormXmlDocumentMain.InsertBefore(commentsElement, root);
         }
     }
 

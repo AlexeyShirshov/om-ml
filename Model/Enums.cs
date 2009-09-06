@@ -60,4 +60,11 @@ namespace WXML.Model
         Merge,
         Delete
     }
+
+    public enum GenerateModeEnum
+    {
+        Full,
+        SchemaOnly,
+        EntityOnly
+    }
 }

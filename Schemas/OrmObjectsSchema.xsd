@@ -187,8 +187,8 @@
       <xs:element name="join" minOccurs="1" maxOccurs="1">
         <xs:complexType>
           <xs:attribute name="refColumn" type="xs:string" use="required" />
-          <xs:attribute name="anchorColumn" type="xs:string" use="required" />
-          <!--<xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />-->
+          <xs:attribute name="anchorColumn" type="xs:string" use="optional" />
+          <xs:attribute name="constant" type="xs:string" use="optional" />
         </xs:complexType>
       </xs:element>
     </xs:sequence>
@@ -1021,12 +1021,20 @@
         <xs:documentation>Enables generation of setters for properties marked readonly.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="generateEntityName" default="true" use="optional" type="xs:boolean">
+    <xs:attribute name="generateFamilyDescriptor" default="true" use="optional" type="xs:boolean">
       <xs:annotation>
-        <xs:documentation>Indicates whether generates EntityName or not</xs:documentation>
+        <xs:documentation>Indicates whether generates Descriptor.EntityName or not</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="generateSchemaOnly" default="false" use="optional" type="xs:boolean"></xs:attribute>
+    <xs:attribute name="generateMode" default="Full" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Full" />
+          <xs:enumeration value="SchemaOnly" />
+          <xs:enumeration value="EntityOnly" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="addVersionToSchemaName" default="false" use="optional" type="xs:boolean"></xs:attribute>
     <xs:attribute name="singleFile" default="false" use="optional" type="xs:boolean"/>
   </xs:complexType>

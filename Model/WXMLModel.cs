@@ -61,7 +61,7 @@ namespace WXML.Model
             }
         }
 
-        public bool GenerateSchemaOnly { get; set; }
+        public GenerateModeEnum GenerateMode { get; set; }
 
         public bool GenerateSingleFile { get; set; }
 
@@ -193,12 +193,6 @@ namespace WXML.Model
                 return _entities;
             }
         }
-
-        //[XmlIgnore]
-        //public List<SelfRelationDescription> SelfRelations
-        //{
-        //    get { return _selfRelations; }
-        //}
 
         #endregion Properties
 
@@ -457,7 +451,7 @@ namespace WXML.Model
                     entity.FamilyName = newEntity.FamilyName;
 
                     entity.ClearSourceFragments();
-                    foreach (SourceFragmentRefDefinition newsf in newEntity.SelfSourceFragments)
+                    foreach (SourceFragmentRefDefinition newsf in newEntity.OwnSourceFragments)
                     {
                         //string newsfId = newsf.Identifier;
                         //SourceFragmentRefDefinition sf =
