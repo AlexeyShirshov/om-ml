@@ -14,6 +14,38 @@ namespace TestsSourceModel
     [TestClass]
     public class TestsSourceModel
     {
+        [TestMethod]
+        public void TestSourceView()
+        {
+            MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
+            SourceView view = p.GetSourceView();
+
+            Assert.AreEqual(133, view.SourceFields.Count());
+
+            Assert.AreEqual(32, view.GetSourceFragments().Count());
+        }
+
+        [TestMethod]
+        public void TestSourceViewPatterns()
+        {
+            MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
+
+            Assert.AreEqual(11, p.GetSourceView(null, "aspnet_%").GetSourceFragments().Count());
+
+            Assert.AreEqual(21, p.GetSourceView(null, "(aspnet_%)").GetSourceFragments().Count());
+
+            Assert.AreEqual(16, p.GetSourceView(null, "(aspnet_%,ent%)").GetSourceFragments().Count());
+
+            Assert.AreEqual(1, p.GetSourceView(null, "guid_table").GetSourceFragments().Count());
+
+            Assert.AreEqual(1, p.GetSourceView("test", null).GetSourceFragments().Count());
+
+            Assert.AreEqual(32, p.GetSourceView("test,dbo", null).GetSourceFragments().Count());
+
+            Assert.AreEqual(31, p.GetSourceView("(test)", null).GetSourceFragments().Count());
+
+            Assert.AreEqual(3, p.GetSourceView(null, "ent1,ent2,1to2").GetSourceFragments().Count());
+        }
 
         [TestMethod]
         public void TestFillModel()
@@ -128,11 +160,11 @@ namespace TestsSourceModel
 
             Assert.AreEqual(2, membership.GetSourceFragments().Count());
 
-            Assert.AreEqual(1, membership.SelfSourceFragments.Count());
+            Assert.AreEqual(1, membership.OwnSourceFragments.Count());
 
             Assert.AreEqual(1, users.GetSourceFragments().Count());
 
-            Assert.AreEqual(1, users.SelfSourceFragments.Count());
+            Assert.AreEqual(1, users.OwnSourceFragments.Count());
 
             Assert.IsNull(users.BaseEntity);
         }
@@ -215,6 +247,106 @@ namespace TestsSourceModel
             Assert.AreEqual(4, model.GetSourceFragments().Count());
 
             Assert.AreEqual(3, model.GetEntities().Count());
+        }
+
+        [TestMethod]
+        public void TestAlterEntities()
+        {
+            MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
+
+            SourceView sv = p.GetSourceView(null, "ent1,ent2,1to2");
+
+            WXMLModel model = new WXMLModel();
+
+            SourceToModelConnector c = new SourceToModelConnector(sv, model);
+            c.ApplySourceViewToModel();
+
+            Assert.AreEqual(3, model.GetSourceFragments().Count());
+
+            Assert.AreEqual(2, model.GetEntities().Count());
+
+            sv = p.GetSourceView(null, "ent1,ent2,1to2");
+
+            c = new SourceToModelConnector(sv, model);
+            c.ApplySourceViewToModel();
+
+            Assert.AreEqual(3, model.GetSourceFragments().Count());
+
+            Assert.AreEqual(2, model.GetEntities().Count());
+        }
+
+        [TestMethod]
+        public void TestDropProperty()
+        {
+            MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
+
+            SourceView sv = p.GetSourceView(null, "aspnet_Applications");
+
+            Assert.AreEqual(4, sv.SourceFields.Count);
+
+            WXMLModel model = new WXMLModel();
+
+            SourceToModelConnector c = new SourceToModelConnector(sv, model);
+
+            c.ApplySourceViewToModel();
+
+            Assert.AreEqual(4, model.GetActiveEntities().First().GetActiveProperties().Count());
+
+            SourceFieldDefinition fld = sv.SourceFields.Find(item=>item.SourceFieldExpression == "[Description]");
+
+            sv.SourceFields.Remove(fld);
+
+            Assert.AreEqual(3, sv.SourceFields.Count);
+
+            c.ApplySourceViewToModel(true, relation1to1.Default, true, true);
+
+            Assert.AreEqual(3, model.GetActiveEntities().First().GetActiveProperties().Count());
+
+            sv.SourceFields.Add(fld);
+
+            Assert.AreEqual(4, sv.SourceFields.Count);
+
+            c.ApplySourceViewToModel(true, relation1to1.Default, true, true);
+
+            Assert.AreEqual(4, model.GetActiveEntities().First().GetActiveProperties().Count());
+        }
+
+        [TestMethod]
+        public void TestDropEntityProperty()
+        {
+            MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
+
+            SourceView sv = p.GetSourceView(null, "aspnet_Paths, aspnet_Applications");
+
+            Assert.AreEqual(8, sv.SourceFields.Count);
+
+            WXMLModel model = new WXMLModel();
+
+            SourceToModelConnector c = new SourceToModelConnector(sv, model);
+
+            c.ApplySourceViewToModel();
+
+            Assert.AreEqual(4, model.GetEntity("e_dbo_aspnet_Paths").GetActiveProperties().Count());
+
+            Assert.IsTrue(sv.SourceFields.Remove(sv.SourceFields.Find(item => item.SourceFieldExpression == "[ApplicationId]" && item.SourceFragment.Name == "[aspnet_Paths]")));
+
+            Assert.AreEqual(7, sv.SourceFields.Count);
+
+            c.ApplySourceViewToModel(true, relation1to1.Default, true, true);
+
+            Assert.AreEqual(3, model.GetEntity("e_dbo_aspnet_Paths").GetActiveProperties().Count());
+        }
+
+        [TestMethod]
+        public void TestM2MSimilarRelations()
+        {
+            Assert.Inconclusive();
+        }
+
+        [TestMethod]
+        public void TestO2MSimilarRelations()
+        {
+            Assert.Inconclusive();
         }
 
         public static string GetTestDB()

@@ -89,7 +89,7 @@ namespace WXMLTests
 
             parser.FillProperties(entity);
 
-            Assert.AreEqual<int>(8, entity.SelfProperties.Count());
+            Assert.AreEqual<int>(8, entity.OwnProperties.Count());
 
             ScalarPropertyDefinition prop = (ScalarPropertyDefinition) entity.GetProperty("ID");
             Assert.IsNotNull(prop);
@@ -217,7 +217,7 @@ namespace WXMLTests
 
             parser.FillProperties(entity);
 
-            Assert.AreEqual<int>(7, entity.SelfProperties.Count());
+            Assert.AreEqual<int>(7, entity.OwnProperties.Count());
 
             PropertyDefinition prop = entity.GetProperty("Identifier1");
             Assert.IsNull(prop);
