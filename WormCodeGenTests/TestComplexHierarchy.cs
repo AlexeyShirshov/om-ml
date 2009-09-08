@@ -28,11 +28,5 @@ namespace WormCodeGenTests
                 TestCodeGen.TestCSCodeInternal(stream);
             }
         }
-
-        [TestMethod]
-        public void TestBaseType()
-        {
-            Assert.Inconclusive();
-        }
     }
 }

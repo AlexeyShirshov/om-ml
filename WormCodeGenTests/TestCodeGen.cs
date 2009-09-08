@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Collections.Generic;
+using LinqToCodedom.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Xml;
 using System.CodeDom;
@@ -10,7 +11,10 @@ using System.CodeDom.Compiler;
 using WXML.CodeDom;
 using WXML.CodeDom.CodeDomExtensions;
 using WXML.Model;
+using WXML.Model.Descriptors;
 using WXMLToWorm;
+using System.Reflection;
+using LinqToCodedom;
 
 namespace WormCodeGenTests
 {
@@ -205,6 +209,22 @@ namespace WormCodeGenTests
            
         }
 
+        public static void TestCSCodeInternal(WXMLModel model, WXMLCodeDomGeneratorSettings settings,
+            params CodeCompileUnit[] units)
+        {
+            CodeDomProvider prov = new Microsoft.CSharp.CSharpCodeProvider();
+            settings.LanguageSpecificHacks = LanguageSpecificHacks.CSharp;
+            //settings.RemoveOldM2M = true;
+            //settings.Split = false;
+            CompileCode(prov, settings, model, units);
+
+            //stream.Position = 0;
+
+            //settings.Split = true;
+            //CompileCode(prov, settings, XmlReader.Create(stream));
+
+        }
+
         public class TestXmlUrlResolver : XmlUrlResolver
         {
             public override object GetEntity(Uri absoluteUri, string role, Type ofObjectToReturn)
@@ -217,9 +237,16 @@ namespace WormCodeGenTests
             }
         }
 
-        private static void CompileCode(CodeDomProvider prov, WXMLCodeDomGeneratorSettings settings, XmlReader reader)
+        private static void CompileCode(CodeDomProvider prov, WXMLCodeDomGeneratorSettings settings,
+            XmlReader reader)
         {
-            WXMLModel model = WXMLModel.LoadFromXml(reader, new TestXmlUrlResolver());
+            CompileCode(prov, settings, WXMLModel.LoadFromXml(reader, new TestXmlUrlResolver()));
+        }
+
+
+        private static void CompileCode(CodeDomProvider prov, WXMLCodeDomGeneratorSettings settings, 
+            WXMLModel model, params CodeCompileUnit[] units)
+        {
             WormCodeDomGenerator gen = new WormCodeDomGenerator(model, settings);
             CompilerResults result;
             CompilerParameters prms = new CompilerParameters
@@ -243,7 +270,12 @@ namespace WormCodeGenTests
             if (settings.SingleFile.HasValue ? settings.SingleFile.Value : model.GenerateSingleFile)
             {
                 singleUnit = gen.GetFullSingleUnit(typeof(Microsoft.VisualBasic.VBCodeProvider).IsAssignableFrom(prov.GetType()) ? LinqToCodedom.CodeDomGenerator.Language.VB : LinqToCodedom.CodeDomGenerator.Language.CSharp);
-                result = prov.CompileAssemblyFromDom(prms, singleUnit);
+                var l = new List<CodeCompileUnit>();
+                l.Add(singleUnit);
+                if (units != null)
+                    l.AddRange(units);
+
+                result = prov.CompileAssemblyFromDom(prms, l.ToArray());
             }
             else
             {
@@ -254,7 +286,10 @@ namespace WormCodeGenTests
                 {
                     singleUnit.Namespaces.AddRange(unit.Namespaces);
                 }
-                result = prov.CompileAssemblyFromDom(prms, new List<CodeCompileFileUnit>(dic.Values).Cast<CodeCompileUnit>().ToArray());
+                var l = new List<CodeCompileUnit>(dic.Values.OfType<CodeCompileUnit>());
+                if (units != null)
+                    l.AddRange(units);
+                result = prov.CompileAssemblyFromDom(prms, l.ToArray());
             }
 
             if(result.Errors.HasErrors)
@@ -408,6 +443,26 @@ namespace WormCodeGenTests
         public void TestGenerateEntityOnly()
         {
             Assert.Inconclusive();
+        }
+
+        [TestMethod]
+        public void TestBaseType()
+        {
+            WXMLModel model;
+            using (Stream stream = Resources.GetXmlDocumentStream("SchemaBased"))
+            {
+                model = WXMLModel.LoadFromXml(XmlReader.Create(stream), new TestXmlUrlResolver());
+                Assert.IsNotNull(model);
+            }
+
+            TypeDefinition td = new TypeDefinition("tBase", "test.BaseT", true);
+            model.EntityBaseType = td;
+            model.UserComments.Add("xxx");
+            CodeDomGenerator c = new CodeDomGenerator();
+            c.AddNamespace("test")
+                .AddClass("BaseT", TypeAttributes.Abstract | TypeAttributes.Public)
+                .Inherits(typeof (Worm.Entities.KeyEntity));
+            TestCSCodeInternal(model, new WXMLCodeDomGeneratorSettings(), c.GetCompileUnit(CodeDomGenerator.Language.CSharp));
         }
 
         [TestMethod]
