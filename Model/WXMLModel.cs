@@ -673,25 +673,25 @@ namespace WXML.Model
             private readonly List<WXMLModel> m_list;
             private readonly WXMLModel _baseObjectsDef;
 
-            public IncludesCollection(WXMLModel baseObjectsDef)
+            public IncludesCollection(WXMLModel baseModel)
             {
                 m_list = new List<WXMLModel>();
-                _baseObjectsDef = baseObjectsDef;
+                _baseObjectsDef = baseModel;
             }
 
-            public void Add(WXMLModel objectsDef)
+            public void Add(WXMLModel model)
             {
-                if (IsSchemaPresentInTree(objectsDef))
+                if (IsSchemaPresentInTree(model))
                     throw new ArgumentException(
                         "Given objects definition object already present in include tree.");
-                objectsDef.BaseSchema = _baseObjectsDef;
-                m_list.Add(objectsDef);
+                model.BaseSchema = _baseObjectsDef;
+                m_list.Add(model);
             }
 
-            public void Remove(WXMLModel objectsDef)
+            public void Remove(WXMLModel model)
             {
-                objectsDef.BaseSchema = null;
-                m_list.Remove(objectsDef);
+                model.BaseSchema = null;
+                m_list.Remove(model);
             }
 
             public void Clear()
@@ -720,18 +720,18 @@ namespace WXML.Model
                 }
             }
 
-            public int IndexOf(WXMLModel objectsDef)
+            public int IndexOf(WXMLModel model)
             {
-                return m_list.IndexOf(objectsDef);
+                return m_list.IndexOf(model);
             }
 
-            protected bool IsSchemaPresentInTree(WXMLModel objectsDef)
+            protected bool IsSchemaPresentInTree(WXMLModel model)
             {
-                if (m_list.Contains(objectsDef))
+                if (m_list.Contains(model))
                     return true;
-                foreach (WXMLModel ormObjectsDef in m_list)
+                foreach (WXMLModel m in m_list)
                 {
-                    return ormObjectsDef.Includes.IsSchemaPresentInTree(objectsDef);
+                    return m.Includes.IsSchemaPresentInTree(model);
                 }
                 return false;
             }
