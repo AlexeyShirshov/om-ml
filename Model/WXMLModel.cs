@@ -49,7 +49,7 @@ namespace WXML.Model
             _appName = ass.GetName().Name;
             _appVersion = ass.GetName().Version.ToString(4);
             EnableReadOnlyPropertiesSetter = false;
-            GenerateEntityName = true;
+            //GenerateEntityName = true;
         }
 
         #region Properties
@@ -180,11 +180,11 @@ namespace WXML.Model
 
         public LinqSettingsDescriptor LinqSettings { get; set; }
 
-        public bool GenerateEntityName
-        {
-            get;
-            set;
-        }
+        //public bool GenerateEntityName
+        //{
+        //    get;
+        //    set;
+        //}
 
         public IEnumerable<EntityDefinition> OwnEntities
         {

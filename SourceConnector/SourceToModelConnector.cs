@@ -75,8 +75,8 @@ namespace WXML.SourceConnector
     {
         private readonly SourceView _db;
         private readonly WXMLModel _model;
-        //private readonly bool _transform;
-        //private HashSet<string> _ents;
+        private List<SourceFragmentDefinition> _tables2skip;
+        private Dictionary<string, EntityDefinition> _entities2skip;
 
         public delegate void OnEntityCreatedDelegate(SourceToModelConnector sender, EntityDefinition entity);
         public event OnEntityCreatedDelegate OnEntityCreated;
@@ -112,17 +112,19 @@ namespace WXML.SourceConnector
         public void ApplySourceViewToModel(bool dropProperties, relation1to1 rb, 
             bool transforRawNamesToReadableForm, bool capitalizeNames)
         {
-            List<SourceFragmentDefinition> tables2skip = new List<SourceFragmentDefinition>();
+            _tables2skip = new List<SourceFragmentDefinition>();
+            _entities2skip = new Dictionary<string, EntityDefinition>();
+            
             foreach (SourceFragmentDefinition sf in SourceView.GetSourceFragments())
             {
-                if (tables2skip.Contains(sf))
+                if (_tables2skip.Contains(sf))
                     continue;
 
                 if (sf.Constraints.Count(item=>item.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName) == 2 &&
                     SourceView.GetSourceFields(sf).All(clm => clm.IsFK))
                     continue;
 
-                GetEntity(sf, rb, tables2skip, transforRawNamesToReadableForm, capitalizeNames);
+                GetEntity(sf, rb, transforRawNamesToReadableForm, capitalizeNames);
             }
 
             //Dictionary<string, EntityDefinition> dic = Process1to1Relations(columns, defferedCols, odef, escape, notFound, rb);
@@ -225,102 +227,106 @@ namespace WXML.SourceConnector
         }
 
         private EntityDefinition GetEntity(SourceFragmentDefinition sf, relation1to1 rb, 
-            List<SourceFragmentDefinition> tables2skip, bool transforRawNamesToReadableForm, bool capitalizeNames)
+            bool transforRawNamesToReadableForm, bool capitalizeNames)
         {
-
-            EntityDefinition masterEntity = null;
-            SourceFragmentDefinition masterTable = null;
-            List<SourceFragmentRefDefinition.Condition> conds = null;
-            if (rb != relation1to1.Default && SourceView.GetSourceFields(sf)
-                .Where(item => item.IsPK)
-                .SelectMany(item => item.Constraints)
-                .Count(item => item.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName) == 1 &&
-                SourceView.GetSourceFields(sf)
+            var entityIdentifier = GetEntityIdentifier(sf.Selector, sf.Name);
+            EntityDefinition e;
+            if (!_entities2skip.TryGetValue(entityIdentifier, out e))
+            {
+                EntityDefinition masterEntity = null;
+                SourceFragmentDefinition masterTable = null;
+                List<SourceFragmentRefDefinition.Condition> conds = null;
+                if (rb != relation1to1.Default && SourceView.GetSourceFields(sf)
                     .Where(item => item.IsPK)
-                    .Any(item => item.IsFK)
-            )
-            {
-                switch (rb)
+                    .SelectMany(item => item.Constraints)
+                    .Count(item => item.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName) == 1 &&
+                    SourceView.GetSourceFields(sf)
+                        .Where(item => item.IsPK)
+                        .Any(item => item.IsFK)
+                )
                 {
-                    case relation1to1.Unify:
-                    case relation1to1.Hierarchy:
-                        masterTable = GetMasterTable(sf, out conds);
-                        masterEntity = GetEntity(masterTable, rb, tables2skip, transforRawNamesToReadableForm, capitalizeNames);
-                        break;
-                    default:
-                        throw new NotSupportedException(rb.ToString());
+                    switch (rb)
+                    {
+                        case relation1to1.Unify:
+                        case relation1to1.Hierarchy:
+                            masterTable = GetMasterTable(sf, out conds);
+                            masterEntity = GetEntity(masterTable, rb, transforRawNamesToReadableForm, capitalizeNames);
+                            break;
+                        default:
+                            throw new NotSupportedException(rb.ToString());
+                    }
                 }
-            }
 
-            EntityDefinition e = Model.GetEntity(GetEntityIdentifier(sf.Selector, sf.Name));
-            if (e == null)
-            {
-                bool entCreated;
-                e = GetEntity(sf, out entCreated, capitalizeNames);
-                if (entCreated)
-                    RaiseOnEntityCreated(e);
-            }
-
-            foreach (SourceFieldDefinition field in SourceView.GetSourceFields(sf)
-                .Where(item=>!item.IsFK))
-            {
-                bool propCreated;
-                PropertyDefinition prop = AppendColumn(e, field, out propCreated, transforRawNamesToReadableForm, capitalizeNames);
-                RaiseOnPropertyCreated(prop, propCreated);
-            }
-
-            foreach (SourceConstraint fk in sf.Constraints.Where(item=>item.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName))
-            {
-                bool propCreated;
-                PropertyDefinition prop = AppendFK(e, sf, fk, tables2skip, rb, out propCreated, transforRawNamesToReadableForm, capitalizeNames);
-                RaiseOnPropertyCreated(prop, propCreated);
-            }
-
-            if (masterEntity != null)
-            {
-                SourceFragmentRefDefinition sfr;
-                switch (rb)
+                e = Model.GetEntity(entityIdentifier);
+                if (e == null)
                 {
-                    case relation1to1.Unify:
-                        sfr = masterEntity.GetSourceFragments()
-                            .Single(item=>item.Identifier == masterTable.Identifier);
-                        sfr.AnchorTable = sf;
-                        sfr.JoinType = SourceFragmentRefDefinition.JoinTypeEnum.outer;
-                        sfr.Conditions.AddRange(conds);
-                        masterEntity.AddSourceFragment(new SourceFragmentRefDefinition(sf));
+                    bool entCreated;
+                    e = GetEntity(sf, out entCreated, capitalizeNames);
+                    if (entCreated)
+                        RaiseOnEntityCreated(e);
+                }
+                _tables2skip.Add(sf);
+                _entities2skip.Add(entityIdentifier, e);
 
-                        foreach (PropertyDefinition property in e.GetProperties()
-                            .Where(item=>!item.HasAttribute(Field2DbRelations.PK)))
-                        {
-                            if (masterEntity.GetProperties().Any(item=>item.PropertyAlias == property.PropertyAlias))
+                foreach (SourceFieldDefinition field in SourceView.GetSourceFields(sf)
+                    .Where(item => !item.IsFK))
+                {
+                    bool propCreated;
+                    PropertyDefinition prop = AppendColumn(e, field, out propCreated, transforRawNamesToReadableForm, capitalizeNames);
+                    RaiseOnPropertyCreated(prop, propCreated);
+                }
+
+                foreach (SourceConstraint fk in sf.Constraints.Where(item => item.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName))
+                {
+                    bool propCreated;
+                    PropertyDefinition prop = AppendFK(e, sf, fk, rb, out propCreated, transforRawNamesToReadableForm, capitalizeNames);
+                    RaiseOnPropertyCreated(prop, propCreated);
+                }
+
+                if (masterEntity != null)
+                {
+                    SourceFragmentRefDefinition sfr;
+                    switch (rb)
+                    {
+                        case relation1to1.Unify:
+                            sfr = masterEntity.GetSourceFragments()
+                                .Single(item => item.Identifier == masterTable.Identifier);
+                            sfr.AnchorTable = sf;
+                            sfr.JoinType = SourceFragmentRefDefinition.JoinTypeEnum.outer;
+                            sfr.Conditions.AddRange(conds);
+                            masterEntity.AddSourceFragment(new SourceFragmentRefDefinition(sf));
+
+                            foreach (PropertyDefinition property in e.GetProperties()
+                                .Where(item => !item.HasAttribute(Field2DbRelations.PK)))
                             {
-                                property.PropertyAlias = e.Name + "_" + property.PropertyAlias;
-                                property.Name = e.Name + "_" + property.Name;
+                                if (masterEntity.GetProperties().Any(item => item.PropertyAlias == property.PropertyAlias))
+                                {
+                                    property.PropertyAlias = e.Name + "_" + property.PropertyAlias;
+                                    property.Name = e.Name + "_" + property.Name;
+                                }
+                                masterEntity.AddProperty(property);
                             }
-                            masterEntity.AddProperty(property);
-                        }
 
-                        Model.RemoveEntity(e);
+                            Model.RemoveEntity(e);
 
-                        break;
-                    case relation1to1.Hierarchy:
-                        sfr = e.GetSourceFragments().Single();
-                        sfr.AnchorTable = masterTable;
-                        sfr.JoinType = SourceFragmentRefDefinition.JoinTypeEnum.inner;
-                        foreach (SourceFragmentRefDefinition.Condition cond in conds)
-                        {
-                            sfr.Conditions.Add(new SourceFragmentRefDefinition.Condition(cond.RightColumn, cond.LeftColumn));
-                        }
+                            break;
+                        case relation1to1.Hierarchy:
+                            sfr = e.GetSourceFragments().Single();
+                            sfr.AnchorTable = masterTable;
+                            sfr.JoinType = SourceFragmentRefDefinition.JoinTypeEnum.inner;
+                            foreach (SourceFragmentRefDefinition.Condition cond in conds)
+                            {
+                                sfr.Conditions.Add(new SourceFragmentRefDefinition.Condition(cond.RightColumn, cond.LeftColumn));
+                            }
 
-                        e.BaseEntity = masterEntity;
-                        e.InheritsBaseTables = true;
+                            e.BaseEntity = masterEntity;
+                            e.InheritsBaseTables = true;
 
-                        break;
+                            break;
+                    }
                 }
             }
-            
-            tables2skip.Add(sf);
-            
+
             return e;
         }
 
@@ -555,13 +561,15 @@ namespace WXML.SourceConnector
         }
 
         protected EntityPropertyDefinition AppendFK(EntityDefinition e, SourceFragmentDefinition sf, 
-            SourceConstraint fk, List<SourceFragmentDefinition> tables2skip, 
-            relation1to1 rb, out bool created, bool transforRawNamesToReadableForm, bool capitalizeNames)
+            SourceConstraint fk, relation1to1 rb, out bool created, 
+            bool transforRawNamesToReadableForm, bool capitalizeNames)
         {
             created = false;
             var rels = SourceView.GetFKRelations(fk);
             SourceFragmentDefinition m = rels.First().PKField.SourceFragment;
-            EntityDefinition re = GetEntity(m, rb, tables2skip, transforRawNamesToReadableForm, capitalizeNames);
+            EntityDefinition re = e;
+            if (sf != m)
+                re = GetEntity(m, rb, transforRawNamesToReadableForm, capitalizeNames);
             string rid = "t" + re.Name;
             TypeDefinition td = Model.GetType(rid, false);
             if (td == null)
@@ -573,7 +581,7 @@ namespace WXML.SourceConnector
             string propAlias = td.Entity.Name;
             if (rels.Count() == 1)
             {
-                propAlias = Trim(GetName(rels.First().PKField.SourceFieldExpression), true);
+                propAlias = Trim(GetName(rels.First().FKField.SourceFieldExpression), true);
             }
 
             if (capitalizeNames)

@@ -328,8 +328,8 @@ namespace WXML.Model
             _model.SchemaVersion = _ormXmlDocument.DocumentElement.GetAttribute("schemaVersion");
         	_model.EntityBaseTypeName = _ormXmlDocument.DocumentElement.GetAttribute("entityBaseType");
 
-            string generateEntityName = _ormXmlDocument.DocumentElement.GetAttribute("generateEntityName");            
-            _model.GenerateEntityName = string.IsNullOrEmpty(generateEntityName) ? true : XmlConvert.ToBoolean(generateEntityName);
+            //string generateEntityName = _ormXmlDocument.DocumentElement.GetAttribute("generateEntityName");            
+            //_model.GenerateEntityName = string.IsNullOrEmpty(generateEntityName) ? true : XmlConvert.ToBoolean(generateEntityName);
 
             string baseUriString = _ormXmlDocument.DocumentElement.GetAttribute("xml:base");
             if (!string.IsNullOrEmpty(baseUriString))

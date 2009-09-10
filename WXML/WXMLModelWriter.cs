@@ -675,9 +675,9 @@ namespace WXML.Model
                 root.SetAttribute("enableCommonPropertyChangedFire",
                     XmlConvert.ToString(_model.EnableCommonPropertyChangedFire));
             
-            if (!_model.GenerateEntityName)
-                root.SetAttribute("generateEntityName",
-                    XmlConvert.ToString(_model.GenerateEntityName));
+            //if (!_model.GenerateEntityName)
+            //    root.SetAttribute("generateEntityName",
+            //        XmlConvert.ToString(_model.GenerateEntityName));
 
             if (_model.GenerateMode != GenerateModeEnum.Full)
                 root.SetAttribute("generateMode", _model.GenerateMode.ToString());
