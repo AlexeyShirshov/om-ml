@@ -357,10 +357,7 @@ namespace WXMLToWorm
                 {
                     List<CodeCompileFileUnit> result = new List<CodeCompileFileUnit>();
 
-                    CodeTypeDeclaration propertiesClass;
                     CodeTypeDeclaration fieldsClass = null;
-                    CodeTypeDeclaration propertyAliasClass = null;
-                    CodeTypeDeclaration instancedPropertyAliasClass = null;
 
                     #region определение класса сущности
 
@@ -388,12 +385,228 @@ namespace WXMLToWorm
                     entityClass.Attributes = MemberAttributes.Public;
                     entityClass.TypeAttributes = TypeAttributes.Class | TypeAttributes.Public;
 
+                    #region определение класса Descriptor
+                    var descriptorClass = new CodeTypeDeclaration
+                    {
+                        Name = "Descriptor",
+                        Attributes = MemberAttributes.Public,
+                        TypeAttributes = (TypeAttributes.Class | TypeAttributes.NestedPublic),
+                        IsPartial = true
+                    };
+                    var descConstr = new CodeConstructor
+                    {
+                        Attributes = MemberAttributes.Family
+                    };
+                    descriptorClass.Members.Add(descConstr);
+
+                    SetMemberDescription(descriptorClass, "Описатель сущности.");
+
+                    var entityNameField = new CodeMemberField
+                    {
+                        Type = new CodeTypeReference(typeof(string)),
+                        Name = "EntityName",
+                        InitExpression = new CodePrimitiveExpression(entity.FamilyName),
+                        Attributes = (MemberAttributes.Public | MemberAttributes.Const)
+                    };
+
+                    descriptorClass.Members.Add(entityNameField);
+
+                    SetMemberDescription(entityNameField, "Имя сущности в объектной модели.");
+
+                    entityClass.Members.Add(descriptorClass);
+
+                    if (entity.BaseEntity != null)
+                        descriptorClass.Attributes |= MemberAttributes.New;
+
+                    #endregion
+
+                    #region определение класса Properties
+                    CodeTypeDeclaration propertiesClass = new CodeTypeDeclaration("Properties")
+                    {
+                        Attributes = MemberAttributes.Public,
+                        TypeAttributes = TypeAttributes.Class | TypeAttributes.NestedPublic,
+                        IsPartial = true
+                    };
+                    propertiesClass.Members.Add(new CodeConstructor {Attributes = MemberAttributes.Family});
+                    SetMemberDescription(propertiesClass, "Алиасы свойств сущностей испльзуемые в объектной модели.");
+
+                    if (entity.BaseEntity != null)
+                        propertiesClass.Attributes |= MemberAttributes.New;
+
+                    entityClass.Members.Add(propertiesClass);
+
+                    #endregion определение класса Properties
+
+                    CodeTypeDeclaration propertyAliasClass = null;
+                    CodeTypeDeclaration instancedPropertyAliasClass = null;
+
+                    if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.SchemaOnly)
+                    {
+                        #region PropertyAlias class
+                        propertyAliasClass = new CodeTypeDeclaration
+                        {
+                            Name = entity.Name + "Alias",
+                            Attributes = MemberAttributes.Family,
+                        };
+
+                        var propertyAliasClassCtor = new CodeConstructor { Attributes = MemberAttributes.Public };
+
+                        if (Settings.UseTypeInProps)
+                            propertyAliasClassCtor.BaseConstructorArgs.Add(WXMLCodeDomGeneratorHelper.GetEntityClassTypeReferenceExpression(Settings, entity, false));
+                        else
+                            propertyAliasClassCtor.BaseConstructorArgs.Add(WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(Settings, entity, false));
+
+                        propertyAliasClass.Members.Add(propertyAliasClassCtor);
+                        propertyAliasClass.BaseTypes.Add(new CodeTypeReference(typeof(QueryAlias)));
+
+
+                        instancedPropertyAliasClass = new CodeTypeDeclaration
+                        {
+                            Name = entity.Name + "Properties",
+                            Attributes = MemberAttributes.Family,
+                        };
+
+                        var instancedPropertyAliasClassCtor = new CodeConstructor { Attributes = MemberAttributes.Public };
+
+                        instancedPropertyAliasClassCtor.Parameters.Add(
+                            new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(QueryAlias)), "objectAlias"));
+
+                        instancedPropertyAliasClassCtor.Statements.Add(
+                            new CodeAssignStatement(
+                                new CodeFieldReferenceExpression(new CodeThisReferenceExpression(),
+                                                                 nameHelper.GetPrivateMemberName("objectAlias")),
+                                new CodeArgumentReferenceExpression("objectAlias")));
+
+                        instancedPropertyAliasClass.Members.Add(instancedPropertyAliasClassCtor);
+
+                        var instancedPropertyAliasfield = new CodeMemberField(new CodeTypeReference(typeof(QueryAlias)),
+                                                        nameHelper.GetPrivateMemberName("objectAlias"));
+                        instancedPropertyAliasClass.Members.Add(instancedPropertyAliasfield);
+
+                        instancedPropertyAliasClass.Members.Add(
+                            //Delegates.CodeMemberOperatorOverride(
+                            //    CodeDomPatterns.OperatorType.Implicit,
+                            //    new CodeTypeReference(typeof(EntityAlias)),
+                            //    new[]{new CodeParameterDeclarationExpression(new CodeTypeReference(OrmCodeGenNameHelper.GetEntityClassName(entity) + "." +
+                            //                                          instancedPropertyAliasClass.Name), "entityAlias")},
+                            Define.Operator(new CodeTypeReference(typeof(QueryAlias)),
+                                (DynType entityAlias) => CodeDom.TypedSeq(OperatorType.Implicit,
+                                    entityAlias.SetType(nameHelper.GetEntityClassName(entity, false) + "." + instancedPropertyAliasClass.Name)),
+                                new CodeMethodReturnStatement(
+                                    new CodeFieldReferenceExpression(
+                                        new CodeArgumentReferenceExpression("entityAlias"),
+                                        instancedPropertyAliasfield.Name
+                                    )
+                                )
+                            )
+                        );
+
+                        if (entity.BaseEntity != null && entity.Name == entity.BaseEntity.Name)
+                        {
+                            propertyAliasClass.Attributes |= MemberAttributes.New;
+                            instancedPropertyAliasClass.Attributes |= MemberAttributes.New;
+                        }
+
+                        entityClass.Members.Add(propertyAliasClass);
+                        entityClass.Members.Add(instancedPropertyAliasClass);
+
+                        #endregion
+
+                        #region ObjectAlias methods
+                        var createMethod = new CodeMemberMethod
+                        {
+                            Name = "CreateAlias",
+                            ReturnType =
+                             new CodeTypeReference(nameHelper.GetEntityClassName(entity, false) + "." +
+                                                   propertyAliasClass.Name),
+                            Attributes = MemberAttributes.Public | MemberAttributes.Static | MemberAttributes.Final,
+                        };
+                        if (entity.BaseEntity != null)
+                            createMethod.Attributes |= MemberAttributes.New;
+                        createMethod.Statements.Add(
+                            new CodeMethodReturnStatement(
+                                new CodeObjectCreateExpression(
+                                    new CodeTypeReference(nameHelper.GetEntityClassName(entity, true) + "." +
+                                                          propertyAliasClass.Name))));
+                        entityClass.Members.Add(createMethod);
+
+                        var getMethod = new CodeMemberMethod
+                        {
+                            Name = "WrapAlias",
+                            ReturnType =
+                                new CodeTypeReference(nameHelper.GetEntityClassName(entity, false) + "." +
+                                                      instancedPropertyAliasClass.Name),
+                            Attributes = MemberAttributes.Public | MemberAttributes.Static | MemberAttributes.Final,
+                        };
+
+                        if (entity.BaseEntity != null)
+                            getMethod.Attributes |= MemberAttributes.New;
+                        getMethod.Parameters.Add(new CodeParameterDeclarationExpression { Name = "objectAlias", Type = new CodeTypeReference(typeof(QueryAlias)) });
+
+                        getMethod.Statements.Add(
+                            new CodeMethodReturnStatement(
+                                new CodeObjectCreateExpression(
+                                    new CodeTypeReference(nameHelper.GetEntityClassName(entity, true) + "." +
+                                                          instancedPropertyAliasClass.Name), new CodeArgumentReferenceExpression("objectAlias"))));
+                        entityClass.Members.Add(getMethod);
+                        #endregion
+                    }
+
+                    foreach (PropertyDefinition propertyDesc in
+                        from k in entity.GetActiveProperties()
+                        select k)
+                    {
+                        var propertyNameField = Define.Field(typeof(string),
+                            MemberAttributes.Public | MemberAttributes.Const,
+                            propertyDesc.PropertyAlias, () => propertyDesc.PropertyAlias);
+
+                        propertiesClass.Members.Add(propertyNameField);
+
+                        if (!string.IsNullOrEmpty(propertyDesc.Description))
+                            SetMemberDescription(propertyNameField, propertyDesc.Description);
+
+                        var propertyAliasProperty = Define.GetProperty(typeof(ObjectProperty),
+                            MemberAttributes.Public | MemberAttributes.Final,
+                            propertyDesc.PropertyAlias,
+                            Emit.@return(() => CodeDom.@new(typeof(ObjectProperty), CodeDom.@this,
+                                WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc))
+                            )
+                            //Emit.@return(() => new ObjectProperty(CodeDom.@this.cast<QueryAlias>(), 
+                            //    WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc)
+                            //))
+                        );
+
+                        if (propertyAliasClass != null)
+                            propertyAliasClass.Members.Add(propertyAliasProperty);
+
+                        if (!string.IsNullOrEmpty(propertyDesc.Description))
+                            SetMemberDescription(propertyAliasProperty, propertyDesc.Description);
+
+                        string privateMemberName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName("objectAlias");
+
+                        var instancedPropertyAliasProperty = Define.GetProperty(typeof(ObjectProperty),
+                            MemberAttributes.Public | MemberAttributes.Final,
+                            propertyDesc.PropertyAlias,
+                            Emit.@return(() => CodeDom.@new(typeof(ObjectProperty),
+                                CodeDom.Field(CodeDom.@this, privateMemberName),
+                                WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc)
+                            ))
+                        );
+
+                        if (instancedPropertyAliasClass != null)
+                            instancedPropertyAliasClass.Members.Add(instancedPropertyAliasProperty);
+
+                        if (!string.IsNullOrEmpty(propertyDesc.Description))
+                            SetMemberDescription(instancedPropertyAliasProperty, propertyDesc.Description);
+                    }
+
+                    // дескрипшн
+                    SetMemberDescription(entityClass, entity.Description);
+
                     #endregion определение класса сущности
 
                     if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.SchemaOnly)
                     {
-                        // дескрипшн
-                        SetMemberDescription(entityClass, entity.Description);
 
                         // интерфес сущности
 
@@ -431,28 +644,7 @@ namespace WXMLToWorm
 
                         RaiseEntityClassCreated(nameSpace, entityClass);
 
-                        #region определение класса Properties
-
-                        {
-                            propertiesClass = new CodeTypeDeclaration("Properties");
-                            propertiesClass.Attributes = MemberAttributes.Public;
-                            propertiesClass.TypeAttributes = TypeAttributes.Class | TypeAttributes.NestedPublic;
-                            propertiesClass.IsPartial = true;
-                            CodeConstructor propctr = new CodeConstructor();
-                            propctr.Attributes = MemberAttributes.Family;
-                            propertiesClass.Members.Add(propctr);
-                            WXMLCodeDomGenerator.SetMemberDescription(propertiesClass, "Алиасы свойств сущностей испльзуемые в объектной модели.");
-
-                            if (entity.BaseEntity != null)
-                                propertiesClass.Attributes |= MemberAttributes.New;
-
-                            entityClass.Members.Add(propertiesClass);
-                        }
-
-                        #endregion определение класса Properties
-
                         #region определение класса Fields
-                        if (_model.GenerateEntityName)
                         {
                             fieldsClass = new CodeTypeDeclaration("props")
                                               {
@@ -463,7 +655,7 @@ namespace WXMLToWorm
                             var propctr = new CodeConstructor { Attributes = MemberAttributes.Family };
                             fieldsClass.Members.Add(propctr);
 
-                            WXMLCodeDomGenerator.SetMemberDescription(fieldsClass, "Ссылки на поля сущностей.");
+                            SetMemberDescription(fieldsClass, "Ссылки на поля сущностей.");
 
                             entityClass.Members.Add(fieldsClass);
 
@@ -472,159 +664,6 @@ namespace WXMLToWorm
                         }
 
                         #endregion определение класса Fields
-
-                        #region определение класса Descriptor
-                        if (_model.GenerateEntityName)
-                        {
-                            var descriptorClass = new CodeTypeDeclaration
-                            {
-                                Name = "Descriptor",
-                                Attributes = MemberAttributes.Public,
-                                TypeAttributes = (TypeAttributes.Class | TypeAttributes.NestedPublic),
-                                IsPartial = true
-                            };
-                            var descConstr = new CodeConstructor
-                            {
-                                Attributes = MemberAttributes.Family
-                            };
-                            descriptorClass.Members.Add(descConstr);
-
-                            WXMLCodeDomGenerator.SetMemberDescription(descriptorClass, "Описатель сущности.");
-
-                            var entityNameField = new CodeMemberField
-                            {
-                                Type = new CodeTypeReference(typeof(string)),
-                                Name = "EntityName",
-                                InitExpression = new CodePrimitiveExpression(entity.FamilyName),
-                                Attributes = (MemberAttributes.Public | MemberAttributes.Const)
-                            };
-
-                            descriptorClass.Members.Add(entityNameField);
-
-                            WXMLCodeDomGenerator.SetMemberDescription(entityNameField, "Имя сущности в объектной модели.");
-
-                            entityClass.Members.Add(descriptorClass);
-
-                            if (entity.BaseEntity != null)
-                                descriptorClass.Attributes |= MemberAttributes.New;
-                        }
-
-                        #endregion
-
-                        #region PropertyAlias class
-                        if (_model.GenerateEntityName)
-                        {
-                            propertyAliasClass = new CodeTypeDeclaration
-                            {
-                                Name = entity.Name + "Alias",
-                                Attributes = MemberAttributes.Family,
-                            };
-
-                            var propertyAliasClassCtor = new CodeConstructor { Attributes = MemberAttributes.Public };
-
-                            if (Settings.UseTypeInProps)
-                                propertyAliasClassCtor.BaseConstructorArgs.Add(WXMLCodeDomGeneratorHelper.GetEntityClassTypeReferenceExpression(Settings, entity, false));
-                            else
-                                propertyAliasClassCtor.BaseConstructorArgs.Add(WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(Settings, entity, false));
-
-                            propertyAliasClass.Members.Add(propertyAliasClassCtor);
-                            propertyAliasClass.BaseTypes.Add(new CodeTypeReference(typeof(QueryAlias)));
-
-
-                            instancedPropertyAliasClass = new CodeTypeDeclaration
-                                                              {
-                                                                  Name = entity.Name + "Properties",
-                                                                  Attributes = MemberAttributes.Family,
-                                                              };
-
-                            var instancedPropertyAliasClassCtor = new CodeConstructor { Attributes = MemberAttributes.Public };
-
-                            instancedPropertyAliasClassCtor.Parameters.Add(
-                                new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(QueryAlias)), "objectAlias"));
-
-                            instancedPropertyAliasClassCtor.Statements.Add(
-                                new CodeAssignStatement(
-                                    new CodeFieldReferenceExpression(new CodeThisReferenceExpression(),
-                                                                     nameHelper.GetPrivateMemberName("objectAlias")),
-                                    new CodeArgumentReferenceExpression("objectAlias")));
-
-                            instancedPropertyAliasClass.Members.Add(instancedPropertyAliasClassCtor);
-
-                            var instancedPropertyAliasfield = new CodeMemberField(new CodeTypeReference(typeof(QueryAlias)),
-                                                            nameHelper.GetPrivateMemberName("objectAlias"));
-                            instancedPropertyAliasClass.Members.Add(instancedPropertyAliasfield);
-
-                            instancedPropertyAliasClass.Members.Add(
-                                //Delegates.CodeMemberOperatorOverride(
-                                //    CodeDomPatterns.OperatorType.Implicit,
-                                //    new CodeTypeReference(typeof(EntityAlias)),
-                                //    new[]{new CodeParameterDeclarationExpression(new CodeTypeReference(OrmCodeGenNameHelper.GetEntityClassName(entity) + "." +
-                                //                                          instancedPropertyAliasClass.Name), "entityAlias")},
-                                Define.Operator(new CodeTypeReference(typeof(QueryAlias)),
-                                    (DynType entityAlias) => CodeDom.TypedSeq(OperatorType.Implicit,
-                                        entityAlias.SetType(nameHelper.GetEntityClassName(entity, false) + "." + instancedPropertyAliasClass.Name)),
-                                    new CodeMethodReturnStatement(
-                                        new CodeFieldReferenceExpression(
-                                            new CodeArgumentReferenceExpression("entityAlias"),
-                                            instancedPropertyAliasfield.Name
-                                        )
-                                    )
-                                )
-                            );
-
-                            if (entity.BaseEntity != null && entity.Name == entity.BaseEntity.Name)
-                            {
-                                propertyAliasClass.Attributes |= MemberAttributes.New;
-                                instancedPropertyAliasClass.Attributes |= MemberAttributes.New;
-                            }
-
-                            entityClass.Members.Add(propertyAliasClass);
-                            entityClass.Members.Add(instancedPropertyAliasClass);
-                        }
-
-                        #endregion
-
-                        #region ObjectAlias methods
-                        if (propertyAliasClass != null)
-                        {
-                            var createMethod = new CodeMemberMethod
-                           {
-                               Name = "CreateAlias",
-                               ReturnType =
-                                new CodeTypeReference(nameHelper.GetEntityClassName(entity, false) + "." +
-                                                      propertyAliasClass.Name),
-                               Attributes = MemberAttributes.Public | MemberAttributes.Static | MemberAttributes.Final,
-                           };
-                            if (entity.BaseEntity != null)
-                                createMethod.Attributes |= MemberAttributes.New;
-                            createMethod.Statements.Add(
-                                new CodeMethodReturnStatement(
-                                    new CodeObjectCreateExpression(
-                                        new CodeTypeReference(nameHelper.GetEntityClassName(entity, true) + "." +
-                                                              propertyAliasClass.Name))));
-                            entityClass.Members.Add(createMethod);
-
-                            var getMethod = new CodeMemberMethod
-                            {
-                                Name = "WrapAlias",
-                                ReturnType =
-                                    new CodeTypeReference(nameHelper.GetEntityClassName(entity, false) + "." +
-                                                          instancedPropertyAliasClass.Name),
-                                Attributes = MemberAttributes.Public | MemberAttributes.Static | MemberAttributes.Final,
-                            };
-
-                            if (entity.BaseEntity != null)
-                                getMethod.Attributes |= MemberAttributes.New;
-                            getMethod.Parameters.Add(new CodeParameterDeclarationExpression { Name = "objectAlias", Type = new CodeTypeReference(typeof(QueryAlias)) });
-
-                            getMethod.Statements.Add(
-                                new CodeMethodReturnStatement(
-                                    new CodeObjectCreateExpression(
-                                        new CodeTypeReference(nameHelper.GetEntityClassName(entity, true) + "." +
-                                                              instancedPropertyAliasClass.Name), new CodeArgumentReferenceExpression("objectAlias"))));
-                            entityClass.Members.Add(getMethod);
-                        }
-                        #endregion
 
                         #region конструкторы
 
@@ -677,6 +716,13 @@ namespace WXMLToWorm
 
                         #endregion public override object GetValue(string propAlias, Worm.Orm.IOrmObjectSchemaBase schema)
 
+                        #region проперти
+
+                        CreateProperties(entity, entityClass, setvalueMethod, getvalueMethod, 
+                            propertiesClass, fieldsClass, propertyAliasClass, instancedPropertyAliasClass);
+
+                        #endregion проперти
+
                         #region CachedEntity methods
 
                         //CodeMemberMethod createobjectMethod = null;
@@ -716,12 +762,6 @@ namespace WXMLToWorm
                             }
                         }
                         #endregion
-
-                        #region проперти
-
-                        CreateProperties(entity, entityClass, setvalueMethod, getvalueMethod, propertiesClass, fieldsClass, propertyAliasClass, instancedPropertyAliasClass);
-
-                        #endregion проперти
 
                         #region void SetValue(System.Reflection.PropertyInfo pi, EntityPropertyAttribute c, object value)
 
@@ -1596,51 +1636,6 @@ namespace WXMLToWorm
                 #region создание проперти и etc
 
                 FilterPropertyName(propertyDesc);
-
-                var propertyNameField = Define.Field(typeof(string), 
-                    MemberAttributes.Public | MemberAttributes.Const,
-                    propertyDesc.PropertyAlias, () => propertyDesc.PropertyAlias);
-
-                propertiesClass.Members.Add(propertyNameField);
-
-                if (!string.IsNullOrEmpty(propertyDesc.Description))
-                    SetMemberDescription(propertyNameField, propertyDesc.Description);
-                
-                if (propertyAliasClass != null && instancedPropertyAliasClass != null)
-                {
-                    var propertyAliasProperty = Define.GetProperty(typeof(ObjectProperty),
-                        MemberAttributes.Public | MemberAttributes.Final,
-                        propertyDesc.PropertyAlias,
-                        Emit.@return(() => CodeDom.@new(typeof(ObjectProperty), CodeDom.@this,
-                            WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc))
-                        )
-                        //Emit.@return(() => new ObjectProperty(CodeDom.@this.cast<QueryAlias>(), 
-                        //    WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc)
-                        //))
-                    );
-
-                    propertyAliasClass.Members.Add(propertyAliasProperty);
-
-                    if (!string.IsNullOrEmpty(propertyDesc.Description))
-                        SetMemberDescription(propertyAliasProperty, propertyDesc.Description);
-
-                    string privateMemberName = new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName("objectAlias");
-
-                    var instancedPropertyAliasProperty = Define.GetProperty(typeof(ObjectProperty),
-                        MemberAttributes.Public | MemberAttributes.Final,
-                        propertyDesc.PropertyAlias,
-                        Emit.@return(()=>CodeDom.@new(typeof(ObjectProperty),
-                            CodeDom.Field(CodeDom.@this, privateMemberName),
-                            WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc)
-                        ))
-                    );
-
-                    instancedPropertyAliasClass.Members.Add(instancedPropertyAliasProperty);
-
-                    if (!string.IsNullOrEmpty(propertyDesc.Description))
-                        SetMemberDescription(instancedPropertyAliasProperty, propertyDesc.Description);
-
-                }
 
                 if (fieldsClass != null)
                 {

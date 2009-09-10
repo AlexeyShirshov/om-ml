@@ -430,19 +430,34 @@ namespace WormCodeGenTests
         [TestMethod]
         public void TestCheckCacheRequired()
         {
-            Assert.Inconclusive();
+            WXMLModel model;
+            using (Stream stream = Resources.GetXmlDocumentStream("SchemaBased"))
+            {
+                model = WXMLModel.LoadFromXml(XmlReader.Create(stream), new TestXmlUrlResolver());
+                Assert.IsNotNull(model);
+            }
+
+            model.GetActiveEntities().Single(item => item.Identifier == "eAlbum").CacheCheckRequired = true;
+
+            TestCSCodeInternal(model, new WXMLCodeDomGeneratorSettings());
         }
 
         [TestMethod]
         public void TestGenerateSchemaOnly()
         {
-            Assert.Inconclusive();
+            using (Stream stream = Resources.GetXmlDocumentStream("SchemaBased"))
+            {
+                TestCSCodeInternal(stream, new WXMLCodeDomGeneratorSettings {GenerateMode = GenerateModeEnum.SchemaOnly });
+            }
         }
 
         [TestMethod]
         public void TestGenerateEntityOnly()
         {
-            Assert.Inconclusive();
+            using (Stream stream = Resources.GetXmlDocumentStream("SchemaBased"))
+            {
+                TestCSCodeInternal(stream, new WXMLCodeDomGeneratorSettings { GenerateMode = GenerateModeEnum.EntityOnly });
+            }
         }
 
         [TestMethod]
