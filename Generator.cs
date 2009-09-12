@@ -128,9 +128,9 @@ namespace LinqCodeGenerator
                 
                 e.AddSourceFragment(new SourceFragmentRefDefinition(rel.SourceFragment));
                 
-                if (rel is SelfRelationDescription)
+                if (rel is SelfRelationDefinition)
                 {
-                    SelfRelationDescription r = rel as SelfRelationDescription;
+                    SelfRelationDefinition r = rel as SelfRelationDefinition;
                     EntityPropertyDefinition prop = CreatePropFromRel(e, r.SourceFragment, r.Entity, r.EntityProperties, r.Direct, r.Entity.Name);
                     prop.Items[LinqPropRel] = "direct";
                     prop = CreatePropFromRel(e, r.SourceFragment, r.Entity, r.EntityProperties, r.Reverse, r.Entity.Name + "1");
@@ -399,7 +399,7 @@ namespace LinqCodeGenerator
                 CreateRelCtor(ns, ctor, nameHelper, rel, rel.GetLinqRelationField());
             }
 
-            foreach (SelfRelationDescription rel in Model.GetActiveRelations().OfType<SelfRelationDescription>().Where(item => item.Entity == e))
+            foreach (SelfRelationDefinition rel in Model.GetActiveRelations().OfType<SelfRelationDefinition>().Where(item => item.Entity == e))
             {
                 CreateRelCtor(ns, ctor, nameHelper, rel, rel.GetLinqRelationFieldDirect());
                 CreateRelCtor(ns, ctor, nameHelper, rel, rel.GetLinqRelationFieldReverse());
@@ -498,7 +498,7 @@ namespace LinqCodeGenerator
                 CreateRelMethod(cls, nameHelper, rel, rel.GetLinqRelationField(), t.Entity.Name);
             }
 
-            foreach (SelfRelationDescription rel in Model.GetActiveRelations().OfType<SelfRelationDescription>().Where(item => item.Entity == e))
+            foreach (SelfRelationDefinition rel in Model.GetActiveRelations().OfType<SelfRelationDefinition>().Where(item => item.Entity == e))
             {
                 CreateRelMethod(cls, nameHelper, rel, rel.GetLinqRelationFieldDirect(), rel.Entity.Name);
                 CreateRelMethod(cls, nameHelper, rel, rel.GetLinqRelationFieldReverse(), rel.Entity.Name);
@@ -619,7 +619,7 @@ namespace LinqCodeGenerator
                         }
                         else
                         {
-                            var srel = Model.GetActiveRelations().OfType<SelfRelationDescription>().SingleOrDefault(item => item.Entity == p.PropertyType.Entity);
+                            var srel = Model.GetActiveRelations().OfType<SelfRelationDefinition>().SingleOrDefault(item => item.Entity == p.PropertyType.Entity);
 
                             if (srel == null)
                                 throw new WXMLException(string.Format("Cannot find relation for property {0}", p.Identifier));
@@ -733,7 +733,7 @@ namespace LinqCodeGenerator
                 //prop.AddAttribute(attr);
             }
 
-            foreach (SelfRelationDescription rel in Model.GetActiveRelations().OfType<SelfRelationDescription>().Where(item => item.Entity == e))
+            foreach (SelfRelationDefinition rel in Model.GetActiveRelations().OfType<SelfRelationDefinition>().Where(item => item.Entity == e))
             {
                 string ename = GetName(rel.SourceFragment.Name);
 
@@ -909,7 +909,7 @@ namespace LinqCodeGenerator
                 //);
             }
 
-            foreach (SelfRelationDescription rel in Model.GetActiveRelations().OfType<SelfRelationDescription>().Where(item => item.Entity == e))
+            foreach (SelfRelationDefinition rel in Model.GetActiveRelations().OfType<SelfRelationDefinition>().Where(item => item.Entity == e))
             {
                 string ename = GetName(rel.SourceFragment.Name);
 
