@@ -40,7 +40,7 @@
         <oos:Property attributes="PrimaryKey" fieldName="id" propertyName="Identifier1" table="tblEntity2" typeRef="tInt32" dbTypeName="int" dbTypeNullable="false" />
         <oos:Property fieldName="name" propertyName="Name" table="tblEntity2" typeRef="tString" dbTypeName="varchar" dbTypeNullable="false" dbTypeSize="100" />
         <oos:EntityProperty propertyName="Ent" typeRef="tEntity1" table="tblEntity2">
-          <oos:fields fieldName="ent1_id" relatedProperty="ID" />
+          <oos:field fieldName="ent1_id" relatedProperty="ID" />
         </oos:EntityProperty>
       </oos:Properties>
     </oos:Entity>
