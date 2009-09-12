@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.CodeDom;
 using WXML.Model.Descriptors;
 
@@ -8,11 +6,17 @@ namespace WXML.CodeDom
 {
     public static class WXMLCodeDomGeneratorHelper
     {
-        public static CodeExpression GetFieldNameReferenceExpression(WXMLCodeDomGeneratorSettings settings, PropertyDefinition propertyDesc)
+        public static CodeExpression GetFieldNameReferenceExpression(WXMLCodeDomGeneratorSettings settings, PropertyDefinition propertyDesc, bool addNamespace)
         {
-            string className = new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(propertyDesc.Entity, true) + ".Properties";
+            string className = new WXMLCodeDomGeneratorNameHelper(settings)
+                .GetEntityClassName(propertyDesc.Entity, addNamespace) + ".Properties";
             return new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(className),
                                              propertyDesc.PropertyAlias);
+        }
+
+        public static CodeExpression GetFieldNameReferenceExpression(PropertyDefinition propertyDesc)
+        {
+            return new CodeFieldReferenceExpression(new CodeTypeReferenceExpression("Properties"), propertyDesc.PropertyAlias);
         }
 
         public static CodeExpression GetEntityNameReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDefinition entityDescription, bool addNamespace)

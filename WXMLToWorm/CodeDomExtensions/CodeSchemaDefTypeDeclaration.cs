@@ -323,9 +323,11 @@ namespace WXMLToWorm.CodeDomExtensions
             method.Parameters.Add(
                 new CodeParameterDeclarationExpression(
                     new CodeTypeReference(
-                        new WXMLCodeDomGeneratorNameHelper(_settings).GetEntitySchemaDefClassQualifiedName(m_entityClass.Entity, false) + ".TablesLink"), "tbl"
-                    )
-                );
+                        //new WXMLCodeDomGeneratorNameHelper(_settings).GetEntitySchemaDefClassQualifiedName(m_entityClass.Entity, false) + ".TablesLink"
+                        "TablesLink"
+                    ), "tbl"
+                )
+            );
             //	return (SourceFragment)this.GetTables().GetValue((int)tbl)
 
             //	SourceFragment[] tables = this.GetTables();
@@ -375,10 +377,9 @@ namespace WXMLToWorm.CodeDomExtensions
 
         private void CreateGetFieldColumnMap()
         {
-            var field =
-                        new CodeMemberField(
-                            new CodeTypeReference(typeof(IndexedCollection<string, MapField2Column>)),
-                            "_idx");
+            var field = new CodeMemberField(
+                new CodeTypeReference(typeof(IndexedCollection<string, MapField2Column>)),
+                "_idx");
             Members.Add(field);
 
             var method = new CodeMemberMethod();
@@ -427,7 +428,8 @@ namespace WXMLToWorm.CodeDomExtensions
                 ))
                 throw new NotImplementedException(string.Format("Entity {0} contains EntityPropertyDefinition which is not supported yet", m_entityClass.Entity.Identifier));
 
-            var props = m_entityClass.Entity.OwnProperties.Where(item => !item.Disabled)
+            var props = m_entityClass.Entity.OwnProperties.Where(item => !item.Disabled && 
+                (item is ScalarPropertyDefinition || ((EntityPropertyDefinition)item).SourceFields.Count() > 0))
                 .Select(item => new
                 {
                     FieldName = item is ScalarPropertyDefinition ?
@@ -516,8 +518,9 @@ namespace WXMLToWorm.CodeDomExtensions
 
             if (m_entityClass.Entity.GetSourceFragments().Count() > 1)
             {
-                string tableLink = new WXMLCodeDomGeneratorNameHelper(_settings).
-                    GetEntitySchemaDefClassQualifiedName(m_entityClass.Entity, false) + ".TablesLink";
+                //string tableLink = new WXMLCodeDomGeneratorNameHelper(_settings).
+                //    GetEntitySchemaDefClassQualifiedName(m_entityClass.Entity, false) + ".TablesLink";
+                string tableLink = "TablesLink";
 
                 expression.Parameters.Add(CodeDom.GetExpression(()=>
                     CodeDom.@this.Call("GetTable")(CodeDom.Field(
@@ -620,7 +623,7 @@ namespace WXMLToWorm.CodeDomExtensions
             // список релейшенов относящихся к данной сущности
             List<RelationDefinition> usedM2MRelation = m_entityClass.Entity.GetM2MRelations(false);
 
-            List<SelfRelationDescription> usedM2MSelfRelation;
+            List<SelfRelationDefinition> usedM2MSelfRelation;
             usedM2MSelfRelation = m_entityClass.Entity.GetM2MSelfRelations(false);
 
             if (m_entityClass.Entity.BaseEntity == null || usedM2MSelfRelation.Count > 0 || usedM2MRelation.Count > 0)
@@ -676,7 +679,7 @@ namespace WXMLToWorm.CodeDomExtensions
                     m2mArrayCreationExpression.Initializers.AddRange(
                         GetM2MRelationCreationExpressions(relationDescription, m_entityClass.Entity));
                 }
-                foreach (SelfRelationDescription selfRelationDescription in usedM2MSelfRelation)
+                foreach (SelfRelationDefinition selfRelationDescription in usedM2MSelfRelation)
                 {
                     m2mArrayCreationExpression.Initializers.AddRange(
                         GetM2MRelationCreationExpressions(selfRelationDescription, m_entityClass.Entity));
@@ -804,7 +807,7 @@ namespace WXMLToWorm.CodeDomExtensions
             throw new ArgumentException(string.Format("To realize m2m relation on self use SelfRelation instead. Relation on table {0}", relationDescription.SourceFragment.Identifier));
         }
 
-        private CodeExpression[] GetM2MRelationCreationExpressions(SelfRelationDescription relationDescription, EntityDefinition entity)
+        private CodeExpression[] GetM2MRelationCreationExpressions(SelfRelationDefinition relationDescription, EntityDefinition entity)
         {
             if (relationDescription.Direct.FieldName.Length > 1)
                 throw new NotImplementedException(string.Format("Relation with multiple columns is not supported yet. Direct relation on entity {0}", relationDescription.Entity.Identifier));
@@ -1034,7 +1037,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 foreach (var propertyDescription in propertyDescriptions.Value)
                 {
                     inlockStatemets.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression(listVar.Name), "Add",
-                       WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(_settings,propertyDescription)));
+                       WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(_settings, propertyDescription, false)));
                 }
             }
             // List<string[]> res = new List<string[]>();

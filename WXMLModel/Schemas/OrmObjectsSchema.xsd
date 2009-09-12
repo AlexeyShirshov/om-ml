@@ -76,7 +76,7 @@
         <xs:documentation>Идентификатор сущности</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="name" type="Name_t" use="required">
+    <xs:attribute name="name" type="Name_t" use="optional">
       <xs:annotation>
         <xs:documentation>Наименование сущности</xs:documentation>
       </xs:annotation>
@@ -325,7 +325,7 @@
       <xs:documentation>Свойство сущности</xs:documentation>
     </xs:annotation>
     <xs:sequence>
-      <xs:element name="fields" minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="field" minOccurs="0" maxOccurs="unbounded">
         <xs:complexType>
           <xs:attribute name="relatedProperty" type="Name_t" use="required">
             <xs:annotation>
@@ -578,6 +578,7 @@
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />
+    <xs:attribute name="constraint" type="RelationConstraintEnum_t" use="optional" default="none" />
   </xs:complexType>
   <xs:complexType name="EntityRelation_t">
     <xs:annotation>
@@ -606,6 +607,7 @@
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />
+    <xs:attribute name="constraint" type="RelationConstraintEnum_t" use="optional" default="none" />
   </xs:complexType>
   <xs:complexType name="EntitySimpleRelation_t">
     <xs:annotation>
@@ -1045,4 +1047,18 @@
     <xs:attribute name="name" use="required" />
     <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />
   </xs:complexType>
+  <xs:simpleType name="RelationConstraintEnum_t">
+    <xs:annotation>
+      <xs:documentation>Констрейнт связи</xs:documentation>
+    </xs:annotation>
+    <xs:list>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="none" />
+          <xs:enumeration value="unique" />
+          <xs:enumeration value="primarykey" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:list>
+  </xs:simpleType>
 </xs:schema>

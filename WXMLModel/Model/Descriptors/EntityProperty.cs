@@ -9,7 +9,7 @@ namespace WXML.Model.Descriptors
         public class SourceField : SourceFieldDefinition
         {
             private readonly string _alias;
-            private readonly string _propertyAlias;
+            private string _propertyAlias;
 
             public SourceField(string propertyAlias, SourceFragmentDefinition sf, string column, int? sourceTypeSize,
                 bool isNullable, string sourceType, string defaultValue, string alias)
@@ -22,6 +22,7 @@ namespace WXML.Model.Descriptors
             public string PropertyAlias
             {
                 get { return _propertyAlias; }
+                set { _propertyAlias = value; }
             }
 
             public string SourceFieldAlias
@@ -37,19 +38,10 @@ namespace WXML.Model.Descriptors
 
         public EntityPropertyDefinition(ScalarPropertyDefinition pd)
         {
-            if (!pd.PropertyType.IsEntityType)
-                throw new ArgumentException(string.Format("EntityProperty type must be a entity type. Passed {0}", pd.PropertyType.Identifier));
-
             if (pd.PropertyType.Entity.GetPkProperties().Count() != 1)
                 throw new ArgumentException(string.Format("Entity {0} must have single primary key", pd.PropertyType.Identifier));
 
-            pd.CopyTo(this);
-            _sf = pd.SourceFragment;
-            _fields.Add(new SourceField(
-                pd.PropertyType.Entity.GetPkProperties().First().PropertyAlias,
-                _sf, pd.SourceFieldExpression, pd.SourceTypeSize, pd.IsNullable, pd.SourceType, 
-                pd.SourceField.DefaultValue,pd.SourceFieldAlias
-            ));
+            InitFromScalar(this, pd);
         }
 
         public EntityPropertyDefinition(string propertyName, string propertyAlias, 
@@ -100,6 +92,17 @@ namespace WXML.Model.Descriptors
 
             if (_fields.Any(item => item.PropertyAlias == propertyAlias))
                 throw new ArgumentException(string.Format("PropertyAlias {0} already in collection", propertyAlias));
+
+            _fields.Add(
+                new SourceField(propertyAlias, SourceFragment, fieldName, sourceTypeSize, IsNullable, sourceTypeName, sourceFieldDefault, fieldAlias)
+            );
+        }
+
+        internal void AddSourceFieldUnckeck(string propertyAlias, string fieldName, string fieldAlias,
+            string sourceTypeName, int? sourceTypeSize, bool IsNullable, string sourceFieldDefault)
+        {
+            if (string.IsNullOrEmpty(propertyAlias))
+                throw new ArgumentNullException("propertyAlias");
 
             _fields.Add(
                 new SourceField(propertyAlias, SourceFragment, fieldName, sourceTypeSize, IsNullable, sourceTypeName, sourceFieldDefault, fieldAlias)
@@ -169,6 +172,47 @@ namespace WXML.Model.Descriptors
             };
             CopyTo(p);
             return p;
+        }
+
+        internal static EntityPropertyDefinition FromScalar(ScalarPropertyDefinition pd)
+        {
+            return InitFromScalar(new EntityPropertyDefinition(), pd);
+        }
+
+        internal static EntityPropertyDefinition InitFromScalar(EntityPropertyDefinition ed, ScalarPropertyDefinition pd)
+        {
+            if (!pd.PropertyType.IsEntityType)
+                throw new ArgumentException(string.Format("EntityProperty type must be a entity type. Passed {0}", pd.PropertyType.Identifier));
+
+            pd.CopyTo(ed);
+            ed._sf = pd.SourceFragment;
+            var pks = pd.PropertyType.Entity.GetPkProperties();
+            string propAlias = null;
+            if (pks.Count() != 0)
+                propAlias = pks.First().PropertyAlias;
+
+            SourceField field = new SourceField(
+                propAlias,
+                ed._sf, pd.SourceFieldExpression, pd.SourceTypeSize, pd.IsNullable, pd.SourceType,
+                pd.SourceField.DefaultValue, pd.SourceFieldAlias
+            );
+
+            ed._fields.Add(field);
+
+            if (string.IsNullOrEmpty(propAlias))
+            {
+                EntityDefinition.PropertyAddedDelegate d = null;
+                d = (e, p) =>
+                {
+                    if (p.HasAttribute(Field2DbRelations.PK))
+                    {
+                        field.PropertyAlias = p.PropertyAlias;
+                        e.PropertyAdded -= d;
+                    }
+                };
+                pd.PropertyType.Entity.PropertyAdded += d;
+            }
+            return ed;
         }
     }
 }

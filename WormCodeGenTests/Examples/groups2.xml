@@ -34,7 +34,7 @@
         <Group name="grp1" hide="false">
           <Property fieldName="prop4" propertyName="prop4" table="tbl1" typeRef="tString"/>
           <EntityProperty propertyName="prop5" table="tbl1" typeRef="te1">
-            <fields relatedProperty="ID" fieldName="e_id" />
+            <field relatedProperty="ID" fieldName="e_id" />
           </EntityProperty>
         </Group>
       </Properties>

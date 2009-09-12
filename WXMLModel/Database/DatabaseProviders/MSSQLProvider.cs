@@ -235,9 +235,12 @@ namespace WXML.Model.Database.Providers
                 if (!reader.IsDBNull(dfo))
                     c._defaultValue = reader.GetString(dfo);
 
-                int sc = reader.GetOrdinal("character_maximum_length");
-                if (!reader.IsDBNull(sc))
-                    c.SourceTypeSize = reader.GetInt32(sc);
+                if (!new[] { "ntext","text","image" }.Any(item => item == c.SourceType.ToLower()))
+                {
+                    int sc = reader.GetOrdinal("character_maximum_length");
+                    if (!reader.IsDBNull(sc))
+                        c.SourceTypeSize = reader.GetInt32(sc);
+                }
 
                 db._columns.Add(c);
             }
@@ -360,29 +363,149 @@ namespace WXML.Model.Database.Providers
             }
         }
 
+        #region Generate scripts
+
+        public override void GenerateAddColumnsScript(IEnumerable<PropDefinition> props, StringBuilder script, 
+            bool unicodeStrings)
+        {
+            SourceFragmentDefinition sf = props.First().Field.SourceFragment;
+            script.AppendFormat("ALTER TABLE {0}.{1} ADD ", sf.Selector, sf.Name);
+            GenerateColumns(props, script, unicodeStrings);
+            script.Length -= 2;
+            script.AppendLine().AppendLine();
+        }
+
+        private static void GenerateColumns(IEnumerable<PropDefinition> props, StringBuilder script, bool unicodeStrings)
+        {
+            foreach (PropDefinition prop in props)
+            {
+                SourceFieldDefinition sp = prop.Field;
+                script.Append(sp.SourceFieldExpression).Append(" ").Append(GetType(sp, prop.PropType, prop.Attr, unicodeStrings));
+
+                if (sp.IsAutoIncrement)
+                    script.Append(" IDENTITY");
+
+                script.Append(sp.IsNullable ? " NULL" : " NOT NULL");
+
+                if (!string.IsNullOrEmpty(sp.DefaultValue))
+                    script.AppendFormat(" DEFAULT({0})", sp.DefaultValue);
+
+                script.Append(", ");
+            }
+        }
+
         public override void GenerateCreateScript(IEnumerable<PropertyDefinition> props, StringBuilder script,
             bool unicodeStrings)
         {
             SourceFragmentDefinition sf = props.First().SourceFragment;
             script.AppendFormat("CREATE TABLE {0}.{1}(", sf.Selector, sf.Name);
+            List<PropDefinition> propList = new List<PropDefinition>();
 
             foreach (PropertyDefinition prop in props)
             {
-                ScalarPropertyDefinition sp = prop as ScalarPropertyDefinition;
-                if (sp != null)
+                if (prop is ScalarPropertyDefinition)
                 {
-                    script.Append(sp.SourceFieldExpression).Append(" ").Append(GetType(sp, unicodeStrings));
+                    ScalarPropertyDefinition sp = prop as ScalarPropertyDefinition;
+                    //script.Append(sp.SourceFieldExpression).Append(" ").Append(GetType(sp.SourceField, sp.PropertyType, sp.Attributes, unicodeStrings));
 
-                    if (sp.SourceField.IsAutoIncrement)
-                        script.Append(" IDENTITY");
+                    //if (sp.SourceField.IsAutoIncrement)
+                    //    script.Append(" IDENTITY");
 
-                    script.Append(sp.IsNullable ? " NULL" : "NOT NULL");
+                    //script.Append(sp.IsNullable ? " NULL" : " NOT NULL");
 
-                    if (!string.IsNullOrEmpty(sp.SourceField.DefaultValue))
-                        script.AppendFormat(" DEFAULT({0})", sp.SourceField.DefaultValue);
+                    //if (!string.IsNullOrEmpty(sp.SourceField.DefaultValue))
+                    //    script.AppendFormat(" DEFAULT({0})", sp.SourceField.DefaultValue);
 
-                    script.Append(", ");
+                    //script.Append(", ");
+                    propList.Add(new PropDefinition{PropType = prop.PropertyType, Attr = prop.Attributes, Field = sp.SourceField});
                 }
+                else if (prop is EntityPropertyDefinition)
+                {
+                    EntityPropertyDefinition ep = prop as EntityPropertyDefinition;
+                    
+                    foreach (EntityPropertyDefinition.SourceField sp in ep.SourceFields)
+                    {
+                        if (!props.OfType<ScalarPropertyDefinition>().Any(item => item.SourceFieldExpression == sp.SourceFieldExpression))
+                        {
+                            var pk = ep.PropertyType.Entity.GetPkProperties().SingleOrDefault(item => item.PropertyAlias == sp.PropertyAlias);
+                            if (pk == null)
+                                pk = ep.PropertyType.Entity.GetProperties().OfType<ScalarPropertyDefinition>()
+                                    .Single(item => !item.Disabled && item.SourceField.Constraints.Any(cns => cns.ConstraintType == SourceConstraint.UniqueConstraintTypeName));
+
+                            //script.Append(sp.SourceFieldExpression).Append(" ").Append(
+                            //    GetType(sp, pk.PropertyType, Field2DbRelations.None, unicodeStrings));
+
+                            //script.Append(sp.IsNullable ? " NULL" : " NOT NULL");
+
+                            //if (!string.IsNullOrEmpty(sp.DefaultValue))
+                            //    script.AppendFormat(" DEFAULT({0})", sp.DefaultValue);
+
+                            //script.Append(", ");
+                            propList.Add(new PropDefinition { PropType = pk.PropertyType, Attr = Field2DbRelations.None, Field = sp });
+                        }
+                    }
+                }
+                else
+                    throw new NotSupportedException(prop.GetType().ToString());
+            }
+            GenerateColumns(propList, script, unicodeStrings);
+
+            script.Length -= 2;
+            script.AppendLine(");");
+            script.AppendLine();
+        }
+
+        public override void GenerateCreateScript(RelationDefinitionBase rel, StringBuilder script, bool unicodeStrings)
+        {
+            script.AppendFormat("CREATE TABLE {0}.{1}(", rel.SourceFragment.Selector, rel.SourceFragment.Name);
+
+            GenerateRelScript(rel.Left, script, unicodeStrings, rel);
+            script.Append(", ");
+            GenerateRelScript(rel.Right, script, unicodeStrings, rel);
+
+            script.AppendLine(");");
+            script.AppendLine();
+        }
+
+        private static void GenerateRelScript(SelfRelationTarget rt, StringBuilder script, bool unicodeStrings, RelationDefinitionBase rel)
+        {
+            for (int i = 0; i < rt.FieldName.Length; i++)
+            {
+                script.Append(rt.FieldName[i]).Append(" ");
+                if (rel is SelfRelationDefinition)
+                {
+                    SelfRelationDefinition r = rel as SelfRelationDefinition;
+                    ScalarPropertyDefinition sp = r.Properties.Skip(i).First();
+                    script.Append(GetType(sp.SourceField, sp.PropertyType, sp.Attributes, unicodeStrings)).Append(" NOT NULL");
+                }
+                else if (rel is RelationDefinition)
+                {
+                    LinkTarget lt = rt as LinkTarget;
+                    ScalarPropertyDefinition sp = lt.Properties.Skip(i).First();
+                    script.Append(GetType(sp.SourceField, sp.PropertyType, sp.Attributes, unicodeStrings)).Append(" NOT NULL");
+                }
+                else
+                    throw new NotSupportedException(rel.GetType().ToString());
+            }
+        }
+
+        public override void GenerateDropConstraintScript(SourceFragmentDefinition table, string constraintName, StringBuilder script)
+        {
+            script.AppendFormat("ALTER TABLE {0}.{1} DROP CONSTRAINT {2};", table.Selector, table.Name, constraintName);
+            script.AppendLine();
+        }
+
+        public override void GenerateCreatePKScript(IEnumerable<ScalarPropertyDefinition> pks, 
+            string constraintName, StringBuilder script, bool pk, bool clustered)
+        {
+            SourceFragmentDefinition sf = pks.First().SourceFragment;
+            script.AppendFormat("ALTER TABLE {0}.{1} ADD CONSTRAINT {2} {3} {4}(", 
+                sf.Selector, sf.Name, constraintName, pk?"PRIMARY KEY":"UNIQUE",
+                clustered?"CLUSTERED":"NONCLUSTERED");
+            
+            foreach (ScalarPropertyDefinition sp in pks)
+            {
+                script.Append(sp.SourceFieldExpression).Append(", ");
             }
 
             script.Length -= 2;
@@ -390,12 +513,33 @@ namespace WXML.Model.Database.Providers
             script.AppendLine();
         }
 
-        public static string GetType(ScalarPropertyDefinition prop, bool unicodeStrings)
+        public override void GenerateCreateFKsScript(SourceFragmentDefinition sf, IEnumerable<FKDefinition> fks, 
+            StringBuilder script)
         {
-            string result = prop.SourceType;
+            if (fks.Count() == 0) return;
+
+            script.AppendFormat("ALTER TABLE {0}.{1} ADD ",
+                sf.Selector, sf.Name);
+
+            foreach (FKDefinition fk in fks)
+            {
+                script.AppendFormat("CONSTRAINT {0} FOREIGN KEY({1}) REFERENCES {2}.{3}({4})",
+                    fk.constraintName, string.Join(",", fk.cols),
+                    fk.refTbl.Selector, fk.refTbl.Name, string.Join(",", fk.refCols)
+                ).Append(", ");
+            }
+
+            script.Length -= 2;
+            script.AppendLine(";");
+            script.AppendLine();
+        }
+
+        public static string GetType(SourceFieldDefinition field, TypeDefinition propType, Field2DbRelations attrs, bool unicodeStrings)
+        {
+            string result = field.SourceType;
             if (string.IsNullOrEmpty(result))
             {
-                switch (prop.PropertyType.ClrType.FullName)
+                switch (propType.ClrType.FullName)
                 {
                     case "System.Boolean":
                         result = "bit";
@@ -429,7 +573,7 @@ namespace WXML.Model.Database.Providers
                         break;
                     case "System.String":
                         result = string.Format(unicodeStrings ? "nvarchar({0})" : "varchar({0})",
-                            prop.SourceTypeSize.HasValue ? prop.SourceTypeSize.Value : 50);
+                            field.SourceTypeSize.HasValue ? field.SourceTypeSize.Value : 50);
                         break;
                     case "System.Char":
                         result = unicodeStrings ? "nchar(1)" : "char(1)";
@@ -448,20 +592,26 @@ namespace WXML.Model.Database.Providers
                         break;
                     case "System.Char[]":
                         result = string.Format(unicodeStrings ? "nvarchar({0})" : "varchar({0})",
-                            prop.SourceTypeSize.HasValue ? prop.SourceTypeSize.Value : 50);
+                            field.SourceTypeSize.HasValue ? field.SourceTypeSize.Value : 50);
                         break;
                     case "System.Byte[]":
-                        if ((prop.Attributes & Field2DbRelations.RV) == Field2DbRelations.RV)
+                        if ((attrs & Field2DbRelations.RV) == Field2DbRelations.RV)
                             result = "rowversion";
                         else
-                            result = string.Format("varbinary({0})", prop.SourceTypeSize.HasValue ? prop.SourceTypeSize.Value : 50);
+                            result = string.Format("varbinary({0})", field.SourceTypeSize.HasValue ? field.SourceTypeSize.Value : 50);
 
                         break;
                     default:
-                        throw new NotSupportedException(prop.PropertyType.ClrType.FullName);
+                        throw new NotSupportedException(propType.ClrType.FullName);
                 }
+            }
+            else if (field.SourceTypeSize.HasValue && !result.Contains(field.SourceTypeSize.Value.ToString()))
+            {
+                result += string.Format("({0})", field.SourceTypeSize.Value);
             }
             return result;
         }
+
+        #endregion
     }
 }

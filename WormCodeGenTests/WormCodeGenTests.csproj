@@ -96,10 +96,7 @@
     <EmbeddedResource Include="Examples\m2mCheck3.xml" />
     <EmbeddedResource Include="Examples\m2mCheck4.xml" />
     <EmbeddedResource Include="Examples\linqctx.xml" />
-    <Content Include="Examples\tables.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Examples\tablessub.xml">
+    <Content Include="Examples\Relations.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <EmbeddedResource Include="Examples\types.xml">

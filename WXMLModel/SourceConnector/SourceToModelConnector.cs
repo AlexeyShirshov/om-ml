@@ -400,9 +400,14 @@ namespace WXML.SourceConnector
                 if (targets[0].Entity.Name == targets[1].Entity.Name)
                 {
                     LinkTarget t = targets[0];
-                    SelfRelationDescription newRel = new SelfRelationDescription(
+                    SelfRelationDefinition newRel = new SelfRelationDefinition(
                         t.Entity, t.EntityProperties, targets[0], targets[1],
                         GetSourceFragment(sf), null);
+
+                    if (sf.Constraints.Any(item => item.ConstraintType == SourceConstraint.PrimaryKeyConstraintTypeName))
+                        newRel.Constraint = RelationConstraint.PrimaryKey;
+                    else if (sf.Constraints.Any(item => item.ConstraintType == SourceConstraint.UniqueConstraintTypeName))
+                        newRel.Constraint = RelationConstraint.Unique;
 
                     if (Model.GetSimilarRelation(newRel) == null)
                     {
@@ -413,10 +418,10 @@ namespace WXML.SourceConnector
                             {
                                 if (newRel.Left.FieldName[0].EndsWith("_id", StringComparison.InvariantCultureIgnoreCase))
                                     newRel.Left.AccessorName = newRel.Left.FieldName[0]
-                                        .Substring(0,newRel.Left.FieldName.Length - 3);
+                                        .Substring(0,newRel.Left.FieldName[0].Length - 3);
                                 else if (newRel.Left.FieldName[0].EndsWith("id", StringComparison.InvariantCultureIgnoreCase))
                                     newRel.Left.AccessorName = newRel.Left.FieldName[0]
-                                        .Substring(0,newRel.Left.FieldName.Length - 2);
+                                        .Substring(0, newRel.Left.FieldName[0].Length - 2);
                             }
                             
                             if (string.IsNullOrEmpty(newRel.Left.AccessorName))
@@ -432,10 +437,10 @@ namespace WXML.SourceConnector
                             {
                                 if (newRel.Right.FieldName[0].EndsWith("_id", StringComparison.InvariantCultureIgnoreCase))
                                     newRel.Right.AccessorName = newRel.Right.FieldName[0]
-                                        .Substring(0,newRel.Right.FieldName.Length - 3);
+                                        .Substring(0, newRel.Right.FieldName[0].Length - 3);
                                 else if (newRel.Right.FieldName[0].EndsWith("id", StringComparison.InvariantCultureIgnoreCase))
                                     newRel.Right.AccessorName = newRel.Right.FieldName[0]
-                                        .Substring(0, newRel.Right.FieldName.Length - 2);
+                                        .Substring(0, newRel.Right.FieldName[0].Length - 2);
                             }
 
                             if (string.IsNullOrEmpty(newRel.Right.AccessorName))
@@ -449,6 +454,11 @@ namespace WXML.SourceConnector
                 {
                     RelationDefinition newRel = new RelationDefinition(
                         targets[0], targets[1], GetSourceFragment(sf), null);
+
+                    if (sf.Constraints.Any(item => item.ConstraintType == SourceConstraint.PrimaryKeyConstraintTypeName))
+                        newRel.Constraint = RelationConstraint.PrimaryKey;
+                    else if (sf.Constraints.Any(item => item.ConstraintType == SourceConstraint.UniqueConstraintTypeName))
+                        newRel.Constraint = RelationConstraint.Unique;
 
                     if (!Model.GetRelations().OfType<RelationDefinition>().Any(m => m.Equals(newRel)))
                     {
@@ -503,7 +513,7 @@ namespace WXML.SourceConnector
                 }
             }
 
-            foreach (SelfRelationDescription rdb in Model.GetActiveRelations().OfType<SelfRelationDescription>())
+            foreach (SelfRelationDefinition rdb in Model.GetActiveRelations().OfType<SelfRelationDefinition>())
             {
                 NormalizeRelationAccessors(rdb, rdb.Right.AccessorName, rdb.Entity);
                 NormalizeRelationAccessors(rdb, rdb.Left.AccessorName, rdb.Entity);
@@ -522,7 +532,7 @@ namespace WXML.SourceConnector
             if (string.IsNullOrEmpty(searchedName)) return;
 
             var q1 =
-                from r in Model.GetActiveRelations().OfType<SelfRelationDescription>()
+                from r in Model.GetActiveRelations().OfType<SelfRelationDefinition>()
                 where r != relation && r.Entity.Identifier == rdbEntity.Identifier &&
                     (r.Left.AccessorName == searchedName || r.Right.AccessorName == searchedName)
                 select r as RelationDefinitionBase;
@@ -541,7 +551,7 @@ namespace WXML.SourceConnector
             {
                 i++;
                 RelationDefinition rd = r as RelationDefinition;
-                SelfRelationDescription srd = r as SelfRelationDescription;
+                SelfRelationDefinition srd = r as SelfRelationDefinition;
 
                 if (srd != null)
                 {
@@ -553,9 +563,9 @@ namespace WXML.SourceConnector
                 else if (rd != null)
                 {
                     if (rd.Left.AccessorName == searchedName)
-                        rd.Left.AccessorName = i.ToString();
+                        rd.Left.AccessorName += i.ToString();
                     else if (rd.Right.AccessorName == searchedName)
-                        rd.Right.AccessorName = i.ToString();
+                        rd.Right.AccessorName += i.ToString();
                 }
             }
         }
@@ -617,7 +627,16 @@ namespace WXML.SourceConnector
                 {
                     SourceFieldDefinition fld = SourceView.GetSourceFields(sf).Single(item=>item.SourceFieldExpression==rel.FKField.SourceFieldExpression);
 
-                    ep.AddSourceField(re.GetPkProperties().Single(item=>item.SourceFieldExpression==rel.PKField.SourceFieldExpression).PropertyAlias,
+                    ScalarPropertyDefinition pk = re.GetPkProperties().SingleOrDefault(item=>item.SourceFieldExpression==rel.PKField.SourceFieldExpression);
+                    if (pk == null)
+                    {
+                        if (rel.PKConstraint.ConstraintType != SourceConstraint.UniqueConstraintTypeName)
+                            throw new WXMLException(string.Format("Cannot find pk for constraint {0}", rel.PKConstraint.ConstraintName));
+
+                        pk = re.GetProperties().OfType<ScalarPropertyDefinition>().Single(item => item.SourceFieldExpression == rel.PKField.SourceFieldExpression);
+                    }
+
+                    ep.AddSourceField(pk.PropertyAlias,
                         fld.SourceFieldExpression, null, fld.SourceType, fld.SourceTypeSize, fld.IsNullable, fld.DefaultValue
                     );
                 }
@@ -666,6 +685,7 @@ namespace WXML.SourceConnector
                 }
                 else
                 {
+l1:
                     if (pe is ScalarPropertyDefinition)
                     {
                         pe.Attributes |= attrs;
@@ -683,6 +703,14 @@ namespace WXML.SourceConnector
                                 pkPropAlias = GetName(pkField.SourceFieldExpression);
                         }
                         pkPropName = pkPropAlias;
+
+                        pe = e.OwnProperties.SingleOrDefault(item => item.PropertyAlias == pkPropAlias);
+                        if (pe != null)
+                        {
+                            if (pe is EntityPropertyDefinition)
+                                throw new WXMLParserException(string.Format("Property {0} expected to be of type ScalarPropertyDefinition", pe.Identifier));
+                            goto l1;
+                        }
 
                         pe = new ScalarPropertyDefinition(e, pkPropName, pkPropAlias, attrs,
                             "Auto generated from column " + pkField.SourceFieldExpression,

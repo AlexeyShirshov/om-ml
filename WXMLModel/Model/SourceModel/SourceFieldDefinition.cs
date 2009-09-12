@@ -25,6 +25,12 @@ namespace WXML.Model.Descriptors
             
         }
 
+        public SourceFieldDefinition(SourceFragmentDefinition sf, string sourceFieldExpression, string type)
+            : this(sf, sourceFieldExpression, null, true, type, false, null)
+        {
+
+        }
+
         public SourceFieldDefinition(SourceFragmentDefinition sf, string sourceFieldExpression, 
             int? sourceTypeSize,
             bool isNullable, string type, bool identity, string defaultValue)
@@ -53,7 +59,10 @@ namespace WXML.Model.Descriptors
 
         public override string ToString()
         {
-            return _tbl.Selector + _tbl.Name + _column;
+            if (_tbl == null)
+                return _column;
+            else
+                return _tbl.Selector + _tbl.Name + _column;
         }
 
         public override int GetHashCode()

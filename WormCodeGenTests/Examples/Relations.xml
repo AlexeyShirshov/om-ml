@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<WXMLModel xmlns="http://wise-orm.com/WXMLSchema.xsd">
+	<Includes>
+    <xi:include parse="xml" href="types.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+	</Includes>
+  <Entities>
+    <Entity id="e1">
+      <Properties>
+        <Property propertyName="ID" fieldName="id" typeRef="tInt32" />
+      </Properties>
+      <Relations>
+        
+      </Relations>
+    </Entity>
+    <Entity id="e2">
+      <Properties>
+        <Property propertyName="ID" fieldName="id" typeRef="tInt32" />
+        <EntityProperty propertyName="prop1">
+          <field relatedProperty="ID" fieldName="prop1_id" />
+        </EntityProperty>
+        <EntityProperty propertyName="prop2">
+          <field relatedProperty="ID" fieldName="prop2_id" />
+        </EntityProperty>
+      </Properties>
+    </Entity>
+  </Entities>
+	<SourceFragments>
+		<SourceFragment id="tbl1" name="tbl1" />
+		<SourceFragment id="tbl2" name="tbl2" />
+	</SourceFragments>
+</WXMLModel>

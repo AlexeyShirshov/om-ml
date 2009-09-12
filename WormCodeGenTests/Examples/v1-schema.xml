@@ -24,7 +24,7 @@
       <oos:Properties>
         <oos:Property attributes="PrimaryKey" fieldName="id" propertyName="Identifier1" table="tblEntity2" typeRef="tInt32" />
         <oos:EntityProperty propertyName="Entity1" typeRef="tEntity1" table="tblEntity2">
-          <oos:fields relatedProperty="Identifier1" sourceFieldDefault="ent1_id" />
+          <oos:field relatedProperty="Identifier1" sourceFieldDefault="ent1_id" />
         </oos:EntityProperty>
       </oos:Properties>
     </oos:Entity>

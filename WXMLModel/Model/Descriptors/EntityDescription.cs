@@ -21,6 +21,9 @@ namespace WXML.Model.Descriptors
 
         #endregion Private Fields
 
+        public delegate void PropertyAddedDelegate(EntityDefinition sender, PropertyDefinition prop);
+        public event PropertyAddedDelegate PropertyAdded;
+
         public EntityDefinition(string id, string name, string @namespace)
             : this(id, name, @namespace, null, null, null)
         {
@@ -299,12 +302,12 @@ namespace WXML.Model.Descriptors
             }
         }
 
-        public List<SelfRelationDescription> GetM2MSelfRelations(bool withDisabled)
+        public List<SelfRelationDefinition> GetM2MSelfRelations(bool withDisabled)
         {
-            List<SelfRelationDescription> l = new List<SelfRelationDescription>();
+            List<SelfRelationDefinition> l = new List<SelfRelationDefinition>();
             foreach (RelationDefinitionBase rel in _model.GetRelations())
             {
-                SelfRelationDescription match = rel as SelfRelationDescription;
+                SelfRelationDefinition match = rel as SelfRelationDefinition;
                 if (match != null && (match.IsEntityTakePart(this)) &&
                         (!match.Disabled || withDisabled))
                 {
@@ -641,6 +644,9 @@ namespace WXML.Model.Descriptors
             pe.Entity = this;
 
             _properties.Add(pe);
+
+            if (PropertyAdded != null)
+                PropertyAdded(this, pe);
         }
 
         private void CheckProperty(PropertyDefinition pe)

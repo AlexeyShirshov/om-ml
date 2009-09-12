@@ -67,4 +67,11 @@ namespace WXML.Model
         SchemaOnly,
         EntityOnly
     }
+
+    public enum RelationConstraint
+    {
+        None,
+        Unique,
+        PrimaryKey
+    }
 }

@@ -1,7 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<WXMLModel xmlns="http://wise-orm.com/WXMLSchema.xsd">
-	<SourceFragments>
-		<SourceFragment id="tblS1" name="tblS1" />
-		<SourceFragment id="tblS2" name="tblS2" />
-	</SourceFragments>
-</WXMLModel>

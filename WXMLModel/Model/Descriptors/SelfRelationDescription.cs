@@ -107,14 +107,16 @@ namespace WXML.Model.Descriptors
                 return _items;
             }
         }
+
+        public RelationConstraint Constraint { get; set; }
     }
     
-	public class SelfRelationDescription : RelationDefinitionBase
+	public class SelfRelationDefinition : RelationDefinitionBase
 	{
 		private readonly EntityDefinition _entity;
 	    private string[] _props;
 
-	    public SelfRelationDescription(EntityDefinition entity, string[] props, 
+	    public SelfRelationDefinition(EntityDefinition entity, string[] props, 
             SelfRelationTarget direct, SelfRelationTarget reverse, 
             SourceFragmentDefinition table, EntityDefinition underlyingEntity, bool disabled)
             : base(table, underlyingEntity, direct, reverse, disabled)
@@ -123,7 +125,7 @@ namespace WXML.Model.Descriptors
 	        _props = props;
 		}
 
-        public SelfRelationDescription(EntityDefinition entity, string[] props, 
+        public SelfRelationDefinition(EntityDefinition entity, string[] props, 
             SelfRelationTarget direct, SelfRelationTarget reverse, 
             SourceFragmentDefinition table, EntityDefinition underlyingEntity)
             : this(entity, props, direct, reverse, table, underlyingEntity, false)
@@ -161,15 +163,15 @@ namespace WXML.Model.Descriptors
 
         public override bool Similar(RelationDefinitionBase obj)
         {
-            return _Similar(obj as SelfRelationDescription);
+            return _Similar(obj as SelfRelationDefinition);
         }
 
-        public bool Similar(SelfRelationDescription obj)
+        public bool Similar(SelfRelationDefinition obj)
         {
             return _Similar(obj);
         }
 
-        protected bool _Similar(SelfRelationDescription obj)
+        protected bool _Similar(SelfRelationDefinition obj)
         {
             return base.Similar(obj) && _entity.Name == obj._entity.Name;
         }

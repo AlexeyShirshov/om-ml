@@ -340,13 +340,171 @@ namespace TestsSourceModel
         [TestMethod]
         public void TestM2MSimilarRelations()
         {
-            Assert.Inconclusive();
+            SourceView sv = CreateComplexSourceView();
+            
+            WXMLModel model = new WXMLModel();
+
+            SourceToModelConnector c = new SourceToModelConnector(sv, model);
+
+            c.ApplySourceViewToModel();
+        }
+
+        public static SourceView CreateComplexSourceView()
+        {
+            SourceView sv = new SourceView();
+            SourceFragmentDefinition sf1 = new SourceFragmentDefinition("tbl1", "tbl1", "dbo");
+            SourceFragmentDefinition sf2 = new SourceFragmentDefinition("tbl2", "tbl2", "dbo");
+            SourceFragmentDefinition sf3 = new SourceFragmentDefinition("tbl3", "tbl3", "dbo");
+            SourceFragmentDefinition sf4 = new SourceFragmentDefinition("tbl4", "tbl4", "dbo");
+            SourceFragmentDefinition sf5 = new SourceFragmentDefinition("tbl5", "tbl5", "dbo");
+            SourceFragmentDefinition sf6 = new SourceFragmentDefinition("tbl6", "tbl6", "dbo");
+
+            SourceFieldDefinition pkField = new SourceFieldDefinition(sf1, "id", "int") { IsNullable = false };
+            sv.SourceFields.Add(pkField);
+
+            SourceFieldDefinition pkField2 = new SourceFieldDefinition(sf2, "id", "int") { IsNullable = false };
+            sv.SourceFields.Add(pkField2);
+
+            sv.SourceFields.Add(new SourceFieldDefinition(sf3, "prop1_id", "int"));
+            sv.SourceFields.Add(new SourceFieldDefinition(sf3, "prop2_id", "int"));
+
+            sv.SourceFields.Add(new SourceFieldDefinition(sf4, "prop1_id", "int"));
+            sv.SourceFields.Add(new SourceFieldDefinition(sf4, "prop2_id", "int"));
+
+            sv.SourceFields.Add(new SourceFieldDefinition(sf5, "prop1_id", "int"));
+            sv.SourceFields.Add(new SourceFieldDefinition(sf5, "prop2_id", "int"));
+
+            sv.SourceFields.Add(new SourceFieldDefinition(sf6, "prop1_id", "int"));
+            sv.SourceFields.Add(new SourceFieldDefinition(sf6, "prop2_id", "int"));
+
+            SourceConstraint pk = new SourceConstraint(SourceConstraint.PrimaryKeyConstraintTypeName, "pk1");
+            pk.SourceFields.Add(pkField);
+            sf1.Constraints.Add(pk);
+
+            SourceConstraint pk2 = new SourceConstraint(SourceConstraint.PrimaryKeyConstraintTypeName, "pk2");
+            pk2.SourceFields.Add(pkField2);
+            sf2.Constraints.Add(pk2);
+
+            {
+                SourceConstraint fk1 = new SourceConstraint(SourceConstraint.ForeignKeyConstraintTypeName, "tbl3_fk1");
+                fk1.SourceFields.Add(sv.GetSourceFields(sf3).Single(item => item.SourceFieldExpression == "prop1_id"));
+
+                SourceConstraint fk2 = new SourceConstraint(SourceConstraint.ForeignKeyConstraintTypeName, "tbl3_fk2");
+                fk2.SourceFields.Add(sv.GetSourceFields(sf3).Single(item => item.SourceFieldExpression == "prop2_id"));
+
+                sf3.Constraints.Add(fk1);
+                sf3.Constraints.Add(fk2);
+
+                sv.References.Add(new SourceReferences(pk, fk1, pkField,
+                    sv.GetSourceFields(sf3).Single(item => item.SourceFieldExpression == "prop1_id")
+                ));
+
+                sv.References.Add(new SourceReferences(pk2, fk2, pkField2,
+                    sv.GetSourceFields(sf3).Single(item => item.SourceFieldExpression == "prop2_id")
+                ));
+            }
+            {
+                SourceConstraint fk1 = new SourceConstraint(SourceConstraint.ForeignKeyConstraintTypeName, "tbl4_fk1");
+                fk1.SourceFields.Add(sv.GetSourceFields(sf4).Single(item => item.SourceFieldExpression == "prop1_id"));
+
+                SourceConstraint fk2 = new SourceConstraint(SourceConstraint.ForeignKeyConstraintTypeName, "tbl4_fk2");
+                fk2.SourceFields.Add(sv.GetSourceFields(sf4).Single(item => item.SourceFieldExpression == "prop2_id"));
+
+                sf4.Constraints.Add(fk1);
+                sf4.Constraints.Add(fk2);
+
+                sv.References.Add(new SourceReferences(pk, fk1, pkField,
+                    sv.GetSourceFields(sf4).Single(item => item.SourceFieldExpression == "prop1_id")
+                ));
+
+                sv.References.Add(new SourceReferences(pk2, fk2, pkField2,
+                    sv.GetSourceFields(sf4).Single(item => item.SourceFieldExpression == "prop2_id")
+                ));
+            }
+            {
+                SourceConstraint fk1 = new SourceConstraint(SourceConstraint.ForeignKeyConstraintTypeName, "tbl5_fk1");
+                fk1.SourceFields.Add(sv.GetSourceFields(sf5).Single(item => item.SourceFieldExpression == "prop1_id"));
+
+                SourceConstraint fk2 = new SourceConstraint(SourceConstraint.ForeignKeyConstraintTypeName, "tbl5_fk2");
+                fk2.SourceFields.Add(sv.GetSourceFields(sf5).Single(item => item.SourceFieldExpression == "prop2_id"));
+
+                sf5.Constraints.Add(fk1);
+                sf5.Constraints.Add(fk2);
+
+                sv.References.Add(new SourceReferences(pk, fk1, pkField,
+                    sv.GetSourceFields(sf5).Single(item => item.SourceFieldExpression == "prop1_id")
+                ));
+
+                sv.References.Add(new SourceReferences(pk, fk2, pkField,
+                    sv.GetSourceFields(sf5).Single(item => item.SourceFieldExpression == "prop2_id")
+                ));
+            }
+            {
+                SourceConstraint fk1 = new SourceConstraint(SourceConstraint.ForeignKeyConstraintTypeName, "tbl6_fk1");
+                fk1.SourceFields.Add(sv.GetSourceFields(sf6).Single(item => item.SourceFieldExpression == "prop1_id"));
+
+                SourceConstraint fk2 = new SourceConstraint(SourceConstraint.ForeignKeyConstraintTypeName, "tbl6_fk2");
+                fk2.SourceFields.Add(sv.GetSourceFields(sf6).Single(item => item.SourceFieldExpression == "prop2_id"));
+
+                sf6.Constraints.Add(fk1);
+                sf6.Constraints.Add(fk2);
+
+                sv.References.Add(new SourceReferences(pk, fk1, pkField,
+                    sv.GetSourceFields(sf6).Single(item => item.SourceFieldExpression == "prop1_id")
+                ));
+
+                sv.References.Add(new SourceReferences(pk, fk2, pkField,
+                    sv.GetSourceFields(sf6).Single(item => item.SourceFieldExpression == "prop2_id")
+                ));
+            }
+
+            return sv;
         }
 
         [TestMethod]
         public void TestO2MSimilarRelations()
         {
-            Assert.Inconclusive();
+            SourceView sv = new SourceView();
+            SourceFragmentDefinition sf1 = new SourceFragmentDefinition("tbl1", "tbl1", "dbo");
+            SourceFragmentDefinition sf2 = new SourceFragmentDefinition("tbl2", "tbl2", "dbo");
+
+            SourceFieldDefinition pkField = new SourceFieldDefinition(sf1, "id", "int") { IsNullable = false };
+
+            sv.SourceFields.Add(pkField);
+            sv.SourceFields.Add(new SourceFieldDefinition(sf2, "id", "int"){IsNullable = false});
+            sv.SourceFields.Add(new SourceFieldDefinition(sf2, "prop1_id", "int"));
+            sv.SourceFields.Add(new SourceFieldDefinition(sf2, "prop2_id", "int"));
+
+            SourceConstraint pk = new SourceConstraint(SourceConstraint.PrimaryKeyConstraintTypeName, "pk1");
+            pk.SourceFields.Add(pkField);
+            
+            SourceConstraint pk2 = new SourceConstraint(SourceConstraint.PrimaryKeyConstraintTypeName, "pk2");
+            pk2.SourceFields.Add(sv.GetSourceFields(sf2).Single(item => item.SourceFieldExpression == "id"));
+
+            SourceConstraint fk1 = new SourceConstraint(SourceConstraint.ForeignKeyConstraintTypeName, "fk1");
+            fk1.SourceFields.Add(sv.GetSourceFields(sf2).Single(item => item.SourceFieldExpression == "prop1_id"));
+
+            SourceConstraint fk2 = new SourceConstraint(SourceConstraint.ForeignKeyConstraintTypeName, "fk2");
+            fk2.SourceFields.Add(sv.GetSourceFields(sf2).Single(item => item.SourceFieldExpression == "prop2_id"));
+
+            sf1.Constraints.Add(pk);
+            sf2.Constraints.Add(pk2);
+            sf2.Constraints.Add(fk1);
+            sf2.Constraints.Add(fk2);
+
+            sv.References.Add(new SourceReferences(pk, fk1, pkField, 
+                sv.GetSourceFields(sf2).Single(item=>item.SourceFieldExpression == "prop1_id")
+            ));
+
+            sv.References.Add(new SourceReferences(pk, fk2, pkField,
+                sv.GetSourceFields(sf2).Single(item => item.SourceFieldExpression == "prop2_id")
+            ));
+
+            WXMLModel model = new WXMLModel();
+
+            SourceToModelConnector c = new SourceToModelConnector(sv, model);
+
+            c.ApplySourceViewToModel();
         }
 
         public static string GetTestDB()

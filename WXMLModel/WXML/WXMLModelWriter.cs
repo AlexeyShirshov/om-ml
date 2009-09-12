@@ -249,13 +249,16 @@ namespace WXML.Model
                         relationElement.SetAttribute("underlyingEntity", relation.UnderlyingEntity.Identifier);
                     }
 
+                    if (relation.Constraint != RelationConstraint.None)
+                        relationElement.SetAttribute("constraint", relation.Constraint.ToString().ToLower());
+
                     relationElement.AppendChild(leftElement);
                     relationElement.AppendChild(rightElement);
                     relationsNode.AppendChild(relationElement);
                 }
                 else
                 {
-                    SelfRelationDescription relation = (SelfRelationDescription)rel;
+                    SelfRelationDefinition relation = (SelfRelationDefinition)rel;
 
                     relationElement = CreateElement("SelfRelation");
 
@@ -298,6 +301,10 @@ namespace WXML.Model
                     {
                         relationElement.SetAttribute("underlyingEntity", relation.UnderlyingEntity.Identifier);
                     }
+
+                    if (relation.Constraint != RelationConstraint.None)
+                        relationElement.SetAttribute("constraint", relation.Constraint.ToString().ToLower());
+
                     relationElement.AppendChild(directElement);
                     relationElement.AppendChild(reverseElement);
 
@@ -572,7 +579,7 @@ namespace WXML.Model
                 EntityPropertyDefinition property = rp as EntityPropertyDefinition;
                 foreach (EntityPropertyDefinition.SourceField field in property.SourceFields)
                 {
-                    XmlElement fields = CreateElement("fields");
+                    XmlElement fields = CreateElement("field");
 
                     fields.SetAttribute("relatedProperty", field.PropertyAlias);
 

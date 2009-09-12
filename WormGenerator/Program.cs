@@ -54,7 +54,7 @@ namespace WormCodeGenerator
                 Console.WriteLine("  -fnP\t- file name prefix (null by default)");
                 Console.WriteLine("  -fnS\t- file name suffix (null by default)");
                 Console.WriteLine("  -propsT\t- use type instead of entity name in props (false by default)");
-                Console.WriteLine("  -rm\t- remove old m2m methods (false by default)");
+                //Console.WriteLine("  -rm\t- remove old m2m methods (false by default)");
                 Console.WriteLine("  -of\t- generate one file (false by default)");
                 //Console.WriteLine("  -so\t- generate entity schema only (false by default)");
                 return;

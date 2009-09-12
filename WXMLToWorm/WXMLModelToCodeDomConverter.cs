@@ -385,6 +385,43 @@ namespace WXMLToWorm
                     entityClass.Attributes = MemberAttributes.Public;
                     entityClass.TypeAttributes = TypeAttributes.Class | TypeAttributes.Public;
 
+                    if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.SchemaOnly)
+                    {
+                        // базовый класс
+                        if (entity.BaseEntity == null)
+                        {
+                            CodeTypeReference entityType;
+                            if (_model.EntityBaseType == null)
+                            {
+                                entityType = new CodeTypeReference(entity.GetPkProperties().Count() == 1 ?
+                                    typeof(KeyEntity) :
+                                    entity.GetPkProperties().Count() > 0 ?
+                                        typeof(CachedLazyLoad) :
+                                        typeof(Entity));
+                            }
+                            else
+                            {
+                                entityType =
+                                    new CodeTypeReference(_model.EntityBaseType.IsEntityType
+                                                              ? nameHelper.GetEntityClassName(
+                                                                    _model.EntityBaseType.Entity,
+                                                                    true)
+                                                              : _model.EntityBaseType.GetTypeName(Settings));
+                                //entityType.TypeArguments.Add(
+                                //    new CodeTypeReference(nameHelper.GetEntityClassName(entity)));
+                            }
+
+                            entityClass.BaseTypes.Add(entityType);
+                            entityClass.BaseTypes.Add(new CodeTypeReference(typeof(IOptimizedValues)));
+                        }
+
+                        else
+                            entityClass.BaseTypes.Add(
+                                new CodeTypeReference(nameHelper.GetEntityClassName(entity.BaseEntity, true)));
+
+                        RaiseEntityClassCreated(nameSpace, entityClass);
+                    }
+
                     #region определение класса Descriptor
                     var descriptorClass = new CodeTypeDeclaration
                     {
@@ -569,7 +606,7 @@ namespace WXMLToWorm
                             MemberAttributes.Public | MemberAttributes.Final,
                             propertyDesc.PropertyAlias,
                             Emit.@return(() => CodeDom.@new(typeof(ObjectProperty), CodeDom.@this,
-                                WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc))
+                                WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc, false))
                             )
                             //Emit.@return(() => new ObjectProperty(CodeDom.@this.cast<QueryAlias>(), 
                             //    WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc)
@@ -589,7 +626,7 @@ namespace WXMLToWorm
                             propertyDesc.PropertyAlias,
                             Emit.@return(() => CodeDom.@new(typeof(ObjectProperty),
                                 CodeDom.Field(CodeDom.@this, privateMemberName),
-                                WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc)
+                                WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc, false)
                             ))
                         );
 
@@ -607,51 +644,14 @@ namespace WXMLToWorm
 
                     if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.SchemaOnly)
                     {
-
-                        // интерфес сущности
-
-                        // базовый класс
-                        if (entity.BaseEntity == null)
-                        {
-                            CodeTypeReference entityType;
-                            if (_model.EntityBaseType == null)
-                            {
-                                entityType = new CodeTypeReference(entity.GetPkProperties().Count() == 1 ? 
-                                    typeof(KeyEntity) : 
-                                    entity.GetPkProperties().Count() > 0 ? 
-                                        typeof(CachedLazyLoad) : 
-                                        typeof(Entity));
-                            }
-                            else
-                            {
-                                entityType =
-                                    new CodeTypeReference(_model.EntityBaseType.IsEntityType
-                                                              ? nameHelper.GetEntityClassName(
-                                                                    _model.EntityBaseType.Entity,
-                                                                    true)
-                                                              : _model.EntityBaseType.GetTypeName(Settings));
-                                //entityType.TypeArguments.Add(
-                                //    new CodeTypeReference(nameHelper.GetEntityClassName(entity)));
-                            }
-
-                            entityClass.BaseTypes.Add(entityType);
-                            entityClass.BaseTypes.Add(new CodeTypeReference(typeof(IOptimizedValues)));
-                        }
-
-                        else
-                            entityClass.BaseTypes.Add(
-                                new CodeTypeReference(nameHelper.GetEntityClassName(entity.BaseEntity, true)));
-
-                        RaiseEntityClassCreated(nameSpace, entityClass);
-
                         #region определение класса Fields
                         {
                             fieldsClass = new CodeTypeDeclaration("props")
-                                              {
-                                                  Attributes = MemberAttributes.Public,
-                                                  TypeAttributes = (TypeAttributes.Class | TypeAttributes.NestedPublic),
-                                                  IsPartial = true
-                                              };
+                            {
+                                Attributes = MemberAttributes.Public,
+                                TypeAttributes = (TypeAttributes.Class | TypeAttributes.NestedPublic),
+                                IsPartial = true
+                            };
                             var propctr = new CodeConstructor { Attributes = MemberAttributes.Family };
                             fieldsClass.Members.Add(propctr);
 
@@ -718,8 +718,7 @@ namespace WXMLToWorm
 
                         #region проперти
 
-                        CreateProperties(entity, entityClass, setvalueMethod, getvalueMethod, 
-                            propertiesClass, fieldsClass, propertyAliasClass, instancedPropertyAliasClass);
+                        CreateProperties(entity, entityClass, setvalueMethod, getvalueMethod, fieldsClass);
 
                         #endregion проперти
 
@@ -787,34 +786,32 @@ namespace WXMLToWorm
 
                         #endregion
 
-                        entityClass.CustomAttributes.Add(new CodeAttributeDeclaration(
-                            new CodeTypeReference(typeof(SerializableAttribute))
-                            )
-                        );
                     }
 
                     #region custom attribute EntityAttribute
 
-                    entityClass.CustomAttributes = new CodeAttributeDeclarationCollection(
-                        new[]{
-                            new CodeAttributeDeclaration(
-		                        new CodeTypeReference(typeof (EntityAttribute)),
-		                        new CodeAttributeArgument(
-		                            new CodeTypeOfExpression(
-		                                new CodeTypeReference(
-		                                    nameHelper.GetEntitySchemaDefClassQualifiedName(entity, false))
-		                                )
-		                            ),
-		                        new CodeAttributeArgument(
-		                            new CodePrimitiveExpression(entity.Model.SchemaVersion)
-		                            ),
-		                        new CodeAttributeArgument(
-		                            "EntityName",
-		                            WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(Settings,entity, false)
-		                            )
-		                        ),
-			                }
-                        );
+                    entityClass.CustomAttributes.AddRange(new[]{
+                        new CodeAttributeDeclaration(
+	                        new CodeTypeReference(typeof (EntityAttribute)),
+	                        new CodeAttributeArgument(
+	                            new CodeTypeOfExpression(
+	                                new CodeTypeReference(
+	                                    nameHelper.GetEntitySchemaDefClassQualifiedName(entity, false)
+                                    )
+                                )
+                            ),
+	                        new CodeAttributeArgument(
+	                            new CodePrimitiveExpression(entity.Model.SchemaVersion)
+	                        ),
+	                        new CodeAttributeArgument(
+	                            "EntityName",
+	                            WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(Settings,entity, false)
+	                        )
+	                    ),
+                        new CodeAttributeDeclaration(
+                            new CodeTypeReference(typeof(SerializableAttribute))
+                        )
+   	                });
 
                     #endregion custom attribute EntityAttribute
 
@@ -1428,7 +1425,7 @@ namespace WXMLToWorm
                             new CodeMethodInvokeExpression(
                                 new CodeThisReferenceExpression(),
                                 "RaisePropertyChanged",
-                                WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propDesc),
+                                WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propDesc, false),
                                 new CodeVariableReferenceExpression("oldValue")
                                 )
                             )
@@ -1487,7 +1484,7 @@ namespace WXMLToWorm
             {
                 CodeMemberProperty property = e.PropertyMember;
 
-                WXMLCodeDomGenerator.SetMemberDescription(property, propertyDesc.Description);
+                SetMemberDescription(property, propertyDesc.Description);
             }
         }
 
@@ -1622,10 +1619,8 @@ namespace WXMLToWorm
             return method;
         }
 
-        private void CreateProperties(EntityDefinition entity, CodeEntityTypeDeclaration entityClass,
-            CodeMemberMethod setvalueMethod, CodeMemberMethod getvalueMethod,
-            CodeTypeDeclaration propertiesClass, CodeTypeDeclaration fieldsClass,
-            CodeTypeDeclaration propertyAliasClass, CodeTypeDeclaration instancedPropertyAliasClass)
+        private void CreateProperties(EntityDefinition entity, CodeEntityTypeDeclaration entityClass, 
+            CodeMemberMethod setvalueMethod, CodeMemberMethod getvalueMethod, CodeTypeDeclaration fieldsClass)
         {
             foreach (PropertyDefinition pd in
                 from k in entity.GetActiveProperties()
@@ -1646,20 +1641,20 @@ namespace WXMLToWorm
                             Settings.UseTypeInProps ? 
                                 WXMLCodeDomGeneratorHelper.GetEntityClassTypeReferenceExpression(Settings, entity, false) : 
                                 WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(Settings, entity, false),
-                            WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc)
+                            WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc, false)
                         )
                     );
 
                     fieldsClass.Members.Add(propConst);
 
-                    CodeTypeReferenceExpression classProps = new CodeTypeReferenceExpression(
-                        new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(entity, true) + "." + fieldsClass.Name
-                    );
+                    //CodeTypeReferenceExpression classProps = new CodeTypeReferenceExpression(
+                    //    /*new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(entity, true) + "." + */fieldsClass.Name
+                    //);
 
                     var prop = Define.GetProperty(typeof(ObjectProperty),
                         MemberAttributes.Public | MemberAttributes.Static | MemberAttributes.Final,
                         propertyDesc.PropertyAlias,
-                        Emit.@return(()=>CodeDom.Field(classProps,propConst.Name))
+                        Emit.@return(()=>CodeDom.VarRef(propConst.Name))
                     );
                     
                     fieldsClass.Members.Add(prop);
@@ -1847,7 +1842,7 @@ namespace WXMLToWorm
 
                 CodeMethodInvokeExpression getUsingExpression = new CodeMethodInvokeExpression(
                     new CodeMethodReferenceExpression(new CodeThisReferenceExpression(), "Read"),
-                    WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc)
+                    WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(propertyDesc)
                     );
 
                 if (propertyDesc.PropertyType.IsEntityType && propertyDesc.PropertyType.Entity.CacheCheckRequired)
@@ -1856,11 +1851,11 @@ namespace WXMLToWorm
                 }
 
                 CodeStatement[] getInUsingStatements = new CodeStatement[]
-                                                           {
-                                                               new CodeMethodReturnStatement(
-                                                                   new CodeFieldReferenceExpression(
-                                                                       new CodeThisReferenceExpression(), fieldName))
-                                                           };
+                {
+                    new CodeMethodReturnStatement(
+                        new CodeFieldReferenceExpression(
+                            new CodeThisReferenceExpression(), fieldName))
+                };
 
                 if (entity.GetPkProperties().Count() > 0)
                     property.GetStatements.Add(new CodeUsingStatement(getUsingExpression, getInUsingStatements));
@@ -1872,24 +1867,24 @@ namespace WXMLToWorm
                 #region property SetStatements
 
                 if (_model.EnableReadOnlyPropertiesSetter ||
-                    !propertyDesc.HasAttribute(WXML.Model.Field2DbRelations.ReadOnly) ||
-                    propertyDesc.HasAttribute(WXML.Model.Field2DbRelations.PK))
+                    !propertyDesc.HasAttribute(Field2DbRelations.ReadOnly) ||
+                    propertyDesc.HasAttribute(Field2DbRelations.PK))
                 {
                     CodeExpression setUsingExpression = new CodeMethodInvokeExpression(
                         new CodeMethodReferenceExpression(new CodeThisReferenceExpression(), "Write"),
-                        WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc)
+                        WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(propertyDesc)
                         );
 
                     CodeStatement[] setInUsingStatements = new CodeStatement[]
-                                                               {
-                                                                   new CodeAssignStatement(
-                                                                       new CodeFieldReferenceExpression(
-                                                                           new CodeThisReferenceExpression(),
-                                                                           fieldName
-                                                                           ),
-                                                                       new CodePropertySetValueReferenceExpression()
-                                                                       )
-                                                               };
+                    {
+                        new CodeAssignStatement(
+                            new CodeFieldReferenceExpression(
+                                new CodeThisReferenceExpression(),
+                                  fieldName
+                                ),
+                            new CodePropertySetValueReferenceExpression()
+                        )
+                    };
 
                     if (entity.GetPkProperties().Count() > 0)
                         property.SetStatements.Add(new CodeUsingStatement(setUsingExpression, setInUsingStatements));
@@ -1932,7 +1927,7 @@ namespace WXMLToWorm
             getvalueMethod.Statements.Insert(getvalueMethod.Statements.Count - 1,
                 new CodeConditionStatement(
                     new CodeMethodInvokeExpression(
-                        WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc),
+                        WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(propertyDesc),
                         "Equals",
                         new CodeArgumentReferenceExpression("propertyAlias")
                     ),
@@ -1944,7 +1939,7 @@ namespace WXMLToWorm
                 )
             );
         }
-        private void CreatePropertyColumnAttribute(CodeMemberProperty property, PropertyDefinition propertyDesc)
+        private static void CreatePropertyColumnAttribute(CodeMemberProperty property, PropertyDefinition propertyDesc)
         {
             CodeAttributeDeclaration declaration = new CodeAttributeDeclaration(
                 new CodeTypeReference(typeof(EntityPropertyAttribute))
@@ -1954,7 +1949,7 @@ namespace WXMLToWorm
             {
                 declaration.Arguments.Add(
                     new CodeAttributeArgument("PropertyAlias", 
-                        WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc)
+                        WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(propertyDesc)
                     )
                 );
             }

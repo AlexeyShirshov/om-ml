@@ -516,7 +516,7 @@ namespace WXML.Model
 
             entity.AddProperty(property);
 
-            foreach (XmlElement fieldMap in propertyNode.SelectNodes(string.Format("{0}:fields", WXMLModel.NS_PREFIX), _nsMgr))
+            foreach (XmlElement fieldMap in propertyNode.SelectNodes(string.Format("{0}:field", WXMLModel.NS_PREFIX), _nsMgr))
             {
                 string fieldAlias = fieldMap.GetAttribute("fieldAlias");
                 string dbTypeNameAttribute = fieldMap.GetAttribute("dbTypeName");
@@ -534,7 +534,7 @@ namespace WXML.Model
                 if (!string.IsNullOrEmpty(dbTypeNullableAttribute))
                     isNullable = XmlConvert.ToBoolean(dbTypeNullableAttribute);
 
-                property.AddSourceField(propAlias, fieldname, fieldAlias, dbTypeNameAttribute,
+                property.AddSourceFieldUnckeck(propAlias, fieldname, fieldAlias, dbTypeNameAttribute,
                     sz, isNullable, dbTypeDefault);
 
             }
@@ -632,7 +632,12 @@ namespace WXML.Model
                 property.Action = (MergeAction)Enum.Parse(typeof (MergeAction), mergeAction);
 
             if (typeDesc.IsEntityType)
-                entity.AddProperty(new EntityPropertyDefinition(property));
+            {
+                EntityPropertyDefinition ep = EntityPropertyDefinition.FromScalar(property);
+                entity.AddProperty(ep);
+                if (string.IsNullOrEmpty(sf.SourceFieldExpression))
+                    ep.RemoveSourceFieldByExpression(sf.SourceFieldExpression);
+            }
             else
                 entity.AddProperty(property);
         }
@@ -651,6 +656,7 @@ namespace WXML.Model
 				string underlyingEntityId = relationElement.GetAttribute("underlyingEntity");
 				string disabledValue = relationElement.GetAttribute("disabled");
                 string mergeAction = relationElement.GetAttribute("action");
+			    string constraint = relationElement.GetAttribute("constraint");
 
 				XmlElement leftTargetElement = (XmlElement)leftTargetNode;
 				string leftLinkTargetEntityId = leftTargetElement.GetAttribute("entity");
@@ -712,7 +718,10 @@ namespace WXML.Model
                     AccessedEntityType = rightAccessedEntityType
                 };
 
-				RelationDefinition relation = new RelationDefinition(leftLinkTarget, rightLinkTarget, relationTable, underlyingEntity, disabled);
+                RelationDefinition relation = new RelationDefinition(leftLinkTarget, rightLinkTarget, relationTable, underlyingEntity, disabled)
+                {
+                    Constraint = (RelationConstraint)Enum.Parse(typeof(RelationConstraint), constraint, true)
+                };
 
                 if (!string.IsNullOrEmpty(mergeAction))
                     relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
@@ -755,6 +764,7 @@ namespace WXML.Model
 				string entityId = relationElement.GetAttribute("entity");
                 string entityProperties = relationElement.GetAttribute("entityProperties");
                 string mergeAction = relationElement.GetAttribute("action");
+                string constraint = relationElement.GetAttribute("constraint");
 
 				XmlElement directTargetElement = (XmlElement)directTargetNode;
 				XmlElement reverseTargetElement = (XmlElement)reverseTargetNode;
@@ -797,8 +807,11 @@ namespace WXML.Model
                     AccessedEntityType = reverseAccessedEntityType
                 };
 
-				SelfRelationDescription relation = new SelfRelationDescription(entity, entityProperties.Split(' '),
-                    directTarget, reverseTarget, relationTable, underlyingEntity, disabled);
+				SelfRelationDefinition relation = new SelfRelationDefinition(entity, entityProperties.Split(' '),
+                    directTarget, reverseTarget, relationTable, underlyingEntity, disabled)
+                {
+                    Constraint = (RelationConstraint)Enum.Parse(typeof(RelationConstraint), constraint, true)
+                };
 
                 if (!string.IsNullOrEmpty(mergeAction))
                     relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
