@@ -1,23 +1,23 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WXML.Model;
 using WXML.Model.Database.Providers;
 using WXML.Model.Descriptors;
 using WXML.SourceConnector;
 
-namespace WXMLTests
+namespace WXMLTests.MSSQLSourceProvider
 {
     /// <summary>
-    /// Summary description for MSSQLSourceProvider
+    /// Summary description for TestScriptAlter
     /// </summary>
     [TestClass]
-    public class MSSQLSourceProvider
+    public class TestScriptAlter
     {
-        public MSSQLSourceProvider()
+        public TestScriptAlter()
         {
             //
             // TODO: Add constructor logic here
@@ -65,45 +65,46 @@ namespace WXMLTests
         #endregion
 
         [TestMethod]
-        public void TestCreateTable()
-        {
-            var p = new MSSQLProvider(null, null);
-            var sf = new SourceFragmentDefinition("sdfdsf", "tbl", "dbo");
-            StringBuilder script = new StringBuilder();
-            
-            p.GenerateCreateScript(new[]
-            {
-                new ScalarPropertyDefinition(null, "Prop", "Prop", Field2DbRelations.None,
-                    null, new TypeDefinition("dfg", typeof(int)), 
-                    new SourceFieldDefinition(sf, "col1"), 
-                    AccessLevel.Private, AccessLevel.Public)
-            }, script, false);
-
-            Assert.AreEqual(string.Format("CREATE TABLE dbo.tbl(col1 int NULL);{0}{0}", Environment.NewLine), script.ToString());
-        }
-
-        [TestMethod]
-        public void TestGenerateScript()
+        public void TestAlter()
         {
             var p = new MSSQLProvider(GetTestDB(), null);
 
-            var sv = p.GetSourceView(null, "ent1");
+            var sv = p.GetSourceView();
 
             var model = new WXMLModel();
 
             var smc = new SourceToModelConnector(sv, model);
-            smc.ApplySourceViewToModel();
+            smc.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true);
 
-            Assert.AreEqual(1, model.GetActiveEntities().Count());
-            Assert.AreEqual(1, model.GetSourceFragments().Count());
+            Assert.AreEqual(28, model.GetActiveEntities().Count());
+            Assert.AreEqual(32, model.GetSourceFragments().Count());
 
             var msc = new ModelToSourceConnector(new SourceView(), model);
+            foreach (SourceFragmentDefinition sf in sv.GetSourceFragments().ToArray())
+            {
+                foreach (SourceFieldDefinition field in sv.GetSourceFields(sf).Where(item=>!item.IsFK))
+                {
+                    msc.SourceView.SourceFields.Add(new SourceFieldDefinition(
+                        new SourceFragmentDefinition(field.SourceFragment.Identifier,
+                            field.SourceFragment.Name, field.SourceFragment.Selector),
+                        field.SourceFieldExpression, field.SourceTypeSize, field.IsNullable,
+                        field.SourceType, field.IsAutoIncrement, field.DefaultValue
+                    ));
+                    break;
+                }
+            }
 
             string script = msc.GenerateSourceScript(p, false);
-
             Assert.IsFalse(string.IsNullOrEmpty(script));
-
             Console.WriteLine(script);
+
+            Assert.AreEqual(4, new Regex("CREATE TABLE ").Matches(script).Count);
+            Assert.AreEqual(26, new Regex("ALTER TABLE ").Matches(script.Remove(script.IndexOf("--Creating primary keys"))).Count);
+            IEnumerable<SourceConstraint> pks = sv.GetSourceFragments().SelectMany(item => item.Constraints.Where(cns => cns.ConstraintType == SourceConstraint.PrimaryKeyConstraintTypeName));
+            Assert.AreEqual(pks.Count(), new Regex("PRIMARY KEY CLUSTERED").Matches(script).Count);
+            Assert.AreEqual(1, new Regex("UNIQUE NONCLUSTERED").Matches(script).Count);
+            Assert.AreEqual(1, new Regex("UNIQUE CLUSTERED").Matches(script).Count);
+            Assert.AreEqual(sv.GetSourceFragments().SelectMany(item => item.Constraints.Where(cns => cns.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName)).Count(), new Regex("FOREIGN KEY").Matches(script).Count);
         }
 
         public static string GetTestDB()

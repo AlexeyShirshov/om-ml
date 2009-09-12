@@ -77,10 +77,10 @@
       <oos:Properties>
         <oos:Property propertyName="ID" attributes="PK" table="tblAl2Ar" typeRef="tInt32" description="relation id" fieldName="id" />
         <oos:EntityProperty propertyName="Album" table="tblAl2Ar" typeRef="tAlbum" description="album" classfieldAccessLevel="Family">
-          <oos:fields relatedProperty="ID" fieldName="album_id" />
+          <oos:field relatedProperty="ID" fieldName="album_id" />
         </oos:EntityProperty>
         <oos:EntityProperty propertyName="Artist" table="tblAl2Ar" typeRef="tArtist" description="artist" classfieldAccessLevel="Family">
-          <oos:fields relatedProperty="ID" fieldName="artist_id" />
+          <oos:field relatedProperty="ID" fieldName="artist_id" />
         </oos:EntityProperty>
         <oos:Property propertyName="SomeGuid" table="tblAl2Ar" typeRef="tGuidnullable" description="descriptionofsomeguid" fieldName="someGuid" />
       </oos:Properties>
@@ -92,10 +92,10 @@
       <oos:Properties>
         <oos:Property propertyName="ID" attributes="PK" table="tbla2b" typeRef="tInt32" description="relation id" fieldName="id" />
         <oos:EntityProperty propertyName="Band" table="tbla2b" typeRef="tArtist" description="band">
-          <oos:fields relatedProperty="ID" fieldName="band_id" />
+          <oos:field relatedProperty="ID" fieldName="band_id" />
         </oos:EntityProperty>
         <oos:EntityProperty propertyName="Artist" table="tbla2b" typeRef="tArtist" description="band">
-          <oos:fields relatedProperty="ID" fieldName="artist_id" />
+          <oos:field relatedProperty="ID" fieldName="artist_id" />
         </oos:EntityProperty>
       </oos:Properties>
     </oos:Entity>
@@ -106,7 +106,7 @@
       <oos:Properties>
         <oos:Property propertyName="ID" attributes="PK" table="tbla2b" typeRef="tInt32" description="relation id" fieldName="id" />
         <oos:EntityProperty propertyName="Band" table="tbla2b" typeRef="tArtist" description="band">
-          <oos:fields relatedProperty="ID" fieldName="band_id" />
+          <oos:field relatedProperty="ID" fieldName="band_id" />
         </oos:EntityProperty>
       </oos:Properties>
     </oos:Entity>
@@ -120,7 +120,7 @@
       <oos:Right entity="eAlbum" entityProperties="ID" fieldName="album_id" cascadeDelete="true" accessorName="Album"/>
     </oos:Relation>
     <oos:Relation table="tblSiteAccess" disabled="true">
-      <oos:Left entity="eArtist" entityProperties="ID" fieldName="artist_id1" cascadeDelete="false"/>
+      <oos:Left entity="eArtist" entityProperties="ID" fieldName="artist_id1" cascadeDelete="false" />
       <oos:Right entity="eArtist" entityProperties="ID" fieldName="artist_id2" cascadeDelete="true"/>
     </oos:Relation>
     <oos:Relation table="tblSiteAccess">
