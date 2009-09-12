@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
 using WXML.Model;
 using WXML.Model.Descriptors;
+using System.Collections.Generic;
 
 namespace WXML.SourceConnector
 {
@@ -34,20 +36,410 @@ namespace WXML.SourceConnector
 
             StringBuilder script = new StringBuilder();
 
+            CreateTables(script, props, provider, unicodeStrings);
+
+            AlterTables(script, props, provider, unicodeStrings);
+
+            CreatePrimaryKeys(script, provider);
+
+            CreateUniqueConstraints(script, provider);
+
+            CreateForeignKeys(script, provider);
+
+            return script.ToString();
+        }
+
+        private void AlterTables(StringBuilder script, IEnumerable<PropertyDefinition> props, ISourceProvider provider, bool unicodeStrings)
+        {
+            bool hdr = false;
+
+            foreach (SourceFragmentDefinition s in props.Select(item => item.SourceFragment).Distinct())
+            {
+                SourceFragmentDefinition sf = s;
+
+                var targetSF = SourceView.GetSourceFragments().SingleOrDefault(item =>
+                     item.Name == sf.Name && item.Selector == sf.Selector);
+
+                if (targetSF != null)
+                {
+                    List<PropDefinition> tableProps = new List<PropDefinition>();
+                    foreach (PropertyDefinition prop in props.Where(item => item.SourceFragment == sf))
+                    {
+                        if(prop is ScalarPropertyDefinition)
+                            tableProps.Add(new PropDefinition{Attr = prop.Attributes, Field = ((ScalarPropertyDefinition)prop).SourceField, PropType = prop.PropertyType});
+                        else
+                            tableProps.AddRange(((EntityPropertyDefinition)prop).SourceFields
+                                .Select(item=>new PropDefinition{Attr = Field2DbRelations.None, Field = item, PropType = prop.PropertyType.Entity.GetProperties().Single(p=>p.PropertyAlias==item.PropertyAlias).PropertyType}));
+                    }
+
+                    var props2Add = tableProps.Where(item=>!SourceView.GetSourceFields(targetSF).Any(fld=>fld.SourceFieldExpression == item.Field.SourceFieldExpression));
+                    if (props2Add.Count() > 0)
+                    {
+                        if (!hdr)
+                        {
+                            script.AppendLine("--Altering tables");
+                            hdr = true;
+                        }
+                        provider.GenerateAddColumnsScript(props2Add, script, unicodeStrings);
+                    }
+                }
+            }
+        }
+
+        private void CreateForeignKeys(StringBuilder script, ISourceProvider provider)
+        {
+            var fks = Model.GetActiveEntities().SelectMany(item => item.GetProperties()
+                .OfType<EntityPropertyDefinition>()
+            ).Where(item=>item.SourceFragment != null);
+
+            List<string> names = new List<string>();
+
+            bool hdr = false;
+
+            foreach (SourceFragmentDefinition s in fks.Select(item => item.SourceFragment).Distinct())
+            {
+                SourceFragmentDefinition sf = s;
+
+                var targetSF = SourceView.GetSourceFragments().SingleOrDefault(item =>item.Name == sf.Name && item.Selector == sf.Selector);
+
+                List<FKDefinition> fksList = new List<FKDefinition>();
+
+                foreach (EntityPropertyDefinition prop in fks.Where(item => item.SourceFragment == sf))
+                {
+                    EntityDefinition re = prop.PropertyType.Entity;
+
+                    var fpk = re.GetPkProperties().Where(item => prop.SourceFields.Any(fld=>fld.PropertyAlias == item.PropertyAlias));
+                    if (fpk.Count() == 0)
+                        fpk = re.GetProperties().OfType<ScalarPropertyDefinition>()
+                            .Where(item => !item.Disabled && item.SourceField.Constraints.Any(cns => cns.ConstraintType == SourceConstraint.UniqueConstraintTypeName));
+
+                    FKDefinition f = new FKDefinition()
+                    {
+                        cols = prop.SourceFields.Select(item=>item.SourceFieldExpression).ToArray(),
+                        refCols = prop.SourceFields.Select(item=>fpk.Single(pk=>pk.PropertyAlias == item.PropertyAlias).SourceFieldExpression).ToArray(),
+                        refTbl = fpk.Single(pk=>pk.PropertyAlias == prop.SourceFields.First().PropertyAlias).SourceFragment
+                    };
+
+                    if (targetSF != null)
+                    {
+                        SourceConstraint fk = targetSF.Constraints.SingleOrDefault(item => item.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName);
+
+                        if (fk != null)
+                        {
+                            if (!prop.SourceFields
+                                     .All(item => fk.SourceFields.Any(pkf => pkf.SourceFieldExpression == item.SourceFieldExpression)))
+                                provider.GenerateDropConstraintScript(targetSF, fk.ConstraintName, script);
+                            else
+                                continue;
+
+                            f.constraintName = fk.ConstraintName;
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(f.constraintName))
+                    {
+                        f.constraintName = "FK_" + prop.Entity.Name + "_" + re.Name;
+
+                        if (names.Contains(f.constraintName))
+                        {
+                            f.constraintName += "_" + prop.Name;
+                        }
+                    }
+                    
+                    names.Add(f.constraintName);
+                    fksList.Add(f);
+                }
+
+                if (!hdr)
+                {
+                    script.AppendLine("--Creating foreign keys");
+                    hdr = true;
+                }
+                provider.GenerateCreateFKsScript(sf, fksList, script);
+            }
+
+            foreach (RelationDefinitionBase rel in Model.GetActiveRelations())
+            {
+                var relSF = SourceView.GetSourceFragments().SingleOrDefault(item => item.Name == rel.SourceFragment.Name && item.Selector == rel.SourceFragment.Selector);
+                List<FKDefinition> fksList = new List<FKDefinition>();
+
+                if (rel is SelfRelationDefinition)
+                {
+                    SelfRelationDefinition r = rel as SelfRelationDefinition;
+                   
+                    FKDefinition f;
+                    if (CreateFKDefinition(r.Properties, r.Left, relSF, script, provider, out f))
+                        fksList.Add(f);
+
+                    if (string.IsNullOrEmpty(f.constraintName))
+                        f.constraintName = "FK_" + rel.SourceFragment.Name.Trim(']','[') + "_" + r.Entity.Name;
+
+                    if (names.Contains(f.constraintName))
+                    {
+                        f.constraintName += "_" + names.Count(item => item.StartsWith(f.constraintName));
+                    }
+                    names.Add(f.constraintName);
+
+                    if (CreateFKDefinition(r.Properties, r.Right, relSF, script, provider, out f))
+                        fksList.Add(f);
+
+                    if (string.IsNullOrEmpty(f.constraintName))
+                        f.constraintName = "FK_" + rel.SourceFragment.Name.Trim(']', '[') + "_" + r.Entity.Name;
+
+                    if (names.Contains(f.constraintName))
+                    {
+                        f.constraintName += "_" + names.Count(item => item.StartsWith(f.constraintName));
+                    }
+                    names.Add(f.constraintName);
+                }
+                else if (rel is RelationDefinition)
+                {
+                    RelationDefinition r = rel as RelationDefinition;
+
+                    FKDefinition f;
+                    if (CreateFKDefinition(r.Left.Properties, r.Left, relSF, script, provider, out f))
+                        fksList.Add(f);
+
+                    if (string.IsNullOrEmpty(f.constraintName))
+                        f.constraintName = "FK_" + rel.SourceFragment.Name.Trim(']', '[') + "_" + r.Left.Entity.Name;
+
+                    if (names.Contains(f.constraintName))
+                    {
+                        f.constraintName += "_" + names.Count(item => item.StartsWith(f.constraintName));
+                    }
+                    names.Add(f.constraintName);
+
+                    if (CreateFKDefinition(r.Right.Properties, r.Right, relSF, script, provider, out f))
+                        fksList.Add(f);
+
+                    if (string.IsNullOrEmpty(f.constraintName))
+                        f.constraintName = "FK_" + rel.SourceFragment.Name.Trim(']', '[') + "_" + r.Right.Entity.Name;
+
+                    if (names.Contains(f.constraintName))
+                    {
+                        f.constraintName += "_" + names.Count(item => item.StartsWith(f.constraintName));
+                    }
+                    names.Add(f.constraintName);
+                }
+                else
+                    throw new NotSupportedException(rel.GetType().ToString());
+
+                if (!hdr)
+                {
+                    script.AppendLine("--Creating foreign keys");
+                    hdr = true;
+                }
+                provider.GenerateCreateFKsScript(rel.SourceFragment, fksList, script);
+            }
+
+        }
+
+        private static bool CreateFKDefinition(IEnumerable<ScalarPropertyDefinition> fpk,
+            SelfRelationTarget rt, SourceFragmentDefinition relSF, StringBuilder script, ISourceProvider provider,
+            out FKDefinition f)
+        {
+            f = new FKDefinition()
+            {
+                cols = rt.FieldName,
+                refCols = fpk.Select(item => item.SourceFieldExpression).ToArray(),
+                refTbl = fpk.First().SourceFragment
+            };
+
+            if (relSF != null)
+            {
+                SourceConstraint fk = relSF.Constraints.SingleOrDefault(item => 
+                    item.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName &&
+                    rt.FieldName.All(p=>item.SourceFields.Any(pkf => pkf.SourceFieldExpression == p))
+                );
+
+                if (fk != null)
+                {
+                    //if (!rt.FieldName.All(item => fk.SourceFields.Any(pkf => pkf.SourceFieldExpression == item)))
+                    //    provider.GenerateDropConstraintScript(relSF, fk.ConstraintName, script);
+                    //else
+                        return false;
+
+                    //f.constraintName = fk.ConstraintName;
+                }
+            }
+
+            return true;
+        }
+
+        private void CreateUniqueConstraints(StringBuilder script, ISourceProvider provider)
+        {
+            var uks = Model.GetActiveEntities().SelectMany(item => item.GetProperties().OfType<ScalarPropertyDefinition>()
+                .Where(prop => !prop.Disabled && prop.SourceField.Constraints.Any(cns => cns.ConstraintType == SourceConstraint.UniqueConstraintTypeName)));
+            
+            if (uks.Count() == 0) return;
+
+            script.AppendLine("--Creating unique constraints");
+
+            foreach (SourceFragmentDefinition s in uks.Select(item => item.SourceFragment).Distinct())
+            {
+                SourceFragmentDefinition sf = s;
+
+                var targetSF = SourceView.GetSourceFragments().SingleOrDefault(item =>
+                                                                               item.Name == sf.Name && item.Selector == sf.Selector);
+
+                var tablePKs = uks.Where(item => item.SourceFragment == sf);
+                string constraintName = null;
+                const bool isPK = false;
+
+                if (targetSF != null)
+                {
+                    SourceConstraint pk = targetSF.Constraints.SingleOrDefault(item => 
+                        item.ConstraintType == SourceConstraint.UniqueConstraintTypeName);
+                    //if (pk == null)
+                    //{
+                    //    isPK = false;
+                    //    pk = targetSF.Constraints.SingleOrDefault(item => item.ConstraintType == SourceConstraint.UniqueConstraintTypeName);
+                    //}
+
+                    if (pk != null)
+                    {
+                        if (!tablePKs.All(item => pk.SourceFields.Any(pkf => pkf.SourceFieldExpression == item.SourceFieldExpression)))
+                            provider.GenerateDropConstraintScript(targetSF, pk.ConstraintName, script);
+                        else
+                            continue;
+
+                        constraintName = pk.ConstraintName;
+                    }
+                    //else
+                    //    isPK = true;
+                }
+
+                if (string.IsNullOrEmpty(constraintName))
+                {
+                    constraintName = "UK_" + sf.Name.Trim(']', '[');
+                }
+
+                provider.GenerateCreatePKScript(tablePKs, constraintName, script, isPK, 
+                    tablePKs.First().Entity.GetPkProperties().Count() == 0);
+            }
+        }
+
+        private void CreatePrimaryKeys(StringBuilder script, ISourceProvider provider)
+        {
+            var pks = Model.GetActiveEntities().SelectMany(item =>item.GetPkProperties());
+            var rels = Model.GetActiveRelations().Where(item => item.Constraint != RelationConstraint.None);
+            if (pks.Count() == 0 && rels.Count() == 0) return;
+
+            script.AppendLine("--Creating primary keys");
+
+            foreach (SourceFragmentDefinition s in pks.Select(item => item.SourceFragment).Distinct())
+            {
+                SourceFragmentDefinition sf = s;
+
+                var targetSF = SourceView.GetSourceFragments().SingleOrDefault(item =>
+                     item.Name == sf.Name && item.Selector == sf.Selector);
+
+                var tablePKs = pks.Where(item => item.SourceFragment == sf);
+                string constraintName = null;
+                const bool isPK = true;
+
+                if (targetSF != null)
+                {
+                    SourceConstraint pk = targetSF.Constraints.SingleOrDefault(item => item.ConstraintType == SourceConstraint.PrimaryKeyConstraintTypeName);
+                    //if (pk == null)
+                    //{
+                    //    isPK = false;
+                    //    pk = targetSF.Constraints.SingleOrDefault(item => item.ConstraintType == SourceConstraint.UniqueConstraintTypeName);
+                    //}
+
+                    if (pk != null)
+                    {
+                        if (!tablePKs.All(item=>pk.SourceFields.Any(pkf=>pkf.SourceFieldExpression == item.SourceFieldExpression)))
+                            provider.GenerateDropConstraintScript(targetSF, pk.ConstraintName, script);
+                        else
+                            continue;
+
+                        constraintName = pk.ConstraintName;
+                    }
+                    //else
+                    //    isPK = true;
+                }
+
+                if (string.IsNullOrEmpty(constraintName))
+                {
+                    constraintName = "PK_" + sf.Name.Trim(']', '[');
+                }
+
+                provider.GenerateCreatePKScript(tablePKs, constraintName, script, isPK, true);
+            }
+
+            foreach (RelationDefinitionBase rel in rels)
+            {
+                var targetSF = SourceView.GetSourceFragments().SingleOrDefault(item =>
+                     item.Name == rel.SourceFragment.Name && item.Selector == rel.SourceFragment.Selector);
+                string constraintName = null;
+                bool isPK = rel.Constraint==RelationConstraint.PrimaryKey;
+
+                if (targetSF != null)
+                {
+                    SourceConstraint pk = targetSF.Constraints.SingleOrDefault(item => 
+                        item.ConstraintType == (isPK?
+                            SourceConstraint.PrimaryKeyConstraintTypeName:
+                            SourceConstraint.UniqueConstraintTypeName));
+                    if (pk != null)
+                    {
+                        if (!rel.Left.FieldName.Union(rel.Right.FieldName).All(item => pk.SourceFields.Any(pkf => pkf.SourceFieldExpression == item)))
+                            provider.GenerateDropConstraintScript(targetSF, pk.ConstraintName, script);
+                        else
+                            continue;
+
+                        constraintName = pk.ConstraintName;
+                    }
+
+                }
+
+                if (string.IsNullOrEmpty(constraintName))
+                {
+                    constraintName = "PK_" + rel.SourceFragment.Name.Trim(']', '[');
+                }
+
+                provider.GenerateCreatePKScript(rel.Left.FieldName.Union(rel.Right.FieldName)
+                    .Select(item=>new ScalarPropertyDefinition(null, null, null, Field2DbRelations.None, null,
+                        null, new SourceFieldDefinition(rel.SourceFragment, item), default(AccessLevel), default(AccessLevel)))
+                    , constraintName, script, isPK, true);
+            }
+        }
+
+        private void CreateTables(StringBuilder script, IEnumerable<PropertyDefinition> props, ISourceProvider provider, bool unicodeStrings)
+        {
+            bool hdr = false;
+            
             foreach (SourceFragmentDefinition s in props.Select(item => item.SourceFragment).Distinct())
             {
                 SourceFragmentDefinition sf = s;
 
                 var targetSF = SourceView.GetSourceFragments().SingleOrDefault(item => 
-                    item.Name == sf.Name && item.Selector == sf.Selector);
+                     item.Name == sf.Name && item.Selector == sf.Selector);
 
                 if (targetSF == null)
                 {
+                    if (!hdr)
+                    {
+                        script.AppendLine("--Creating tables");
+                        hdr = true;
+                    }
                     provider.GenerateCreateScript(props.Where(item => item.SourceFragment == sf), script, unicodeStrings);
                 }
             }
 
-            return script.ToString();
+            foreach (RelationDefinitionBase rel in Model.GetActiveRelations())
+            {
+                if (!SourceView.GetSourceFragments().Any(item =>
+                    item.Name == rel.SourceFragment.Name && item.Selector == rel.SourceFragment.Selector))
+                {
+                    if (!hdr)
+                    {
+                        script.AppendLine("--Creating tables");
+                        hdr = true;
+                    }
+                    provider.GenerateCreateScript(rel, script, unicodeStrings);
+                }
+            }
         }
     }
 }

@@ -63,11 +63,11 @@ namespace WXML.CodeDom
             return baseName;
         }
 
-        /// <summary>
-        /// Gets class name of the entity using settings
-        /// </summary>
-        /// <param name="entity">The entity.</param>
-        /// <returns></returns>
+        ///// <summary>
+        ///// Gets class name of the entity using settings
+        ///// </summary>
+        ///// <param name="entity">The entity.</param>
+        ///// <returns></returns>
         //public string GetEntityClassName(EntityDefinition entity)
         //{
         //    return GetEntityClassName(entity, false);

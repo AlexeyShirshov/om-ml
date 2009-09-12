@@ -82,5 +82,7 @@ namespace WXML.Model.Descriptors
                 return res;
             }
         }
+
+        public RelationConstraint Constraint { get; set; }
     }
 }

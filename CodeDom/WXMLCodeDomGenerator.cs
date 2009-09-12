@@ -60,7 +60,7 @@ namespace WXML.CodeDom
 
             var setValueStatement = new CodeConditionStatement(
                 new CodeMethodInvokeExpression(
-                    WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc),
+                    WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(propertyDesc),
                     "Equals",
                     new CodeVariableReferenceExpression("fieldName"))
                 );
@@ -153,7 +153,7 @@ namespace WXML.CodeDom
             {
                 var setValueStatement = new CodeConditionStatement(
                 new CodeMethodInvokeExpression(
-                    WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propertyDesc),
+                    WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(propertyDesc),
                     "Equals",
                     new CodeVariableReferenceExpression("fieldName"))
 
@@ -237,7 +237,8 @@ namespace WXML.CodeDom
             if ((Settings.LanguageSpecificHacks & LanguageSpecificHacks.SafeUnboxToEnum) ==
                         LanguageSpecificHacks.SafeUnboxToEnum)
                 EnumPervUpdateSetValueMethod(definition, method);
-            DefaultUpdateSetValueMethod(definition, method);
+            else
+                DefaultUpdateSetValueMethod(definition, method);
         }
     }
 }

@@ -26,7 +26,7 @@ namespace WXML.Model.Descriptors
 			Selector = selector;
 		}
 
-        public IEnumerable<SourceConstraint> Constraints
+        public List<SourceConstraint> Constraints
         {
             get { return _constraints; }
         }
