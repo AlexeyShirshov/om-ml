@@ -4,7 +4,7 @@ namespace WXML.Model.Descriptors
 {
     public class SourceConstraint
     {
-        private readonly string _constraintType;
+        private string _constraintType;
         private readonly string _constraintName;
 
         public const string PrimaryKeyConstraintTypeName = "PRIMARY KEY";
@@ -24,6 +24,7 @@ namespace WXML.Model.Descriptors
         public string ConstraintType
         {
             get { return _constraintType; }
+            set { _constraintType = value; }
         }
 
         public string ConstraintName

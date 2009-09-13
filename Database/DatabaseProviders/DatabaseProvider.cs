@@ -32,7 +32,7 @@ namespace WXML.Model.Database.Providers
         public abstract void GenerateCreateScript(IEnumerable<PropertyDefinition> props, StringBuilder script, bool unicodeStrings);
         public abstract void GenerateCreateScript(RelationDefinitionBase rel, StringBuilder script, bool unicodeStrings);
         public abstract void GenerateDropConstraintScript(SourceFragmentDefinition table, string constraintName, StringBuilder script);
-        public abstract void GenerateCreatePKScript(IEnumerable<ScalarPropertyDefinition> pks, string constraintName, StringBuilder script, bool pk, bool clustered);
+        public abstract void GenerateCreatePKScript(IEnumerable<PropDefinition> pks, string constraintName, StringBuilder script, bool pk, bool clustered);
         public abstract void GenerateCreateFKsScript(SourceFragmentDefinition table, IEnumerable<FKDefinition> fks, StringBuilder script);
         public abstract void GenerateAddColumnsScript(IEnumerable<PropDefinition> props, StringBuilder script, bool unicodeStrings);
 
