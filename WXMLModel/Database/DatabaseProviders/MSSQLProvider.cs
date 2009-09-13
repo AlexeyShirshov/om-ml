@@ -11,6 +11,12 @@ namespace WXML.Model.Database.Providers
 {
     public class MSSQLProvider : DatabaseProvider
     {
+        public MSSQLProvider() :
+            this(null, null)
+        {
+            
+        }
+        
         public MSSQLProvider(string server, string db) :
             base(server, db, true, null, null)
         {
@@ -495,15 +501,15 @@ namespace WXML.Model.Database.Providers
             script.AppendLine();
         }
 
-        public override void GenerateCreatePKScript(IEnumerable<ScalarPropertyDefinition> pks, 
+        public override void GenerateCreatePKScript(IEnumerable<PropDefinition> pks, 
             string constraintName, StringBuilder script, bool pk, bool clustered)
         {
-            SourceFragmentDefinition sf = pks.First().SourceFragment;
+            SourceFragmentDefinition sf = pks.First().Field.SourceFragment;
             script.AppendFormat("ALTER TABLE {0}.{1} ADD CONSTRAINT {2} {3} {4}(", 
                 sf.Selector, sf.Name, constraintName, pk?"PRIMARY KEY":"UNIQUE",
                 clustered?"CLUSTERED":"NONCLUSTERED");
             
-            foreach (ScalarPropertyDefinition sp in pks)
+            foreach (SourceFieldDefinition sp in pks.Select(item=>item.Field))
             {
                 script.Append(sp.SourceFieldExpression).Append(", ");
             }
@@ -516,8 +522,6 @@ namespace WXML.Model.Database.Providers
         public override void GenerateCreateFKsScript(SourceFragmentDefinition sf, IEnumerable<FKDefinition> fks, 
             StringBuilder script)
         {
-            if (fks.Count() == 0) return;
-
             script.AppendFormat("ALTER TABLE {0}.{1} ADD ",
                 sf.Selector, sf.Name);
 

@@ -68,7 +68,7 @@ namespace WXMLTests
         [TestMethod]
         public void TestCreateTable()
         {
-            var p = new MSSQLProvider(null, null);
+            var p = new MSSQLProvider();
             var sf = new SourceFragmentDefinition("sdfdsf", "tbl", "dbo");
             StringBuilder script = new StringBuilder();
             
@@ -153,16 +153,15 @@ namespace WXMLTests
             var msc = new ModelToSourceConnector(new SourceView(), model);
 
             string script = msc.GenerateSourceScript(p, false);
-
             Assert.IsFalse(string.IsNullOrEmpty(script));
+            Console.WriteLine(script);
 
             Assert.AreEqual(sv.GetSourceFragments().Count(), new Regex("CREATE TABLE ").Matches(script).Count);
             IEnumerable<SourceConstraint> pks = sv.GetSourceFragments().SelectMany(item=>item.Constraints.Where(cns=>cns.ConstraintType == SourceConstraint.PrimaryKeyConstraintTypeName));
             Assert.AreEqual(pks.Count(), new Regex("PRIMARY KEY CLUSTERED").Matches(script).Count);
-            Assert.AreEqual(1, new Regex("UNIQUE NONCLUSTERED").Matches(script).Count);
+            Assert.AreEqual(2, new Regex("UNIQUE NONCLUSTERED").Matches(script).Count);
             Assert.AreEqual(1, new Regex("UNIQUE CLUSTERED").Matches(script).Count);
             Assert.AreEqual(sv.GetSourceFragments().SelectMany(item => item.Constraints.Where(cns => cns.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName)).Count(), new Regex("FOREIGN KEY").Matches(script).Count);
-            Console.WriteLine(script);
 
             msc = new ModelToSourceConnector(sv, model);
 
@@ -170,6 +169,24 @@ namespace WXMLTests
 
             Assert.IsTrue(string.IsNullOrEmpty(script), script);
 
+            RelationDefinitionBase r = model.GetActiveRelations().First(item => item.Constraint == RelationConstraint.PrimaryKey);
+            r.Constraint = RelationConstraint.Unique;
+            r.SourceFragment.Constraints.Single(item => item.ConstraintType == SourceConstraint.PrimaryKeyConstraintTypeName).ConstraintType = SourceConstraint.UniqueConstraintTypeName;
+            
+            msc = new ModelToSourceConnector(sv, model);
+
+            script = msc.GenerateSourceScript(p, false);
+
+            Assert.IsTrue(string.IsNullOrEmpty(script), script);
+
+            //EntityPropertyDefinition prop = model.GetActiveEntities().SelectMany(item => item.GetProperties().OfType<EntityPropertyDefinition>()).First();
+            //SourceConstraint c = new SourceConstraint(SourceConstraint.UniqueConstraintTypeName, "xxx");
+            //c.SourceFields.AddRange(prop.SourceFields.Cast<SourceFieldDefinition>());
+            //prop.SourceFragment.Constraints.Add(c);
+            //msc.SourceView.GetSourceFragments().Single(item=>item.Selector == prop.SourceFragment.Selector
+            //    && item.Name == prop.SourceFragment.Name).Constraints.Add(c);
+            //script = msc.GenerateSourceScript(p, false);
+            //Assert.IsTrue(string.IsNullOrEmpty(script), script);
         }
 
         [TestMethod]

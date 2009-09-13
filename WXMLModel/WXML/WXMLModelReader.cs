@@ -718,12 +718,25 @@ namespace WXML.Model
                     AccessedEntityType = rightAccessedEntityType
                 };
 
-                RelationDefinition relation = new RelationDefinition(leftLinkTarget, rightLinkTarget, relationTable, underlyingEntity, disabled)
-                {
-                    Constraint = (RelationConstraint)Enum.Parse(typeof(RelationConstraint), constraint, true)
-                };
+                RelationDefinition relation = new RelationDefinition(leftLinkTarget, rightLinkTarget, relationTable, underlyingEntity, disabled);
+			    relation.Constraint = (RelationConstraint) Enum.Parse(typeof (RelationConstraint), constraint, true);
+                //SourceConstraint cns = null;
+                //switch ((RelationConstraint)Enum.Parse(typeof(RelationConstraint), constraint, true))
+                //{
+                //    case RelationConstraint.None:
+                //        break;
+                //    case RelationConstraint.PrimaryKey:
+                //        cns = new SourceConstraint();
+                //}
 
-                if (!string.IsNullOrEmpty(mergeAction))
+                //if (cns != null)
+                //{
+                //    leftLinkTarget.
+                //    cns.SourceFields.Add();
+                //    relationTable.Constraints.Add(cns);
+                //}
+
+			    if (!string.IsNullOrEmpty(mergeAction))
                     relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
                 
                 _model.AddRelation(relation);

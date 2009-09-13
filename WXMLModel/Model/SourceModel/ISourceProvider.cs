@@ -9,7 +9,7 @@ namespace WXML.Model.Descriptors
         void GenerateCreateScript(IEnumerable<PropertyDefinition> props, StringBuilder script, bool unicodeStrings);
         void GenerateCreateScript(RelationDefinitionBase rel, StringBuilder script, bool unicodeStrings);
         void GenerateDropConstraintScript(SourceFragmentDefinition table, string constraintName, StringBuilder script);
-        void GenerateCreatePKScript(IEnumerable<ScalarPropertyDefinition> pks, string constraintName, StringBuilder script, bool pk, bool clustered);
+        void GenerateCreatePKScript(IEnumerable<PropDefinition> pks, string constraintName, StringBuilder script, bool pk, bool clustered);
         void GenerateCreateFKsScript(SourceFragmentDefinition table, IEnumerable<FKDefinition> fks, StringBuilder script);
         void GenerateAddColumnsScript(IEnumerable<PropDefinition> props, StringBuilder script, bool unicodeStrings);
     }
