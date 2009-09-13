@@ -102,7 +102,7 @@ namespace WXMLTests.MSSQLSourceProvider
             Assert.AreEqual(26, new Regex("ALTER TABLE ").Matches(script.Remove(script.IndexOf("--Creating primary keys"))).Count);
             IEnumerable<SourceConstraint> pks = sv.GetSourceFragments().SelectMany(item => item.Constraints.Where(cns => cns.ConstraintType == SourceConstraint.PrimaryKeyConstraintTypeName));
             Assert.AreEqual(pks.Count(), new Regex("PRIMARY KEY CLUSTERED").Matches(script).Count);
-            Assert.AreEqual(1, new Regex("UNIQUE NONCLUSTERED").Matches(script).Count);
+            Assert.AreEqual(2, new Regex("UNIQUE NONCLUSTERED").Matches(script).Count);
             Assert.AreEqual(1, new Regex("UNIQUE CLUSTERED").Matches(script).Count);
             Assert.AreEqual(sv.GetSourceFragments().SelectMany(item => item.Constraints.Where(cns => cns.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName)).Count(), new Regex("FOREIGN KEY").Matches(script).Count);
         }
