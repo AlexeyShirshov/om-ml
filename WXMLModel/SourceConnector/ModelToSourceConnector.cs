@@ -36,6 +36,8 @@ namespace WXML.SourceConnector
 
             StringBuilder script = new StringBuilder();
 
+            DropConstraints(script, provider);
+
             CreateTables(script, props, provider, unicodeStrings);
 
             AlterTables(script, props, provider, unicodeStrings);
@@ -47,6 +49,48 @@ namespace WXML.SourceConnector
             CreateForeignKeys(script, provider);
 
             return script.ToString();
+        }
+
+        private void DropConstraints(StringBuilder script, ISourceProvider provider)
+        {
+            var uks = Model.GetActiveEntities().SelectMany(e=>e.GetActiveProperties())
+                .Where(item => item.SourceFragment != null && 
+                    item.SourceFragment.Constraints.Any(cns => 
+                        cns.ConstraintType != SourceConstraint.ForeignKeyConstraintTypeName));
+
+            if (uks.Count() == 0) return;
+            bool hdr = false;
+
+            foreach (SourceFragmentDefinition s in SourceView.GetSourceFragments())
+            {
+                var targetSF = s;
+
+                SourceFragmentDefinition sf = uks.Select(item => item.SourceFragment).Distinct()
+                    .SingleOrDefault(item => item.Name == s.Name && item.Selector == s.Selector);
+
+                if (sf != null)
+                {
+                    foreach (SourceConstraint constraint in targetSF.Constraints.Where(item =>
+                        item.ConstraintType != SourceConstraint.ForeignKeyConstraintTypeName))
+                    {
+                        if (!sf.Constraints.Any(item => item.SourceFields.Count == constraint.SourceFields.Count && 
+                            item.ConstraintType == constraint.ConstraintType &&
+                            constraint.SourceFields.All(fld =>
+                                item.SourceFields.Any(sfld => 
+                                    sfld.SourceFieldExpression == fld.SourceFieldExpression))))
+                        {
+                            if (!hdr)
+                            {
+                                script.AppendLine("--Drop constraints");
+                                hdr = true;
+                            }
+
+                            provider.GenerateDropConstraintScript(targetSF, constraint.ConstraintName, script);
+                        }
+                    }
+                }
+            }
+
         }
 
         private void AlterTables(StringBuilder script, IEnumerable<PropertyDefinition> props, ISourceProvider provider, bool unicodeStrings)
@@ -288,7 +332,9 @@ namespace WXML.SourceConnector
                 foreach (SourceConstraint constraint in s.Constraints.Where(item =>
                     item.ConstraintType == SourceConstraint.UniqueConstraintTypeName))
                 {
-                    if (targetSF == null || !targetSF.Constraints.Any(item => constraint.SourceFields.All(fld =>
+                    if (targetSF == null || !targetSF.Constraints.Any(item => 
+                        constraint.ConstraintType == item.ConstraintType &&
+                        constraint.SourceFields.All(fld =>
                         item.SourceFields.Any(sfld=>sfld.SourceFieldExpression == fld.SourceFieldExpression))))
                     {
                         var tablePKs = uks.Where(item => item.SourceFragment == sf);
