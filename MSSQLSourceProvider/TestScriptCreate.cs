@@ -178,15 +178,77 @@ namespace WXMLTests
             script = msc.GenerateSourceScript(p, false);
 
             Assert.IsTrue(string.IsNullOrEmpty(script), script);
+        }
 
-            //EntityPropertyDefinition prop = model.GetActiveEntities().SelectMany(item => item.GetProperties().OfType<EntityPropertyDefinition>()).First();
-            //SourceConstraint c = new SourceConstraint(SourceConstraint.UniqueConstraintTypeName, "xxx");
-            //c.SourceFields.AddRange(prop.SourceFields.Cast<SourceFieldDefinition>());
-            //prop.SourceFragment.Constraints.Add(c);
-            //msc.SourceView.GetSourceFragments().Single(item=>item.Selector == prop.SourceFragment.Selector
-            //    && item.Name == prop.SourceFragment.Name).Constraints.Add(c);
-            //script = msc.GenerateSourceScript(p, false);
-            //Assert.IsTrue(string.IsNullOrEmpty(script), script);
+        [TestMethod]
+        public void TestGenerateScriptDiff()
+        {
+            var p = new MSSQLProvider(GetTestDB(), null);
+
+            var sv = p.GetSourceView();
+
+            var model = new WXMLModel();
+
+            var smc = new SourceToModelConnector(sv, model);
+            smc.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true);
+
+            Assert.AreEqual(28, model.GetActiveEntities().Count());
+            Assert.AreEqual(32, model.GetSourceFragments().Count());
+
+            EntityPropertyDefinition prop = model.GetActiveEntities().SelectMany(item => item.GetProperties().OfType<EntityPropertyDefinition>()).First();
+            SourceConstraint c = new SourceConstraint(SourceConstraint.UniqueConstraintTypeName, "xxx");
+            c.SourceFields.AddRange(prop.SourceFields.Cast<SourceFieldDefinition>());
+            prop.SourceFragment.Constraints.Add(c);
+
+            var msc = new ModelToSourceConnector(p.GetSourceView(), model);
+            var tbl = msc.SourceView.GetSourceFragments().Single(item => item.Selector == prop.SourceFragment.Selector
+                && item.Name == prop.SourceFragment.Name);
+
+            string script = msc.GenerateSourceScript(p, false);
+            Console.WriteLine(script);
+            Assert.IsFalse(string.IsNullOrEmpty(script), script);
+
+            Assert.AreEqual(1, new Regex("ADD CONSTRAINT").Matches(script).Count);
+            Assert.AreEqual(0, new Regex("DROP CONSTRAINT").Matches(script).Count);
+
+            c = new SourceConstraint(SourceConstraint.UniqueConstraintTypeName, "xxx");
+            c.SourceFields.Add(msc.SourceView.GetSourceFields(tbl).First(item=>item.SourceFieldExpression != prop.SourceFields.First().SourceFieldExpression));
+            tbl.Constraints.Add(c);
+
+            script = msc.GenerateSourceScript(p, false);
+            Assert.AreEqual(1, new Regex("ADD CONSTRAINT").Matches(script).Count);
+            Assert.AreEqual(1, new Regex("DROP CONSTRAINT").Matches(script).Count);
+        }
+
+        [TestMethod]
+        public void TestGenerateScriptDropConstraint()
+        {
+            var p = new MSSQLProvider(GetTestDB(), null);
+
+            var sv = p.GetSourceView();
+
+            var model = new WXMLModel();
+
+            var smc = new SourceToModelConnector(sv, model);
+            smc.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true);
+
+            Assert.AreEqual(28, model.GetActiveEntities().Count());
+            Assert.AreEqual(32, model.GetSourceFragments().Count());
+
+            EntityPropertyDefinition prop = model.GetActiveEntities().SelectMany(item => item.GetProperties().OfType<EntityPropertyDefinition>()).First();
+            SourceConstraint c = new SourceConstraint(SourceConstraint.UniqueConstraintTypeName, "xxx");
+            c.SourceFields.AddRange(prop.SourceFields.Cast<SourceFieldDefinition>());
+            prop.SourceFragment.Constraints.Add(c);
+
+            var msc = new ModelToSourceConnector(p.GetSourceView(), model);
+            var tbl = msc.SourceView.GetSourceFragments().Single(item => item.Selector == prop.SourceFragment.Selector
+                && item.Name == prop.SourceFragment.Name);
+            tbl.Constraints.Add(new SourceConstraint(SourceConstraint.UniqueConstraintTypeName, "xxx"));
+
+            string script = msc.GenerateSourceScript(p, false);
+            Assert.IsFalse(string.IsNullOrEmpty(script), script);
+
+            Assert.AreEqual(1, new Regex("DROP CONSTRAINT").Matches(script).Count);
         }
 
         [TestMethod]
