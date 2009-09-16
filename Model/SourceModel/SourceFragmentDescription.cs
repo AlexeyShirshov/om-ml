@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace WXML.Model.Descriptors
 {
-	public class SourceFragmentDefinition
+	public class SourceFragmentDefinition : ICloneable
 	{
 		public string Identifier { get; private set; }
 		public string Name { get; set; }
@@ -35,5 +35,15 @@ namespace WXML.Model.Descriptors
         {
             return Selector + "." + Name;
         }
+
+        public SourceFragmentDefinition Clone()
+        {
+            return new SourceFragmentDefinition(Identifier, Name, Selector);
+        }
+
+	    object ICloneable.Clone()
+	    {
+	        return Clone();
+	    }
 	}
 }
