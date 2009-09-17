@@ -4,10 +4,11 @@ using System.Linq;
 
 namespace WXML.Model.Descriptors
 {
+    [Serializable]
     public class SourceView
     {
-        internal List<SourceFieldDefinition> _columns = new List<SourceFieldDefinition>();
-        internal List<SourceReferences> _references = new List<SourceReferences>();
+        private readonly List<SourceFieldDefinition> _columns = new List<SourceFieldDefinition>();
+        private readonly List<SourceReferences> _references = new List<SourceReferences>();
 
         public IEnumerable<SourceFragmentDefinition> GetSourceFragments()
         {

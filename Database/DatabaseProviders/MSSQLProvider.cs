@@ -248,7 +248,7 @@ namespace WXML.Model.Database.Providers
                         c.SourceTypeSize = reader.GetInt32(sc);
                 }
 
-                db._columns.Add(c);
+                db.SourceFields.Add(c);
             }
             else
                 c = db.GetSourceFields(c.SourceFragment).Single(item => item.SourceFieldExpression == c._column);
@@ -264,7 +264,7 @@ namespace WXML.Model.Database.Providers
                 if (cns == null)
                 {
                     cns = new SourceConstraint(reader.GetString(ct), reader.GetString(cn));
-                    c.SourceFragment._constraints.Add(cns);
+                    c.SourceFragment.Constraints.Add(cns);
                 }
 
                 cns.SourceFields.Add(c);
@@ -357,7 +357,7 @@ namespace WXML.Model.Database.Providers
                         //if (fkConstarint == null)
                         //    throw new InvalidOperationException(string.Format("Constraint {0} not found", reader.GetString(reader.GetOrdinal("fkConstraint"))));
 
-                        sv._references.Add(new SourceReferences(
+                        sv.References.Add(new SourceReferences(
                             reader.GetString(reader.GetOrdinal("DELETE_RULE")),
                             pkTable.Constraints.Single(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("CONSTRAINT_NAME"))),
                             fkTable.Constraints.Single(item => item.ConstraintName == reader.GetString(reader.GetOrdinal("fkConstraint"))),

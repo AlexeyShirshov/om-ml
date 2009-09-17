@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace WXML.Model.Descriptors
 {
+    [Serializable]
     public class SourceFieldDefinition
     {
         private SourceFragmentDefinition _tbl;
@@ -15,7 +16,7 @@ namespace WXML.Model.Descriptors
         private int? _sz;
         protected internal string _defaultValue;
 
-        protected internal SourceFieldDefinition()
+        public SourceFieldDefinition()
         {
         }
 
