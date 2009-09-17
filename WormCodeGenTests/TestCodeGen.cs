@@ -260,10 +260,14 @@ namespace WormCodeGenTests
             prms.ReferencedAssemblies.Add("System.dll");
             prms.ReferencedAssemblies.Add("System.Data.dll");
             prms.ReferencedAssemblies.Add("System.XML.dll");
-            prms.ReferencedAssemblies.Add("CoreFramework.dll");
-            prms.ReferencedAssemblies.Add("Worm.Orm.dll");
-            if (model.LinqSettings != null && model.LinqSettings.Enable)
-                prms.ReferencedAssemblies.Add("Worm.Linq.dll");
+            if ((settings.GenerateMode.HasValue ? settings.GenerateMode.Value : model.GenerateMode) != GenerateModeEnum.EntityOnly)
+            {
+                prms.ReferencedAssemblies.Add("CoreFramework.dll");
+                prms.ReferencedAssemblies.Add("Worm.Orm.dll");
+                if (model.LinqSettings != null && model.LinqSettings.Enable)
+                    prms.ReferencedAssemblies.Add("Worm.Linq.dll");
+            }
+
             prms.TempFiles.KeepFiles = true;
 
             CodeCompileUnit singleUnit = new CodeCompileUnit();

@@ -5,6 +5,8 @@ using WXML.Model;
 using WXML.Model.Descriptors;
 using WXML.Model.Database.Providers;
 using WXML.SourceConnector;
+using System.Xml.Serialization;
+using System;
 
 namespace TestsSourceModel
 {
@@ -23,6 +25,17 @@ namespace TestsSourceModel
             Assert.AreEqual(133, view.SourceFields.Count());
 
             Assert.AreEqual(32, view.GetSourceFragments().Count());
+        }
+
+        [TestMethod]
+        public void TestSerializeSourceView()
+        {
+            MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
+            SourceView view = p.GetSourceView();
+
+            XmlSerializer s = new XmlSerializer(typeof(SourceView));
+
+            s.Serialize(Console.Out, view);
         }
 
         [TestMethod]

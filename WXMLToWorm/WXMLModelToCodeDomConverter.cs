@@ -299,7 +299,7 @@ namespace WXMLToWorm
 
         [Obsolete("Use GetEntityCompileUnits instead.")]
         public Dictionary<string, CodeCompileUnit> GetEntityDom(string entityId,
-            WXMLCodeDomGeneratorSettings settings, LinqToCodedom.CodeDomGenerator.Language language)
+            WXMLCodeDomGeneratorSettings settings, CodeDomGenerator.Language language)
         {
             var units = GetEntityCompileUnits(entityId, language);
             var result = new Dictionary<string, CodeCompileUnit>();
@@ -390,31 +390,33 @@ namespace WXMLToWorm
                         // базовый класс
                         if (entity.BaseEntity == null)
                         {
-                            CodeTypeReference entityType;
-                            if (_model.EntityBaseType == null)
+                            if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.EntityOnly)
                             {
-                                entityType = new CodeTypeReference(entity.GetPkProperties().Count() == 1 ?
-                                    typeof(KeyEntity) :
-                                    entity.GetPkProperties().Count() > 0 ?
-                                        typeof(CachedLazyLoad) :
-                                        typeof(Entity));
-                            }
-                            else
-                            {
-                                entityType =
-                                    new CodeTypeReference(_model.EntityBaseType.IsEntityType
-                                                              ? nameHelper.GetEntityClassName(
-                                                                    _model.EntityBaseType.Entity,
-                                                                    true)
-                                                              : _model.EntityBaseType.GetTypeName(Settings));
-                                //entityType.TypeArguments.Add(
-                                //    new CodeTypeReference(nameHelper.GetEntityClassName(entity)));
-                            }
+                                CodeTypeReference entityType;
+                                if (_model.EntityBaseType == null)
+                                {
+                                    entityType = new CodeTypeReference(entity.GetPkProperties().Count() == 1 ?
+                                        typeof(KeyEntity) :
+                                        entity.GetPkProperties().Count() > 0 ?
+                                            typeof(CachedLazyLoad) :
+                                            typeof(Entity));
+                                }
+                                else
+                                {
+                                    entityType =
+                                        new CodeTypeReference(_model.EntityBaseType.IsEntityType
+                                                                  ? nameHelper.GetEntityClassName(
+                                                                        _model.EntityBaseType.Entity,
+                                                                        true)
+                                                                  : _model.EntityBaseType.GetTypeName(Settings));
+                                    //entityType.TypeArguments.Add(
+                                    //    new CodeTypeReference(nameHelper.GetEntityClassName(entity)));
+                                }
 
-                            entityClass.BaseTypes.Add(entityType);
-                            entityClass.BaseTypes.Add(new CodeTypeReference(typeof(IOptimizedValues)));
+                                entityClass.BaseTypes.Add(entityType);
+                                entityClass.BaseTypes.Add(new CodeTypeReference(typeof(IOptimizedValues)));
+                            }
                         }
-
                         else
                             entityClass.BaseTypes.Add(
                                 new CodeTypeReference(nameHelper.GetEntityClassName(entity.BaseEntity, true)));
@@ -477,7 +479,7 @@ namespace WXMLToWorm
                     CodeTypeDeclaration propertyAliasClass = null;
                     CodeTypeDeclaration instancedPropertyAliasClass = null;
 
-                    if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.SchemaOnly)
+                    if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) == GenerateModeEnum.Full)
                     {
                         #region PropertyAlias class
                         propertyAliasClass = new CodeTypeDeclaration
@@ -645,6 +647,7 @@ namespace WXMLToWorm
                     if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.SchemaOnly)
                     {
                         #region определение класса Fields
+                        if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) == GenerateModeEnum.Full)
                         {
                             fieldsClass = new CodeTypeDeclaration("props")
                             {
@@ -668,19 +671,18 @@ namespace WXMLToWorm
                         #region конструкторы
 
                         // конструктор по умолчанию
-                        CodeConstructor ctr = new CodeConstructor();
-                        ctr.Attributes = MemberAttributes.Public;
+                        CodeConstructor ctr = new CodeConstructor { Attributes = MemberAttributes.Public };
                         entityClass.Members.Add(ctr);
 
                         RaiseEntityCtorCreated(entityClass, ctr);
 
                         //if(
-                        if (entity.GetPkProperties().Count() == 1)
+                        if (entity.GetPkProperties().Count() == 1 &&
+                            (Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.EntityOnly)
                         {
                             ScalarPropertyDefinition pkProperty = entity.GetPkProperties().Single();
                             // параметризированный конструктор
-                            ctr = new CodeConstructor();
-                            ctr.Attributes = MemberAttributes.Public;
+                            ctr = new CodeConstructor {Attributes = MemberAttributes.Public};
                             // параметры конструктора
                             ctr.Parameters.Add(new CodeParameterDeclarationExpression(pkProperty.PropertyType.ToCodeType(Settings), "id"));
                             ctr.Parameters.Add(new CodeParameterDeclarationExpression(typeof(CacheBase), "cache"));
@@ -700,19 +702,30 @@ namespace WXMLToWorm
 
                         #region метод OrmBase.CopyBody(CopyBody(...)
 
-                        CopyPropertiesMethodGeneration(entityClass);
+                        if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.EntityOnly)
+                        {
+                            CopyPropertiesMethodGeneration(entityClass);
+                        }
 
                         #endregion метод OrmBase.CopyBody(CopyBody(OrmBase from, OrmBase to)
 
                         #region void SetValue(System.Reflection.PropertyInfo pi, string propertyAlias, object value)
 
-                        CodeMemberMethod setvalueMethod = CreateSetValueMethod(entityClass);
+                        CodeMemberMethod setvalueMethod = null;
+                        if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.EntityOnly)
+                        {
+                            setvalueMethod = CreateSetValueMethod(entityClass);
+                        }
 
                         #endregion void SetValue(System.Reflection.PropertyInfo pi, string propertyAlias, object value)
 
                         #region public override object GetValue(string propAlias, Worm.Orm.IOrmObjectSchemaBase schema)
 
-                        CodeMemberMethod getvalueMethod = CreateGetValueMethod(entityClass);
+                        CodeMemberMethod getvalueMethod = null;
+                        if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.EntityOnly)
+                        {
+                            getvalueMethod = CreateGetValueMethod(entityClass);
+                        }
 
                         #endregion public override object GetValue(string propAlias, Worm.Orm.IOrmObjectSchemaBase schema)
 
@@ -726,7 +739,8 @@ namespace WXMLToWorm
 
                         //CodeMemberMethod createobjectMethod = null;
 
-                        if (entity.GetPkProperties().Count() > 0)
+                        if (entity.GetPkProperties().Count() > 0 &&
+                            (Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.EntityOnly)
                         {
                             if (entity.GetPkProperties().Count() == 1)
                             {
@@ -789,30 +803,31 @@ namespace WXMLToWorm
                     }
 
                     #region custom attribute EntityAttribute
-
-                    entityClass.CustomAttributes.AddRange(new[]{
-                        new CodeAttributeDeclaration(
-	                        new CodeTypeReference(typeof (EntityAttribute)),
-	                        new CodeAttributeArgument(
-	                            new CodeTypeOfExpression(
-	                                new CodeTypeReference(
-	                                    nameHelper.GetEntitySchemaDefClassQualifiedName(entity, false)
+                    if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.EntityOnly)
+                    {
+                        entityClass.CustomAttributes.AddRange(new[]{
+                            new CodeAttributeDeclaration(
+	                            new CodeTypeReference(typeof (EntityAttribute)),
+	                            new CodeAttributeArgument(
+	                                new CodeTypeOfExpression(
+	                                    new CodeTypeReference(
+	                                        nameHelper.GetEntitySchemaDefClassQualifiedName(entity, false)
+                                        )
                                     )
-                                )
-                            ),
-	                        new CodeAttributeArgument(
-	                            new CodePrimitiveExpression(entity.Model.SchemaVersion)
+                                ),
+	                            new CodeAttributeArgument(
+	                                new CodePrimitiveExpression(entity.Model.SchemaVersion)
+	                            ),
+	                            new CodeAttributeArgument(
+	                                "EntityName",
+	                                WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(Settings,entity, false)
+	                            )
 	                        ),
-	                        new CodeAttributeArgument(
-	                            "EntityName",
-	                            WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(Settings,entity, false)
-	                        )
-	                    ),
-                        new CodeAttributeDeclaration(
-                            new CodeTypeReference(typeof(SerializableAttribute))
-                        )
-   	                });
-
+                            new CodeAttributeDeclaration(
+                                new CodeTypeReference(typeof(SerializableAttribute))
+                            )
+   	                    });
+                    }
                     #endregion custom attribute EntityAttribute
 
                     foreach (CodeCompileFileUnit compileUnit in result)
@@ -1433,10 +1448,10 @@ namespace WXMLToWorm
                     );
                 usingStatement.Statements = statements.ToArray();
             }
-            else
-            {
-                throw new NotImplementedException();
-            }
+            //else
+            //{
+            //    throw new NotImplementedException();
+            //}
         }
 
         private void RaiseEntityCtorCreated(CodeEntityTypeDeclaration entityClass, CodeConstructor ctr)
@@ -1462,19 +1477,21 @@ namespace WXMLToWorm
                 EntityClassCreated(this, new EntityClassCreatedEventArgs(nameSpace, entityClass));
         }
 
-        static void OnEntityCtorCustomPropEventsImplementationRequired(object sender, EntityCtorCreatedEventArgs e)
+        private void OnEntityCtorCustomPropEventsImplementationRequired(object sender, 
+            EntityCtorCreatedEventArgs e)
         {
-            CodeConstructor con = e.CtorDeclaration;
-
-            con.Statements.Add(
-                new CodeAssignStatement(
-                    new CodeFieldReferenceExpression(
-                        new CodeThisReferenceExpression(),
-                        "_dontRaisePropertyChange"
-                        ),
-                        new CodePrimitiveExpression(true)
-                    )
-                );
+            if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.EntityOnly)
+            {
+                e.CtorDeclaration.Statements.Add(
+                    new CodeAssignStatement(
+                        new CodeFieldReferenceExpression(
+                            new CodeThisReferenceExpression(),
+                            "_dontRaisePropertyChange"
+                            ),
+                            new CodePrimitiveExpression(true)
+                        )
+                    );
+            }
         }
 
         protected virtual void OnPropertyDocumentationRequiered(object sender, EntityPropertyCreatedEventArgs e)
@@ -1536,7 +1553,8 @@ namespace WXMLToWorm
                 CreateEntityInterfaces(entityNamespace, entityClass);
         }
 
-        private void CreateEntityInterfaces(CodeNamespace entityNamespace, CodeEntityTypeDeclaration entityClass)
+        private void CreateEntityInterfaces(CodeNamespace entityNamespace, 
+            CodeEntityTypeDeclaration entityClass)
         {
             CodeEntityInterfaceDeclaration entityInterface = new CodeEntityInterfaceDeclaration(Settings, entityClass);
             CodeEntityInterfaceDeclaration entityPropertiesInterface = new CodeEntityInterfaceDeclaration(Settings, entityClass, null, "Properties");
@@ -1544,12 +1562,15 @@ namespace WXMLToWorm
             entityInterface.TypeAttributes = entityPropertiesInterface.TypeAttributes = TypeAttributes.Public | TypeAttributes.Interface;
 
             entityInterface.BaseTypes.Add(entityPropertiesInterface.TypeReference);
-            if (entityClass.Entity.GetPkProperties().Count() == 1)
-                entityInterface.BaseTypes.Add(new CodeTypeReference(typeof(_IKeyEntity)));
-            else if (entityClass.Entity.GetPkProperties().Count() > 0)
-                entityInterface.BaseTypes.Add(new CodeTypeReference(typeof(_ICachedEntity)));
-            else
-                entityInterface.BaseTypes.Add(new CodeTypeReference(typeof(_IEntity)));
+            if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.EntityOnly)
+            {
+                if (entityClass.Entity.GetPkProperties().Count() == 1)
+                    entityInterface.BaseTypes.Add(new CodeTypeReference(typeof (_IKeyEntity)));
+                else if (entityClass.Entity.GetPkProperties().Count() > 0)
+                    entityInterface.BaseTypes.Add(new CodeTypeReference(typeof (_ICachedEntity)));
+                else
+                    entityInterface.BaseTypes.Add(new CodeTypeReference(typeof (_IEntity)));
+            }
 
             entityClass.EntityInterfaceDeclaration = entityInterface;
             entityClass.EntityPropertiesInterfaceDeclaration = entityPropertiesInterface;
@@ -1683,7 +1704,8 @@ namespace WXMLToWorm
                 {
                     #region property custom attribute Worm.Orm.EntityPropertyAttribute
 
-                    CreatePropertyColumnAttribute(property, propertyDesc);
+                    if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.EntityOnly)
+                        CreatePropertyColumnAttribute(property, propertyDesc);
 
                     #endregion property custom attribute Worm.Orm.EntityPropertyAttribute
 
@@ -1857,7 +1879,8 @@ namespace WXMLToWorm
                             new CodeThisReferenceExpression(), fieldName))
                 };
 
-                if (entity.GetPkProperties().Count() > 0)
+                if (entity.GetPkProperties().Count() > 0 &&
+                    (Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.EntityOnly)
                     property.GetStatements.Add(new CodeUsingStatement(getUsingExpression, getInUsingStatements));
                 else
                     property.GetStatements.AddRange(getInUsingStatements);
@@ -1886,7 +1909,8 @@ namespace WXMLToWorm
                         )
                     };
 
-                    if (entity.GetPkProperties().Count() > 0)
+                    if (entity.GetPkProperties().Count() > 0 &&
+                        (Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.EntityOnly)
                         property.SetStatements.Add(new CodeUsingStatement(setUsingExpression, setInUsingStatements));
                     else
                         property.SetStatements.AddRange(setInUsingStatements);
@@ -1906,13 +1930,15 @@ namespace WXMLToWorm
 
                 #region void SetValue(System.Reflection.PropertyInfo pi, EntityPropertyAttribute c, object value)
 
-                UpdateSetValueMethodMethod(propertyDesc, setvalueMethod);
+                if (setvalueMethod != null)
+                    UpdateSetValueMethodMethod(propertyDesc, setvalueMethod);
 
                 #endregion void SetValue(System.Reflection.PropertyInfo pi, EntityPropertyAttribute c, object value)
 
                 #region public override object GetValue(string propAlias, Worm.Orm.IOrmObjectsSchema schema)
 
-                UpdateGetValueMethod(propertyDesc, getvalueMethod);
+                if (getvalueMethod != null)
+                    UpdateGetValueMethod(propertyDesc, getvalueMethod);
 
                 #endregion public override object GetValue(string propAlias, Worm.Orm.IOrmObjectsSchema schema)
 

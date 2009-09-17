@@ -1,12 +1,14 @@
-﻿namespace WXML.Model.Descriptors
+﻿using System;
+namespace WXML.Model.Descriptors
 {
+    [Serializable]
     public struct SourceReferences
     {
-        public readonly SourceConstraint PKConstraint;
-        public readonly SourceConstraint FKConstraint;
+        public SourceConstraint PKConstraint;
+        public SourceConstraint FKConstraint;
 
-        public readonly SourceFieldDefinition PKField;
-        public readonly SourceFieldDefinition FKField;
+        public SourceFieldDefinition PKField;
+        public SourceFieldDefinition FKField;
 
         public readonly string DeleteAction;
 

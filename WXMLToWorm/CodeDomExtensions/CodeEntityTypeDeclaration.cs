@@ -40,7 +40,8 @@ namespace WXMLToWorm.CodeDomExtensions
             if ((_settings.GenerateMode.HasValue ? _settings.GenerateMode.Value : _entity.Model.GenerateMode) != GenerateModeEnum.SchemaOnly)
             {
                 OnPopulatePropertiesAccessors();
-                if (_entity.GetPkProperties().Count() > 0)
+                if (_entity.GetPkProperties().Count() > 0 &&
+                    (_settings.GenerateMode.HasValue ? _settings.GenerateMode.Value : _entity.Model.GenerateMode) != GenerateModeEnum.EntityOnly)
                 {
                     OnPupulateEntityRelations();
                     OnPupulateM2MRelations();
@@ -51,8 +52,8 @@ namespace WXMLToWorm.CodeDomExtensions
             {
                 OnPopulateSchema();
             }
-            else
-                throw new NotImplementedException();
+            //else
+            //    throw new NotImplementedException();
         }
 
         protected virtual void OnPopulateSchema()
