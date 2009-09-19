@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -184,7 +185,7 @@ namespace LinqCodeGenTests
 
             Assert.AreEqual(8, model.GetEntities().Count());
 
-            model.LinqSettings = new LinqSettingsDescriptor()
+            model.LinqSettings = new LinqSettingsDescriptor
             {
                 ContextName = "TestCtxDataContext"
             };
@@ -234,6 +235,41 @@ namespace LinqCodeGenTests
 
                 Assert.AreEqual(((IListSource)rpi.GetValue(realCtx, null)).GetList().Count, ent1s.GetList().Count);
             }
+        }
+
+        [TestMethod]
+        public void TestAdventureWorksLinq()
+        {
+            SourceView view;
+
+            BinaryFormatter f = new BinaryFormatter();
+
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            using (Stream fs = assembly.GetManifestResourceStream(
+                string.Format("{0}.Files.{1}", assembly.GetName().Name, "AdventureWorks.sourceview")))
+            {
+                Assert.IsNotNull(fs);
+                view = (SourceView)f.Deserialize(fs);
+            }
+
+            Assert.IsNotNull(view);
+
+            WXMLModel model = new WXMLModel
+            {
+                LinqSettings = new LinqSettingsDescriptor
+                {
+                    ContextName = "TestCtxDataContext"
+                },
+                Namespace = "LinqCodeGenTests"
+            };
+
+            SourceToModelConnector c = new SourceToModelConnector(view, model);
+
+            c.ApplySourceViewToModel(false, relation1to1.Default, false, false);
+
+            LinqCodeDomGenerator gen = new LinqCodeDomGenerator(model);
+
+            Console.WriteLine(gen.GenerateCode(LinqToCodedom.CodeDomGenerator.Language.CSharp));
         }
 
         public static string GetTestDB()
