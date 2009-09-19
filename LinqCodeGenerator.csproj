@@ -16,6 +16,8 @@
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>wxml.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -61,6 +63,9 @@
       <Name>WXMLModel</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="wxml.snk" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -69,4 +74,9 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <PropertyGroup>
+    <PostBuildEvent>$(SolutionDir)ilmerge /log /keyfile:$(SolutionDir)wxml.snk /t:library /xmldocs /out:$(TargetDir)$(TargetName)-Full.dll $(TargetPath) $(TargetDir)WXML.Model.dll $(TargetDir)Mvp.Xml.dll $(TargetDir)LinqToCodedom.dll
+rem $(SolutionDir)ilmerge /log /keyfile:$(SolutionDir)wxml.snk /t:library /xmldocs /out:$(TargetPath) $(TargetDir)$(TargetName)-Full.dll
+rem del /Q $(TargetDir)$(TargetName)-Full*</PostBuildEvent>
+  </PropertyGroup>
 </Project>
