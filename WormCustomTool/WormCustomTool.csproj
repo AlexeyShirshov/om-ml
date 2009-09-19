@@ -28,7 +28,7 @@
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>Worm.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>wxml.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -118,9 +118,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Worm.snk" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\WXMLModel\WXMLModel.csproj">
       <Project>{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}</Project>
       <Name>WXMLModel</Name>
@@ -129,6 +126,9 @@
       <Project>{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}</Project>
       <Name>WXMLToWorm</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="wxml.snk" />
   </ItemGroup>
   <PropertyGroup>
     <!--
