@@ -3,14 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binaries", "Binaries", "{0626EF5D-2788-40A4-AC76-D9B33FE387BA}"
 	ProjectSection(SolutionItems) = preProject
-		Binaries\CoreFramework.dll = Binaries\CoreFramework.dll
-		Binaries\CoreFramework.pdb = Binaries\CoreFramework.pdb
 		Binaries\LinqToCodedom.dll = Binaries\LinqToCodedom.dll
 		Binaries\LinqToCodedom.pdb = Binaries\LinqToCodedom.pdb
 		Binaries\Mvp.Xml.dll = Binaries\Mvp.Xml.dll
 		Binaries\Mvp.Xml.xml = Binaries\Mvp.Xml.xml
 		Binaries\Worm.Orm.dll = Binaries\Worm.Orm.dll
-		Binaries\Worm.Orm.pdb = Binaries\Worm.Orm.pdb
 		Binaries\Worm.Orm.xml = Binaries\Worm.Orm.xml
 	EndProjectSection
 EndProject
@@ -32,7 +29,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqCodeGenerator", "LinqCo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{45666568-9C5A-4359-A947-EDB0EB7848CA}"
 	ProjectSection(SolutionItems) = preProject
+		ILMerge.exe = ILMerge.exe
 		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
+		wxml.snk = wxml.snk
 		WXML.vsmdi = WXML.vsmdi
 	EndProjectSection
 EndProject

@@ -19,7 +19,7 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>Worm.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>wxml.snk</AssemblyOriginatorKeyFile>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -118,7 +118,7 @@
     <None Include="Schemas\OrmObjectsSchema.xsx">
       <DependentUpon>OrmObjectsSchema.xsd</DependentUpon>
     </None>
-    <None Include="Worm.snk" />
+    <None Include="wxml.snk" />
     <EmbeddedResource Include="Schemas\XInclude.xsd">
       <SubType>
       </SubType>
@@ -135,4 +135,9 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <PropertyGroup>
+    <PostBuildEvent>$(SolutionDir)ilmerge /log /keyfile:$(SolutionDir)wxml.snk /t:library /xmldocs /out:$(TargetDir)$(TargetName)-Full.dll $(TargetPath) $(TargetDir)Mvp.Xml.dll $(TargetDir)LinqToCodedom.dll
+rem $(SolutionDir)ilmerge /log /keyfile:$(SolutionDir)wxml.snk /t:library /xmldocs /out:$(TargetPath) $(TargetDir)$(TargetName)-Full.dll
+rem del /Q $(TargetDir)$(TargetName)-Full*</PostBuildEvent>
+  </PropertyGroup>
 </Project>

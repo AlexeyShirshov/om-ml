@@ -471,6 +471,21 @@ namespace WXMLTests
             }
         }
 
+        [TestMethod]
+        public void TestLinqContext()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("linq-context"))
+            {
+                WXMLModel model = WXMLModel.LoadFromXml(new XmlTextReader(stream));
+
+                Assert.IsNotNull(model);
+
+                WXMLDocumentSet wxmlDocumentSet = model.GetWXMLDocumentSet(new WXMLModelWriterSettings());
+
+                Assert.IsNotNull(wxmlDocumentSet);
+            }
+        }
+
         private static void TestFileEquality(Stream stream, string actualResourceName)
         {
             WXMLDocumentSet wxmlDocumentSet;

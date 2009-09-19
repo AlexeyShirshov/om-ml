@@ -45,10 +45,6 @@
     <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CoreFramework, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cf54b99ac03d848c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Binaries\CoreFramework.dll</HintPath>
-    </Reference>
     <Reference Include="LinqToCodedom, Version=1.0.0.0, Culture=neutral, PublicKeyToken=8b32a020163181f7, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Binaries\LinqToCodedom.dll</HintPath>
@@ -63,7 +59,7 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.XML" />
-    <Reference Include="Worm.Orm, Version=2.3.3499.40665, Culture=neutral, PublicKeyToken=cf54b99ac03d848c, processorArchitecture=MSIL">
+    <Reference Include="Worm.Orm, Version=2.4.3549.20786, Culture=neutral, PublicKeyToken=cf54b99ac03d848c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Binaries\Worm.Orm.dll</HintPath>
     </Reference>

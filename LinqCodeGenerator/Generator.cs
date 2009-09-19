@@ -29,6 +29,12 @@ namespace LinqCodeGenerator
         private readonly WXMLCodeDomGeneratorSettings _settings;
         private Func<string, string> _validId;
 
+        public LinqCodeDomGenerator(WXMLModel ormObjectsDefinition)
+        {
+            _ormObjectsDefinition = ormObjectsDefinition;
+            _settings = new WXMLCodeDomGeneratorSettings();
+        }
+
         public LinqCodeDomGenerator(WXMLModel ormObjectsDefinition, WXMLCodeDomGeneratorSettings settings)
         {
             _ormObjectsDefinition = ormObjectsDefinition;
@@ -524,7 +530,8 @@ namespace LinqCodeGenerator
             );
         }
 
-        private void AddProperties(EntityDefinition e, CodeTypeDeclaration cls, Action<CodeTypeDeclaration> addProps)
+        private void AddProperties(EntityDefinition e, CodeTypeDeclaration cls, 
+            Action<CodeTypeDeclaration> addProps)
         {
             WXMLCodeDomGeneratorNameHelper nameHelper = new WXMLCodeDomGeneratorNameHelper(Settings);
             foreach (PropertyDefinition p_ in e.GetActiveProperties())
@@ -951,12 +958,12 @@ namespace LinqCodeGenerator
 
         private static string NormalizeName<T>(IEnumerable<T> coll, Func<T,string> getName, string name, int cnt)
         {
-            if (coll.Any(item => getName(item) == name))
+            string n = name + (cnt == 0?string.Empty:cnt.ToString());
+            if (coll.Any(item => getName(item) == n))
             {
-                cnt++;
-                return NormalizeName(coll, getName, name + cnt, cnt);
+                return NormalizeName(coll, getName, name, ++cnt);
             }
-            return name;
+            return n;
         }
 
         private static TypeDefinition GetSourceFieldType(PropertyDefinition p, EntityPropertyDefinition.SourceField field)

@@ -54,7 +54,7 @@
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Worm.Orm, Version=2.3.3499.40665, Culture=neutral, PublicKeyToken=cf54b99ac03d848c, processorArchitecture=MSIL">
+    <Reference Include="Worm.Orm, Version=2.4.3549.20786, Culture=neutral, PublicKeyToken=cf54b99ac03d848c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Binaries\Worm.Orm.dll</HintPath>
     </Reference>

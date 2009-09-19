@@ -189,7 +189,7 @@ namespace WXML.SourceConnector
 
                 foreach (EntityDefinition oe_ in
                     from k in Model.GetActiveEntities()
-                    where k != e && !e.One2ManyRelations.Any(item => 
+                    where /*k != e && */!e.One2ManyRelations.Any(item => 
                         !item.Disabled && item.Entity.Identifier == k.Identifier)
                     select k)
                 {
@@ -242,7 +242,7 @@ namespace WXML.SourceConnector
                     .Count(item => item.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName) == 1 &&
                     SourceView.GetSourceFields(sf)
                         .Where(item => item.IsPK)
-                        .Any(item => item.IsFK)
+                        .All(item => item.IsFK)
                 )
                 {
                     switch (rb)
@@ -297,14 +297,17 @@ namespace WXML.SourceConnector
                             masterEntity.AddSourceFragment(new SourceFragmentRefDefinition(sf));
 
                             foreach (PropertyDefinition property in e.GetProperties()
-                                .Where(item => !item.HasAttribute(Field2DbRelations.PK)))
+                                .Where(item => !item.HasAttribute(Field2DbRelations.PK)/* && 
+                                    item.SourceFragment != masterTable*/))
                             {
                                 if (masterEntity.GetProperties().Any(item => item.PropertyAlias == property.PropertyAlias))
                                 {
                                     property.PropertyAlias = e.Name + "_" + property.PropertyAlias;
                                     property.Name = e.Name + "_" + property.Name;
                                 }
-                                masterEntity.AddProperty(property);
+
+                                if (!masterEntity.GetProperties().Any(item => item.PropertyAlias == property.PropertyAlias))
+                                    masterEntity.AddProperty(property);
                             }
 
                             Model.RemoveEntity(e);
@@ -733,9 +736,11 @@ l1:
             out bool created, bool transforRawNamesToReadableForm, bool capitalizeNames)
         {
             created = false;
-            ScalarPropertyDefinition pe = e.OwnProperties.OfType<ScalarPropertyDefinition>().SingleOrDefault(pd =>
-                pd.SourceFieldExpression == c.SourceFieldExpression || pd.SourceFieldExpression.TrimEnd(']').TrimStart('[') == c.SourceFieldExpression
+            var x = e.OwnProperties.OfType<ScalarPropertyDefinition>().Where(pd =>
+                pd.SourceFieldExpression.Trim(']', '[') == c.SourceFieldExpression.Trim('[',']')
             );
+
+            ScalarPropertyDefinition pe = x.SingleOrDefault();
 
             GetSourceFragment(c.SourceFragment);
 
@@ -785,7 +790,7 @@ l1:
                     columnName = columnName.Substring(0, columnName.Length - 3);
                 else if (columnName.EndsWith("_dt"))
                     columnName = columnName.Substring(0, columnName.Length - 3);
-                else if (columnName.Length > 2 && columnName.EndsWith("Id"))
+                else if (columnName.Length > 2 && columnName.EndsWith("id", StringComparison.InvariantCultureIgnoreCase))
                     columnName = columnName.Substring(0, columnName.Length - 2);
 
                 Regex re = new Regex(@"_(\w)");

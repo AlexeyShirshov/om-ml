@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <TestRunConfiguration name="Local Test Run" id="14b4dc22-6c10-469b-9d23-245bf02d49bb" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2006">
   <Description>This is a default test run configuration for a local test run.</Description>
-  <CodeCoverage enabled="true" keyFile="WXMLModel\Worm.snk">
+  <CodeCoverage enabled="true" keyFile="wxml.snk">
     <Regular>
       <CodeCoverageItem binaryFile="WXMLModel\bin\Debug\WXML.Model.dll" pdbFile="WXMLModel\bin\Debug\WXML.Model.pdb" instrumentInPlace="true" />
       <CodeCoverageItem binaryFile="LinqCodeGenerator\bin\Debug\LinqCodeGenerator.dll" pdbFile="LinqCodeGenerator\bin\Debug\LinqCodeGenerator.pdb" instrumentInPlace="true" />
