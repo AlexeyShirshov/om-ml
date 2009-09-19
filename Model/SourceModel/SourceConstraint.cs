@@ -7,7 +7,7 @@ namespace WXML.Model.Descriptors
     public class SourceConstraint
     {
         private string _constraintType;
-        private string _constraintName;
+        private readonly string _constraintName;
 
         public const string PrimaryKeyConstraintTypeName = "PRIMARY KEY";
         public const string ForeignKeyConstraintTypeName = "FOREIGN KEY";
@@ -16,9 +16,9 @@ namespace WXML.Model.Descriptors
         public const string CascadeAction = "CASCADE";
         public const string NoAction = "NO ACTION";
 
-        public SourceConstraint()
-        {
-        }
+        //public SourceConstraint()
+        //{
+        //}
 
         public SourceConstraint(string constraintType, string constraintName)
         {
@@ -36,7 +36,7 @@ namespace WXML.Model.Descriptors
         public string ConstraintName
         {
             get { return _constraintName; }
-            set { _constraintName = value; }
+            //set { _constraintName = value; }
         }
 
         public List<SourceFieldDefinition> SourceFields { get; set; }

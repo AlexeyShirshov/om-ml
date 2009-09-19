@@ -6,14 +6,14 @@ namespace WXML.Model.Descriptors
     [Serializable]
 	public class SourceFragmentDefinition //: ICloneable
 	{
-		public string Identifier { get; set; }
+		public string Identifier { get; private set; }
 		public string Name { get; set; }
 		public string Selector { get; set; }
         private readonly List<SourceConstraint> _constraints = new List<SourceConstraint>();
 
-        public SourceFragmentDefinition()
-        {
-        }
+        //public SourceFragmentDefinition()
+        //{
+        //}
 
 	    public SourceFragmentDefinition(string id, string name) : this(id, name, null)
 		{
@@ -36,10 +36,10 @@ namespace WXML.Model.Descriptors
             get { return _constraints; }
         }
 
-        public override string ToString()
-        {
-            return Selector + "." + Name;
-        }
+        //public override string ToString()
+        //{
+        //    return Selector + "." + Name;
+        //}
 
         //public SourceFragmentDefinition Clone()
         //{
