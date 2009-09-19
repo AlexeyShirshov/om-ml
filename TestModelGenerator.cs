@@ -7,6 +7,8 @@ using WXML.Model.Database.Providers;
 using WXML.SourceConnector;
 using System.Xml.Serialization;
 using System;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Reflection;
 
 namespace TestsSourceModel
 {
@@ -33,9 +35,29 @@ namespace TestsSourceModel
             MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
             SourceView view = p.GetSourceView();
 
-            XmlSerializer s = new XmlSerializer(typeof(SourceView));
+            //XmlSerializer s = new XmlSerializer(typeof(SourceView));
 
-            s.Serialize(Console.Out, view);
+            //s.Serialize(Console.Out, view);
+
+            BinaryFormatter f = new BinaryFormatter();
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                f.Serialize(ms, view);
+
+                ms.Position = 0;
+
+                view = (SourceView)f.Deserialize(ms);
+            }
+
+            Assert.AreEqual(133, view.SourceFields.Count());
+
+            Assert.AreEqual(32, view.GetSourceFragments().Count());
+
+            foreach (SourceFragmentDefinition fragment in view.GetSourceFragments())
+            {
+                Assert.IsTrue(view.GetSourceFields(fragment).Count() > 0);
+            }
         }
 
         [TestMethod]
@@ -518,6 +540,64 @@ namespace TestsSourceModel
             SourceToModelConnector c = new SourceToModelConnector(sv, model);
 
             c.ApplySourceViewToModel();
+        }
+
+        //[TestMethod]
+        //public void TestAW()
+        //{
+        //    MSSQLProvider p = new MSSQLProvider(".\\sqlexpress", "AdventureWorks");
+        //    SourceView view = p.GetSourceView();
+
+        //    BinaryFormatter f = new BinaryFormatter();
+
+        //    using (FileStream fs = new FileStream(Path.Combine(Directory.GetCurrentDirectory(), "AdventureWorks.sourceview"), FileMode.CreateNew))
+        //    {
+        //        f.Serialize(fs, view);
+        //    }
+        //}
+
+        [TestMethod]
+        public void TestAdventureWorks()
+        {
+            SourceView view;
+
+            BinaryFormatter f = new BinaryFormatter();
+
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            using (Stream fs = assembly.GetManifestResourceStream(
+                string.Format("{0}.TestFiles.{1}", assembly.GetName().Name, "AdventureWorks.sourceview")))
+            {
+                Assert.IsNotNull(fs);
+                view = (SourceView)f.Deserialize(fs);
+            }
+
+            Assert.IsNotNull(view);
+
+            WXMLModel model = new WXMLModel();
+
+            SourceToModelConnector c = new SourceToModelConnector(view, model);
+
+            c.ApplySourceViewToModel(false, relation1to1.Default, true, true);
+
+            Assert.AreEqual(70, model.GetActiveEntities().Count());
+
+            Assert.AreEqual(70, model.GetSourceFragments().Count());
+
+            model = new WXMLModel();
+            c = new SourceToModelConnector(view, model);
+            c.ApplySourceViewToModel(false, relation1to1.Unify, true, true);
+
+            Assert.AreEqual(67, model.GetActiveEntities().Count());
+
+            Assert.AreEqual(70, model.GetSourceFragments().Count());
+
+            model = new WXMLModel();
+            c = new SourceToModelConnector(view, model);
+            c.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true);
+
+            Assert.AreEqual(70, model.GetActiveEntities().Count());
+
+            Assert.AreEqual(70, model.GetSourceFragments().Count());
         }
 
         public static string GetTestDB()

@@ -77,6 +77,12 @@
   <ItemGroup>
     <EmbeddedResource Include="TestFiles\SchemaBasedNewVersion.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\AdventureWorks.sourceview" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\linq-context.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
