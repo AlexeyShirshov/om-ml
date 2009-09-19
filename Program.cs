@@ -264,12 +264,12 @@ namespace WXMLDatabase
             Console.WriteLine("  -N=value\t-  Objects namespace. Example: -N=test.\n");
             Console.WriteLine("  -Y\t\t-  Unify entyties with the same PK(1-1 relation). Example: -Y.\n");
             Console.WriteLine("  -H\t\t-  Make hierarchy from 1-1 relations. Example: -H.\n");
-            Console.WriteLine("  -T\t\t-  Transform property names. Example: -T.\n"+
+            Console.WriteLine("  -T\t\t-  Transform property names. Example: -T. "+
 "Removes id, _id, _dt postfix and other cleanup processing\n");
             Console.WriteLine("  -ES\t\t-  Escape table names. Example: -ES.\n");
             Console.WriteLine("  -EC\t\t-  Escape column names. Example: -EC.\n");
-            Console.WriteLine("  -CN\t\t-  Capitalize names. Example: -CN.\n"+
-"Linq never capitalize names so this option for linq compatibility. Column [name] will be property Name (in linq name).");
+            Console.WriteLine("  -CN\t\t-  Capitalize names. Example: -CN. "+
+"Linq never capitalize names so this option for linq compatibility. Column [name] will be a property called Name (in linq - name).");
         }
     }
 }

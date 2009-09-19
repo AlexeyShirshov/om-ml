@@ -90,4 +90,9 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <PropertyGroup>
+    <PostBuildEvent>$(SolutionDir)ilmerge /log /t:exe /xmldocs /out:$(TargetDir)$(TargetName)-Full.exe $(TargetPath) $(TargetDir)WXML.Model.dll $(TargetDir)Mvp.Xml.dll $(TargetDir)LinqToCodedom.dll
+$(SolutionDir)ilmerge /log /t:exe /xmldocs /out:$(TargetPath) $(TargetDir)$(TargetName)-Full.exe
+del /Q $(TargetDir)$(TargetName)-Full*</PostBuildEvent>
+  </PropertyGroup>
 </Project>
