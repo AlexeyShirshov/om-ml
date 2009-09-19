@@ -21,9 +21,12 @@
     <SandcastlePath>..\..\..\Program Files (x86)\Sandcastle\</SandcastlePath>
     <DocumentationSources>
       <DocumentationSource sourceFile="..\LinqCodeGenerator\LinqCodeGenerator.csproj" xmlns="" />
-<DocumentationSource sourceFile="..\DatabaseConnector\WXMLDatabase.csproj" xmlns="" />
-<DocumentationSource sourceFile="..\WXMLModel\WXMLModel.csproj" xmlns="" />
-<DocumentationSource sourceFile="..\WXMLToWorm\WXMLToWorm.csproj" xmlns="" /></DocumentationSources>
+      <DocumentationSource sourceFile="..\DatabaseConnector\WXMLDatabase.csproj" xmlns="" />
+      <DocumentationSource sourceFile="..\WXMLModel\WXMLModel.csproj" xmlns="" />
+      <DocumentationSource sourceFile="..\WXMLToWorm\WXMLToWorm.csproj" xmlns="" />
+    </DocumentationSources>
+    <NamingMethod>MemberName</NamingMethod>
+    <IncludeFavorites>False</IncludeFavorites>
   </PropertyGroup>
   <!-- There are no properties for these two groups but they need to appear in
        order for Visual Studio to perform the build. -->
