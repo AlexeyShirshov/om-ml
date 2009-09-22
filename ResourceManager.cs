@@ -1,5 +1,6 @@
+using System;
+using System.IO;
 using System.Xml.Schema;
-using System.Xml;
 
 namespace WXML.Model
 {
@@ -10,9 +11,14 @@ namespace WXML.Model
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
             string ass = "WXML.Model";//assembly.GetName().Name;
             string resourceName = string.Format("{0}.Schemas.{1}.xsd", ass, schemaName);
-            XmlSchema schema = new XmlSchema();
+            //XmlSchema schema = new XmlSchema();
 
-            return XmlSchema.Read(assembly.GetManifestResourceStream(resourceName), new ValidationEventHandler(schemaValidationEventHandler));
+            using(Stream stream = assembly.GetManifestResourceStream(resourceName))
+            {
+                if (stream == null)
+                    throw new WXMLParserException(String.Format("Cannot load resource {0} from assembly {1}", resourceName, assembly.GetName().Name));
+                return XmlSchema.Read(stream, null);
+            }
         }
 
         //public static XmlDocument GetXmlDocument(string documentName)
@@ -27,9 +33,9 @@ namespace WXML.Model
         //    return doc;
         //}
 
-        private static void schemaValidationEventHandler(object sender, ValidationEventArgs e)
-        {
-            
-        }
+        //private static void schemaValidationEventHandler(object sender, ValidationEventArgs e)
+        //{
+
+        //}
     }
 }
