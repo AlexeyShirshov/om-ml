@@ -8,8 +8,8 @@ namespace WXML.Model
         public static XmlSchema GetXmlSchema(string schemaName)
         {
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            string resourceName;
-            resourceName = string.Format("{0}.Schemas.{1}.xsd", assembly.GetName().Name, schemaName);
+            string ass = "WXML.Model";//assembly.GetName().Name;
+            string resourceName = string.Format("{0}.Schemas.{1}.xsd", ass, schemaName);
             XmlSchema schema = new XmlSchema();
 
             return XmlSchema.Read(assembly.GetManifestResourceStream(resourceName), new ValidationEventHandler(schemaValidationEventHandler));
