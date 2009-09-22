@@ -8,6 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binaries", "Binaries", "{06
 		Binaries\Mvp.Xml.dll = Binaries\Mvp.Xml.dll
 		Binaries\Mvp.Xml.xml = Binaries\Mvp.Xml.xml
 		Binaries\Worm.Orm.dll = Binaries\Worm.Orm.dll
+		Binaries\Worm.Orm.pdb = Binaries\Worm.Orm.pdb
 		Binaries\Worm.Orm.xml = Binaries\Worm.Orm.xml
 	EndProjectSection
 EndProject
