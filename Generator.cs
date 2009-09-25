@@ -337,7 +337,10 @@ namespace LinqCodeGenerator
                 .Inherits(typeof(System.ComponentModel.INotifyPropertyChanging))
                 .Inherits(typeof(System.ComponentModel.INotifyPropertyChanged));
 
-            SourceFragmentDefinition tbl = e.GetSourceFragments().First();
+            SourceFragmentDefinition tbl = e.GetSourceFragments().SingleOrDefault();
+
+            if (tbl == null)
+                throw new WXMLException(string.Format("Entity {0} has no sources", e.Identifier));
 
             var c = Define.Attribute(typeof(System.Data.Linq.Mapping.TableAttribute));
             cls.AddAttribute(c);
