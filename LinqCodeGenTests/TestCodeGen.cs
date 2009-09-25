@@ -98,6 +98,29 @@ namespace LinqCodeGenTests
         }
 
         [TestMethod]
+        public void TestGenerateEmpty()
+        {
+            WXMLModel model = new WXMLModel();
+
+            Assert.IsNotNull(model);
+
+            model.LinqSettings = new LinqSettingsDescriptor()
+            {
+                ContextName = "TestCtxDataContext"
+            };
+
+            LinqCodeDomGenerator gen = new LinqCodeDomGenerator(model, new WXML.CodeDom.WXMLCodeDomGeneratorSettings());
+
+            Console.WriteLine(gen.GenerateCode(LinqToCodedom.CodeDomGenerator.Language.VB));
+
+            Console.WriteLine(gen.GenerateCode(LinqToCodedom.CodeDomGenerator.Language.CSharp));
+
+            Assert.IsNotNull(gen.Compile(LinqToCodedom.CodeDomGenerator.Language.VB));
+
+            Assert.IsNotNull(gen.Compile(LinqToCodedom.CodeDomGenerator.Language.CSharp));
+        }
+
+        [TestMethod]
         public void TestCompareLinqCtx()
         {
             MSSQLProvider p = new MSSQLProvider(GetTestDB(), null);
