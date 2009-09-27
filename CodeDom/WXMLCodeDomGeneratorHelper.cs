@@ -21,8 +21,13 @@ namespace WXML.CodeDom
 
         public static CodeExpression GetEntityNameReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDefinition entityDescription, bool addNamespace)
         {
-            string className = new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(entityDescription, addNamespace) + ".Descriptor";
-            return new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(className), "EntityName");
+            if (entityDescription.BaseEntity != null && entityDescription.BaseEntity.FamilyName == entityDescription.FamilyName)
+                return GetEntityNameReferenceExpression(settings, entityDescription.BaseEntity, true);
+            else
+            {
+                string className = new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(entityDescription, addNamespace) + ".Descriptor";
+                return new CodeFieldReferenceExpression(new CodeTypeReferenceExpression(className), "EntityName");
+            }
         }
 
         public static CodeExpression GetEntityClassReferenceExpression(WXMLCodeDomGeneratorSettings settings, EntityDefinition entityDesc, bool addNamespace)

@@ -214,5 +214,13 @@ namespace WXML.Model.Descriptors
             }
             return ed;
         }
+
+        public override bool HasMapping
+        {
+            get
+            {
+                return _fields.Count > 0;
+            }
+        }
     }
 }

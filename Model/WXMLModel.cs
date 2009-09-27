@@ -232,9 +232,9 @@ namespace WXML.Model
             _types.Add(type);
         }
 
-        public TypeDefinition GetOrCreateClrType(Type t)
+        public TypeDefinition GetOrCreateType(Type t)
         {
-            TypeDefinition td = GetTypes().FirstOrDefault(item => item.IsClrType && item.ClrType == t);
+            TypeDefinition td = GetTypes().SingleOrDefault(item => item.IsClrType && item.ClrType == t);
             if (td == null)
             {
                 td = new TypeDefinition(t.ToString(), t);
@@ -755,6 +755,16 @@ namespace WXML.Model
             #endregion
         }
 
+        public TypeDefinition GetOrCreateType(EntityDefinition definition)
+        {
+            TypeDefinition td = GetTypes().SingleOrDefault(item => item.IsEntityType && item.Entity == definition);
+            if (td == null)
+            {
+                td = new TypeDefinition("t"+definition.Name, definition);
+                _types.Add(td);
+            }
+            return td;
+        }
     }
 
     public static class Ext
