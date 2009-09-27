@@ -33,7 +33,7 @@
       <Properties>
         <Group name="grp1" hide="false">
           <Property fieldName="prop4" propertyName="prop4" table="tbl1" typeRef="tString"/>
-          <EntityProperty propertyName="prop5" table="tbl1" typeRef="te1">
+          <EntityProperty propertyName="prop5" table="tbl1" referencedEntity="e1">
             <field relatedProperty="ID" fieldName="e_id" />
           </EntityProperty>
         </Group>
@@ -62,9 +62,6 @@
 		<Type id="tTestUT5">
 			<UserType name="TestUT5" hint="ValueType Nullable"/>
 		</Type>
-    <Type id="te1">
-      <Entity ref="e1" />
-    </Type>
 	</Types>
 	<SourceFragments>
 		<SourceFragment id="tbl1" name="tbl1" />

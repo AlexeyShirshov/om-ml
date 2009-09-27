@@ -472,21 +472,24 @@ namespace WXML.Model
             {
                 XmlElement tableElement = CreateElement("SourceFragment");
                 tableElement.SetAttribute("ref", table.Identifier);
-                //if (table.Action != MergeAction.Merge)
-                //    tableElement.SetAttribute("action", table.Action.ToString());
+                if (table.Replaces != null)
+                    tableElement.SetAttribute("replaces", table.Replaces.Identifier);
 
                 if (table.AnchorTable != null)
                 {
-                    tableElement.SetAttribute("anchorTableRef", table.AnchorTable.Identifier);
+                    tableElement.SetAttribute("joinTableRef", table.AnchorTable.Identifier);
                     tableElement.SetAttribute("type", table.JoinType.ToString());
                     foreach (SourceFragmentRefDefinition.Condition c in table.Conditions)
                     {
-                        XmlElement join = CreateElement("join");
-                        join.SetAttribute("refColumn", c.LeftColumn);
+                        XmlElement join = CreateElement("condition");
+                        
+                        if (!string.IsNullOrEmpty(c.LeftColumn))
+                            join.SetAttribute("refColumn", c.LeftColumn);
 
                         if (!string.IsNullOrEmpty(c.RightColumn))
-                            join.SetAttribute("anchorColumn", c.RightColumn);
-                        else
+                            join.SetAttribute("joinColumn", c.RightColumn);
+                        
+                        if (!string.IsNullOrEmpty(c.RightConstant))
                             join.SetAttribute("constant", c.RightConstant);
 
                         tableElement.AppendChild(join);
@@ -517,7 +520,14 @@ namespace WXML.Model
                 propertyElement.SetAttribute("table", rp.SourceFragment.Identifier);
 
             if (rp.PropertyType != null)
-                propertyElement.SetAttribute("typeRef", rp.PropertyType.Identifier);
+            {
+                if (rp is ScalarPropertyDefinition)
+                    propertyElement.SetAttribute("typeRef", rp.PropertyType.Identifier);
+                else if (rp is EntityPropertyDefinition)
+                    propertyElement.SetAttribute("referencedEntity", rp.PropertyType.Entity.Identifier);
+                else
+                    throw new NotSupportedException(rp.GetType().ToString());
+            }
 
             if (!string.IsNullOrEmpty(rp.Description))
                 propertyElement.SetAttribute("description", rp.Description);

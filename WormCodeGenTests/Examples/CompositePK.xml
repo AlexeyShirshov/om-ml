@@ -14,8 +14,8 @@
     </Entity>
     <Entity id="e11" name="E1" namespace="NS2" baseEntity="e1">
       <SourceFragments>
-        <SourceFragment ref="tbl2" anchorTableRef="tbl1">
-          <join refColumn="xx" anchorColumn="yy" />
+        <SourceFragment ref="tbl2" joinTableRef="tbl1">
+          <condition refColumn="xx" joinColumn="yy" />
         </SourceFragment>
       </SourceFragments>
       <Properties>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using System.Xml.Schema;
 using WXML.Model.Descriptors;
@@ -455,7 +456,7 @@ namespace WXML.Model
             XmlElement propertyElement = (XmlElement)propertyNode;
             string description = propertyElement.GetAttribute("description");
             string name = propertyElement.GetAttribute("propertyName");
-            string typeId = propertyElement.GetAttribute("typeRef");
+            string entityRef = propertyElement.GetAttribute("referencedEntity");
             string sAttributes = propertyElement.GetAttribute("attributes");
             string tableId = propertyElement.GetAttribute("table");
             string fieldAccessLevelName = propertyElement.GetAttribute("classfieldAccessLevel");
@@ -490,7 +491,7 @@ namespace WXML.Model
             if (!String.IsNullOrEmpty(propertyDisabled))
                 disabled = XmlConvert.ToBoolean(propertyDisabled);
 
-            TypeDefinition typeDesc = _model.GetType(typeId, true);
+            TypeDefinition typeDesc = _model.GetOrCreateType(_model.GetEntity(entityRef, true));
 
             ObsoleteType obsolete = ObsoleteType.None;
             if (!string.IsNullOrEmpty(propertyObsolete))
@@ -864,15 +865,15 @@ namespace WXML.Model
             {
                 XmlElement tableElement = (XmlElement)tableNode;
                 string tableId = tableElement.GetAttribute("ref");
-                //string mergeAction = tableElement.GetAttribute("action");
+                string replaces = tableElement.GetAttribute("replaces");
 
                 var table = entity.Model.GetSourceFragment(tableId);
                 if (table == null)
-                    throw new WXMLParserException(String.Format("Table {0} not found.", tableId));
+                    throw new WXMLParserException(String.Format("Error parsing entity {1}. Table {0} not found.", tableId, entity.Identifier));
 
                 var tableRef = new SourceFragmentRefDefinition(table);
 
-                string anchorId = tableElement.GetAttribute("anchorTableRef");
+                string anchorId = tableElement.GetAttribute("joinTableRef");
                 if (!string.IsNullOrEmpty(anchorId))
                 {
                     tableRef.AnchorTable = entity.Model.GetSourceFragment(anchorId);
@@ -880,23 +881,29 @@ namespace WXML.Model
                     if (string.IsNullOrEmpty(jt))
                         jt = "inner";
                     tableRef.JoinType = (SourceFragmentRefDefinition.JoinTypeEnum)Enum.Parse(typeof(SourceFragmentRefDefinition.JoinTypeEnum), jt);
-                    var joinNodes = tableElement.SelectNodes(string.Format("{0}:join", WXMLModel.NS_PREFIX), _nsMgr);
-                    foreach (XmlElement joinNode in joinNodes)
-                    {
-                        SourceFragmentRefDefinition.Condition condition = new SourceFragmentRefDefinition.Condition(
-                            joinNode.GetAttribute("refColumn"),
-                            joinNode.GetAttribute("anchorColumn")
-                        );
-
-                        if (string.IsNullOrEmpty(condition.RightColumn))
-                            condition.RightConstant = joinNode.GetAttribute("constant");
-
-                        tableRef.Conditions.Add(condition);
-                    }
                 }
 
-                //if (!string.IsNullOrEmpty(mergeAction))
-                //    tableRef.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
+                var joinNodes = tableElement.SelectNodes(string.Format("{0}:condition", WXMLModel.NS_PREFIX), _nsMgr);
+                foreach (XmlElement joinNode in joinNodes)
+                {
+                    SourceFragmentRefDefinition.Condition condition = new SourceFragmentRefDefinition.Condition(
+                        joinNode.GetAttribute("refColumn"),
+                        joinNode.GetAttribute("joinColumn")
+                    );
+
+                    if (string.IsNullOrEmpty(condition.RightColumn) || string.IsNullOrEmpty(condition.LeftColumn))
+                        condition.RightConstant = joinNode.GetAttribute("constant");
+
+                    tableRef.Conditions.Add(condition);
+                }
+
+                if (!string.IsNullOrEmpty(replaces))
+                {
+                    var rtable = entity.Model.GetSourceFragment(replaces);
+                    if (rtable == null)
+                        throw new WXMLParserException(String.Format("Error parsing entity {1}. Table {0} not found.", replaces, entity.Identifier));
+                    tableRef.Replaces = rtable;
+                }
 
                 entity.AddSourceFragment(tableRef);
             }

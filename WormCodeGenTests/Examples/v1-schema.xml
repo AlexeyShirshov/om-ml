@@ -23,15 +23,10 @@
       </oos:SourceFragments>
       <oos:Properties>
         <oos:Property attributes="PrimaryKey" fieldName="id" propertyName="Identifier1" table="tblEntity2" typeRef="tInt32" />
-        <oos:EntityProperty propertyName="Entity1" typeRef="tEntity1" table="tblEntity2">
+        <oos:EntityProperty propertyName="Entity1" referencedEntity="eEntity1" table="tblEntity2">
           <oos:field relatedProperty="Identifier1" sourceFieldDefault="ent1_id" />
         </oos:EntityProperty>
       </oos:Properties>
     </oos:Entity>
 	</oos:Entities>
-  <oos:Types>
-    <oos:Type id="tEntity1">
-      <oos:Entity ref="eEntity1" />
-    </oos:Type>
-  </oos:Types>
 </oos:WXMLModel>

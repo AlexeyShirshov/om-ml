@@ -50,7 +50,8 @@ namespace WXMLToWorm.CodeDomExtensions
 
             if ((_settings.GenerateMode.HasValue ? _settings.GenerateMode.Value : _entity.Model.GenerateMode) != GenerateModeEnum.EntityOnly)
             {
-                OnPopulateSchema();
+                if (_entity.NeedOwnSchema())
+                    OnPopulateSchema();
             }
             //else
             //    throw new NotImplementedException();

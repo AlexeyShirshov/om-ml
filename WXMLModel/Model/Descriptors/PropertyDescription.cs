@@ -126,11 +126,23 @@ namespace WXML.Model.Descriptors
             return (_attributes & attribute) == attribute;
         }
 
+        public bool IsOverrides
+        {
+            get
+            {
+                return Entity.GetPropertiesFromBase().Any(item => !item.Disabled && item.Name == Name && item.PropertyAlias == PropertyAlias);
+            }
+            //set { _fromBase = value; }
+        }
+
         public bool FromBase
         {
             get
             {
-                return !Entity.OwnProperties.Any(item => !item.Disabled && item.Identifier == Identifier);
+                if (Entity.BaseEntity == null)
+                    return false;
+                
+                return !Entity.OwnProperties.Any(item => !item.Disabled && item.Name == Name);
             }
             //set { _fromBase = value; }
         }
@@ -167,6 +179,10 @@ namespace WXML.Model.Descriptors
         {
             PropertyDefinition p = _Clone();
             p.Entity = entityDescription;
+            var s = entityDescription.GetSourceFragments().SingleOrDefault(item =>
+                item.Replaces != null && item.Replaces.Identifier == p.SourceFragment.Identifier);
+            if (s != null)
+                p.SourceFragment = s;
             return p;
         }
 
@@ -177,6 +193,8 @@ namespace WXML.Model.Descriptors
                 return _items;
             }
         }
+
+        public abstract bool HasMapping { get;}
     }
 
     public class ScalarPropertyDefinition : PropertyDefinition
@@ -277,7 +295,7 @@ namespace WXML.Model.Descriptors
 
             if (definition != null)
             {
-                definition._sf = _sf;
+                definition._sf = _sf.Clone();
                 definition.SourceFieldAlias = SourceFieldAlias;
             }
         }
@@ -292,6 +310,26 @@ namespace WXML.Model.Descriptors
         public ScalarPropertyDefinition Clone()
         {
             return _Clone() as ScalarPropertyDefinition;
+        }
+
+        public override bool HasMapping
+        {
+            get
+            {
+                return _sf != null && !string.IsNullOrEmpty(_sf.SourceFieldExpression);
+            }
+        }
+
+        public string GetDiscriminator()
+        {
+            SourceFragmentRefDefinition tbl = Entity.OwnSourceFragments.SingleOrDefault(item=>item.Identifier == SourceFragment.Identifier);
+            if (tbl != null)
+            {
+                var s = tbl.Conditions.SingleOrDefault(item => item.LeftColumn == SourceFieldExpression && !string.IsNullOrEmpty(item.RightConstant));
+                if (s != null)
+                    return s.RightConstant;
+            }
+            return null;
         }
     }
 

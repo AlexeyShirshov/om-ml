@@ -12,14 +12,19 @@ using Worm.Query;
 using WXML.Model;
 using Worm.Collections;
 using WXML.CodeDom;
+using Field2DbRelations=Worm.Entities.Meta.Field2DbRelations;
+using Worm.Criteria.Core;
+using Worm.Criteria;
 
 namespace WXMLToWorm.CodeDomExtensions
 {
     public class CodeSchemaDefTypeDeclaration : CodeTypeDeclaration
     {
+        private const string TablesLink = "TablesLink";
         private CodeEntityTypeDeclaration m_entityClass;
         private readonly CodeTypeReference m_typeReference;
         private readonly WXMLCodeDomGeneratorSettings _settings;
+        private bool? _hasTableFilter;
 
         public CodeSchemaDefTypeDeclaration(WXMLCodeDomGeneratorSettings settings)
         {
@@ -37,10 +42,58 @@ namespace WXMLToWorm.CodeDomExtensions
             OnPopulateM2mMembers();
             OnPopulateTableMember();
             OnPopulateMultitableMembers();
-
             CreateGetFieldColumnMap();
+            OnPopulateTableFilter();
         }
 
+        private void OnPopulateTableFilter()
+        {
+            EntityDefinition entity = m_entityClass.Entity;
+
+            if (entity.OwnSourceFragments.Any(item => item.Conditions.Any(c => !string.IsNullOrEmpty(c.LeftColumn) && !string.IsNullOrEmpty(c.RightConstant))))
+            {
+                _hasTableFilter = entity.BaseEntity != null && entity.BaseEntity.GetSourceFragments().Any(item => item.Conditions.Any(c => !string.IsNullOrEmpty(c.LeftColumn) && !string.IsNullOrEmpty(c.RightConstant)));
+            }
+            else
+                return;
+
+            CodeExpression exp = null;
+
+            if (_hasTableFilter.Value)
+                exp = CodeDom.GetExpression((object context) => Ctor.Filter(CodeDom.@base.Call<IFilter>("GetContextFilter")(context)));
+
+            foreach (SourceFragmentRefDefinition tbl in entity.OwnSourceFragments)
+            {
+                foreach (SourceFragmentRefDefinition.Condition condition in tbl.Conditions)
+                {
+                    if (!string.IsNullOrEmpty(condition.LeftColumn) &&
+                        !string.IsNullOrEmpty(condition.RightConstant))
+                    {
+                        if (exp == null)
+                            exp = CodeDom.GetExpression(() => Ctor.column(CodeDom.InjectExp<SourceFragment>(0), 
+                                condition.LeftColumn).eq(condition.RightConstant),
+                                GetTableExp(tbl)
+                            );
+                        else
+                            exp = CodeDom.GetExpression(()=>CodeDom.InjectExp<PredicateLink>(0)
+                                .and(CodeDom.InjectExp<SourceFragment>(1), condition.LeftColumn).eq(condition.RightConstant),
+                                exp, GetTableExp(tbl)
+                            );
+                    }
+                }
+            }
+
+            var m = Define.Method(MemberAttributes.Public, typeof(IFilter), (object context)=>"GetContextFilter",
+                Emit.@return(CodeDom.GetExpression(()=>CodeDom.InjectExp<PredicateLink>(0).Filter, exp))
+            );
+
+            if (!_hasTableFilter.Value)
+                m.Implements(typeof (IContextObjectSchema));
+            else
+                m.Attributes |= MemberAttributes.Override;
+
+            Members.Add(m);
+        }
 
         protected void OnPopulateBaseTypes(object sender, EventArgs e)
         {
@@ -59,8 +112,11 @@ namespace WXMLToWorm.CodeDomExtensions
             //if (m_entityClass.Entity.BaseEntity != null && m_entityClass.Entity.InheritsBaseTables && m_entityClass.Entity.GetSourceFragments().Count() == 0)
             //    return;
 
-            if (m_entityClass.Entity.GetSourceFragments().Count() > 1 && !m_entityClass.Entity.IsImplementMultitable)
+            EntityDefinition entity = m_entityClass.Entity;
+
+            if (entity.GetSourceFragments().Count() > 1 && !entity.IsImplementMultitable)
                 BaseTypes.Add(new CodeTypeReference(typeof(IMultiTableObjectSchema)));
+
         }
 
         private void OnPopulateMultitableMembers()
@@ -71,7 +127,9 @@ namespace WXMLToWorm.CodeDomExtensions
             //if (m_entityClass.Entity.BaseEntity != null && m_entityClass.Entity.InheritsBaseTables && m_entityClass.Entity.SourceFragments.Count == 0)
             //    return;
 
-            if (m_entityClass.Entity.GetSourceFragments().Count() < 2 && !m_entityClass.Entity.IsImplementMultitable)
+            EntityDefinition entity = m_entityClass.Entity;
+
+            if (entity.GetSourceFragments().Count() < 2 && !entity.IsImplementMultitable)
                 return;
 
             //if(m_entityClass.Entity.BaseEntity == null || (m_entityClass.Entity.BaseEntity != null && !m_entityClass.Entity.BaseEntity.IsMultitable))
@@ -94,7 +152,7 @@ namespace WXMLToWorm.CodeDomExtensions
             // модификаторы доступа
 
             Members.Add(method);
-            if (m_entityClass.Entity.IsImplementMultitable)
+            if (entity.IsImplementMultitable)
             {
                 method.Attributes |= MemberAttributes.Override;
             }
@@ -134,7 +192,7 @@ namespace WXMLToWorm.CodeDomExtensions
                             ),
                         new CodeArrayCreateExpression(
                             new CodeTypeReference(typeof(SourceFragment[])),
-                            m_entityClass.Entity.GetSourceFragments().Select(
+                            entity.GetSourceFragments().Select(
                                 action =>
                                 {
                                     var result = new CodeObjectCreateExpression(
@@ -159,8 +217,8 @@ namespace WXMLToWorm.CodeDomExtensions
                     )
                 );
 
-            if (m_entityClass.Entity.GetSourceFragments().Count() > 1 && (
-                !IsPartial || m_entityClass.Entity.GetSourceFragments().Any(sf => sf.AnchorTable != null)
+            if (entity.GetSourceFragments().Count() > 1 && (
+                !IsPartial || entity.GetSourceFragments().Any(sf => sf.AnchorTable != null)
                 ))
             {
                 CodeMemberMethod jmethod = Define.Method(MemberAttributes.Public, typeof(Worm.Criteria.Joins.QueryJoin),
@@ -169,11 +227,11 @@ namespace WXMLToWorm.CodeDomExtensions
                 CodeConditionStatement cond = null;
 
                 foreach (SourceFragmentRefDefinition tbl_ in
-                    m_entityClass.Entity.GetSourceFragments().Where(sf => sf.AnchorTable != null))
+                    entity.GetSourceFragments().Where(sf => sf.AnchorTable != null))
                 {
                     SourceFragmentRefDefinition tbl = tbl_;
-                    int tblIdx = m_entityClass.Entity.GetSourceFragments().IndexOf(tbl);
-                    int sfrIdx = m_entityClass.Entity.GetSourceFragments().IndexOf(sfr=>sfr.Identifier == tbl.AnchorTable.Identifier);
+                    int tblIdx = entity.GetSourceFragments().IndexOf(tbl);
+                    int sfrIdx = entity.GetSourceFragments().IndexOf(sfr=>sfr.Identifier == tbl.AnchorTable.Identifier);
                     if (cond == null)
                     {
                         CodeExpression exp = null;
@@ -184,18 +242,30 @@ namespace WXMLToWorm.CodeDomExtensions
                                 exp = CodeDom.GetExpression((SourceFragment left) =>
                                      Ctor.column(left, tbl.Conditions[i].LeftColumn));
                             else
-                                exp = CodeDom.GetExpression((SourceFragment left) =>
-                                     CodeDom.InjectExp<Worm.Criteria.PredicateLink>(0).and(left, tbl.Conditions[i].LeftColumn), exp);
+                            {
+                                if (!string.IsNullOrEmpty(tbl.Conditions[i].LeftColumn))
+                                    exp = CodeDom.GetExpression((SourceFragment left) =>
+                                         CodeDom.InjectExp<PredicateLink>(0).and(left, tbl.Conditions[i].LeftColumn), exp);
+                                else
+                                {
+                                    if (string.IsNullOrEmpty(tbl.Conditions[i].RightConstant))
+                                        throw new WXMLException(string.Format("Neither refColumn nor constant was specified for table {0}", tbl.Identifier));
+
+                                    exp = CodeDom.GetExpression((SourceFragment right) =>
+                                         CodeDom.InjectExp<PredicateLink>(0).and(right, tbl.Conditions[i].RightColumn).eq(tbl.Conditions[i].RightConstant), exp);
+                                    continue;
+                                }
+                            }
 
                             if (string.IsNullOrEmpty(tbl.Conditions[i].RightColumn))
-                                exp = CodeDom.GetExpression(() => CodeDom.InjectExp<Worm.Criteria.ColumnPredicate>(0).eq(tbl.Conditions[i].RightConstant), exp);
+                                exp = CodeDom.GetExpression(() => CodeDom.InjectExp<ColumnPredicate>(0).eq(tbl.Conditions[i].RightConstant), exp);
                             else
                                 exp = CodeDom.GetExpression((SourceFragment right) =>
-                                    CodeDom.InjectExp<Worm.Criteria.ColumnPredicate>(0).eq(right, tbl.Conditions[i].RightColumn), exp);
+                                    CodeDom.InjectExp<ColumnPredicate>(0).eq(right, tbl.Conditions[i].RightColumn), exp);
                         }
 
                         exp = CodeDom.GetExpression((SourceFragment right) =>
-                                    JCtor.join(right).on(CodeDom.InjectExp<Worm.Criteria.Core.IGetFilter>(0)), exp);
+                                    JCtor.join(right).on(CodeDom.InjectExp<IGetFilter>(0)), exp);
 
                         CodeConditionStatement cond2 = Emit.@if((SourceFragment left, SourceFragment right) =>
                             (left.Equals(CodeDom.@this.Call<SourceFragment[]>("GetTables")()[tblIdx]) && right.Equals(CodeDom.@this.Call<SourceFragment[]>("GetTables")()[sfrIdx])),
@@ -214,7 +284,7 @@ namespace WXMLToWorm.CodeDomExtensions
                                          Ctor.column(right, tbl.Conditions[i].LeftColumn).eq(tbl.Conditions[i].RightConstant));
                                 else
                                     exp = CodeDom.GetExpression((SourceFragment right) =>
-                                        CodeDom.InjectExp<Worm.Criteria.PredicateLink>(0).and(right, tbl.Conditions[i].LeftColumn).eq(tbl.Conditions[i].RightConstant), exp);
+                                        CodeDom.InjectExp<PredicateLink>(0).and(right, tbl.Conditions[i].LeftColumn).eq(tbl.Conditions[i].RightConstant), exp);
                             }
                             else
                             {
@@ -222,13 +292,24 @@ namespace WXMLToWorm.CodeDomExtensions
                                     exp = CodeDom.GetExpression((SourceFragment left, SourceFragment right) =>
                                          Ctor.column(left, tbl.Conditions[i].RightColumn).eq(right, tbl.Conditions[i].LeftColumn));
                                 else
-                                    exp = CodeDom.GetExpression((SourceFragment left, SourceFragment right) =>
-                                         CodeDom.InjectExp<Worm.Criteria.PredicateLink>(0).and(left, tbl.Conditions[i].RightColumn).eq(right, tbl.Conditions[i].LeftColumn), exp);
+                                {
+                                    if (string.IsNullOrEmpty(tbl.Conditions[i].LeftColumn))
+                                    {
+                                        if (string.IsNullOrEmpty(tbl.Conditions[i].RightConstant))
+                                            throw new WXMLException(string.Format("Neither refColumn nor constant was specified for table {0}", tbl.Identifier));
+
+                                        exp = CodeDom.GetExpression((SourceFragment left, SourceFragment right) =>
+                                             CodeDom.InjectExp<PredicateLink>(0).and(left, tbl.Conditions[i].RightColumn).eq(tbl.Conditions[i].RightConstant), exp);
+                                    }
+                                    else
+                                        exp = CodeDom.GetExpression((SourceFragment left, SourceFragment right) =>
+                                             CodeDom.InjectExp<PredicateLink>(0).and(left, tbl.Conditions[i].RightColumn).eq(right, tbl.Conditions[i].LeftColumn), exp);
+                                }
                             }
                         }
 
                         exp = CodeDom.GetExpression((SourceFragment right) =>
-                                    JCtor.join(right).on(CodeDom.InjectExp<Worm.Criteria.Core.IGetFilter>(0)), exp);
+                                    JCtor.join(right).on(CodeDom.InjectExp<IGetFilter>(0)), exp);
 
                         cond = Emit.@if((SourceFragment left, SourceFragment right) =>
                             (right.Equals(CodeDom.@this.Call<SourceFragment[]>("GetTables")()[tblIdx]) && left.Equals(CodeDom.@this.Call<SourceFragment[]>("GetTables")()[sfrIdx])),
@@ -247,18 +328,29 @@ namespace WXMLToWorm.CodeDomExtensions
                                 exp = CodeDom.GetExpression((SourceFragment left) =>
                                      Ctor.column(left, tbl.Conditions[i].LeftColumn));
                             else
-                                exp = CodeDom.GetExpression((SourceFragment left) =>
-                                     CodeDom.InjectExp<Worm.Criteria.PredicateLink>(0).and(left, tbl.Conditions[i].LeftColumn), exp);
+                            {
+                                if (!string.IsNullOrEmpty(tbl.Conditions[i].LeftColumn))
+                                    exp = CodeDom.GetExpression((SourceFragment left) =>
+                                         CodeDom.InjectExp<PredicateLink>(0).and(left, tbl.Conditions[i].LeftColumn), exp);
+                                else
+                                {
+                                    if (string.IsNullOrEmpty(tbl.Conditions[i].RightConstant))
+                                        throw new WXMLException(string.Format("Neither refColumn nor constant was specified for table {0}", tbl.Identifier));
 
+                                    exp = CodeDom.GetExpression((SourceFragment right) =>
+                                         CodeDom.InjectExp<PredicateLink>(0).and(right, tbl.Conditions[i].RightColumn).eq(tbl.Conditions[i].RightConstant), exp);
+                                    continue;
+                                }
+                            }
                             if (string.IsNullOrEmpty(tbl.Conditions[i].RightColumn))
-                                exp = CodeDom.GetExpression(() => CodeDom.InjectExp<Worm.Criteria.ColumnPredicate>(0).eq(tbl.Conditions[i].RightConstant), exp);
+                                exp = CodeDom.GetExpression(() => CodeDom.InjectExp<ColumnPredicate>(0).eq(tbl.Conditions[i].RightConstant), exp);
                             else
                                 exp = CodeDom.GetExpression((SourceFragment right) =>
-                                    CodeDom.InjectExp<Worm.Criteria.ColumnPredicate>(0).eq(right, tbl.Conditions[i].RightColumn), exp);
+                                    CodeDom.InjectExp<ColumnPredicate>(0).eq(right, tbl.Conditions[i].RightColumn), exp);
                         }
 
                         exp = CodeDom.GetExpression((SourceFragment right) =>
-                                    JCtor.join(right).on(CodeDom.InjectExp<Worm.Criteria.Core.IGetFilter>(0)), exp);
+                                    JCtor.join(right).on(CodeDom.InjectExp<IGetFilter>(0)), exp);
 
                         CodeConditionStatement cond2 = Emit.@if((SourceFragment left, SourceFragment right) =>
                             left.Equals(CodeDom.@this.Call<SourceFragment[]>("GetTables")()[tblIdx]) && right.Equals(CodeDom.@this.Call<SourceFragment[]>("GetTables")()[sfrIdx]),
@@ -280,7 +372,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 Members.Add(jmethod);
             }
 
-            if (!m_entityClass.Entity.IsImplementMultitable)
+            if (!entity.IsImplementMultitable)
             {
                 CodeMemberProperty prop = new CodeMemberProperty
                 {
@@ -300,7 +392,7 @@ namespace WXMLToWorm.CodeDomExtensions
                     )
                 );
 
-                if (m_entityClass.Entity.BaseEntity != null)
+                if (entity.BaseEntity != null)
                     prop.Attributes |= MemberAttributes.Override;
                 else
                     prop.ImplementationTypes.Add(typeof(IEntitySchema));
@@ -324,7 +416,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 new CodeParameterDeclarationExpression(
                     new CodeTypeReference(
                         //new WXMLCodeDomGeneratorNameHelper(_settings).GetEntitySchemaDefClassQualifiedName(m_entityClass.Entity, false) + ".TablesLink"
-                        "TablesLink"
+                        TablesLink
                     ), "tbl"
                 )
             );
@@ -390,7 +482,9 @@ namespace WXMLToWorm.CodeDomExtensions
                 new CodeTypeReference(typeof(IndexedCollection<string, MapField2Column>));
             // модификаторы доступа
             method.Attributes = MemberAttributes.Public;
-            if (m_entityClass.Entity.BaseEntity != null)
+            EntityDefinition entity = m_entityClass.Entity;
+
+            if (entity.BaseEntity != null)
             {
                 method.Attributes |= MemberAttributes.Override;
             }
@@ -411,25 +505,30 @@ namespace WXMLToWorm.CodeDomExtensions
          		new CodeVariableDeclarationStatement(
          			new CodeTypeReference(typeof (IndexedCollection<string, MapField2Column>)),
          			"idx",
-         			(m_entityClass.Entity.BaseEntity == null)
+         			(entity.BaseEntity == null)
          				?
          					(CodeExpression) new CodeObjectCreateExpression(
-         					                 	new CodeTypeReference(typeof (OrmObjectIndex))
-         					                 	)
+		                 	    new CodeTypeReference(typeof (OrmObjectIndex))
+		                 	)
          				:
          					new CodeMethodInvokeExpression(
          						new CodeBaseReferenceExpression(),
          						"GetFieldColumnMap"
-         						)
+         				    )
          			)
          	};
-            if (m_entityClass.Entity.OwnProperties.Any(item => !item.Disabled &&
+            if (entity.OwnProperties.Any(item => !item.Disabled &&
                 item is EntityPropertyDefinition && ((EntityPropertyDefinition)item).SourceFields.Count() > 1
                 ))
-                throw new NotImplementedException(string.Format("Entity {0} contains EntityPropertyDefinition which is not supported yet", m_entityClass.Entity.Identifier));
+                throw new NotImplementedException(string.Format("Entity {0} contains EntityPropertyDefinition which is not supported yet", entity.Identifier));
 
-            var props = m_entityClass.Entity.OwnProperties.Where(item => !item.Disabled && 
+            var props = entity.OwnProperties.Where(item => !item.Disabled && 
                 (item is ScalarPropertyDefinition || ((EntityPropertyDefinition)item).SourceFields.Count() > 0))
+                .Union(entity.GetPropertiesFromBase().Where(item=>
+                    entity.GetSourceFragments().Any(tbl =>
+                        tbl.Replaces != null && tbl.Replaces.Identifier == item.SourceFragment.Identifier
+                    )
+                ))
                 .Select(item => new
                 {
                     FieldName = item is ScalarPropertyDefinition ?
@@ -441,24 +540,65 @@ namespace WXMLToWorm.CodeDomExtensions
                         ((EntityPropertyDefinition)item).SourceFields.First().SourceFieldAlias,
                     Prop = item
                 });
-            condTrueStatements.AddRange(props.Where(item=>!string.IsNullOrEmpty(item.FieldName))
+            condTrueStatements.AddRange(props.Where(item=>!string.IsNullOrEmpty(item.FieldName) ||
+                (entity.GetPropertiesFromBase().Any(p => !p.Disabled && p.Name == item.Prop.Name) &&
+                entity.GetPropertiesFromBase().Single(p => !p.Disabled && p.Name == item.Prop.Name).PropertyAlias != item.PropertyAlias))
                 .SelectMany(item =>
                     {
                         List<CodeStatement> coll = new List<CodeStatement>();
-                        coll.Add(new CodeAssignStatement(
-                            new CodeIndexerExpression(
-                                new CodeVariableReferenceExpression("idx"),
-                                new CodePrimitiveExpression(item.PropertyAlias)
-                            ),
-                            GetMapField2ColumObjectCreationExpression(item.Prop)
-                        ));
-                        if (!string.IsNullOrEmpty(item.FieldAlias))
-                            coll.Add(
-                                Emit.assignProperty(new CodeIndexerExpression(
-                                        new CodeVariableReferenceExpression("idx"),
-                                        new CodePrimitiveExpression(item.PropertyAlias)
-                                    ), "ColumnName", ()=>item.FieldAlias)
-                                );
+                        if (!string.IsNullOrEmpty(item.FieldName))
+                        {
+                            coll.Add(new CodeAssignStatement(
+                                new CodeIndexerExpression(
+                                    new CodeVariableReferenceExpression("idx"),
+                                    new CodePrimitiveExpression(item.PropertyAlias)
+                                ),
+                                GetMapField2ColumObjectCreationExpression(entity, item.Prop)
+                            ));
+                            if (!string.IsNullOrEmpty(item.FieldAlias))
+                                coll.Add(
+                                    Emit.assignProperty(new CodeIndexerExpression(
+                                            new CodeVariableReferenceExpression("idx"),
+                                            new CodePrimitiveExpression(item.PropertyAlias)
+                                        ), "ColumnName", ()=>item.FieldAlias)
+                                    );
+                        }
+                        else
+                        {
+                            var baseProp = entity.GetPropertiesFromBase().SingleOrDefault(p => !p.Disabled && p.Name == item.Prop.Name);
+                            if (baseProp != null && baseProp.PropertyAlias != item.PropertyAlias)
+                            {
+                                CodeExpression tblExp = GetPropertyTable(item.Prop);
+
+                                if (item.Prop is ScalarPropertyDefinition)
+                                {
+                                    ScalarPropertyDefinition bp = baseProp as ScalarPropertyDefinition;
+                                    ScalarPropertyDefinition ip = item.Prop as ScalarPropertyDefinition;
+                                    string dbtype = string.IsNullOrEmpty(ip.SourceType) ? bp.SourceType : ip.SourceType;
+                                    int? dbsize = ip.SourceTypeSize ?? bp.SourceTypeSize;
+                                    Field2DbRelations attributes = (Field2DbRelations)(item.Prop.Attributes | baseProp.Attributes);
+
+                                    if (dbsize.HasValue)
+                                        coll.Add(
+                                            Emit.assignExp((IndexedCollection<string, MapField2Column> idx) => idx[baseProp.PropertyAlias],
+                                                CodeDom.GetExpression(() => new MapField2Column(item.PropertyAlias,
+                                                    bp.SourceFieldExpression, CodeDom.InjectExp<SourceFragment>(0),
+                                                    attributes, dbtype, dbsize.Value, ip.IsNullable)
+                                            , tblExp))
+                                        );
+                                    else
+                                        coll.Add(
+                                            Emit.assignExp((IndexedCollection<string, MapField2Column> idx) => idx[baseProp.PropertyAlias],
+                                                CodeDom.GetExpression(() => new MapField2Column(item.PropertyAlias,
+                                                    bp.SourceFieldExpression, CodeDom.InjectExp<SourceFragment>(0),
+                                                    attributes, dbtype, ip.IsNullable)
+                                            , tblExp))
+                                        );
+                                }
+                                else
+                                    throw new NotImplementedException();
+                            }
+                        }
                         return coll;
                     }
                 )
@@ -500,7 +640,29 @@ namespace WXMLToWorm.CodeDomExtensions
                 );
         }
 
-        private CodeObjectCreateExpression GetMapField2ColumObjectCreationExpression(PropertyDefinition p)
+        private CodeExpression GetPropertyTable(PropertyDefinition definition)
+        {
+            return GetTableExp(definition.SourceFragment);
+        }
+
+        private CodeExpression GetTableExp(SourceFragmentDefinition sf)
+        {
+            if (m_entityClass.Entity.GetSourceFragments().Count() > 1)
+            {
+                return CodeDom.GetExpression(() =>
+                    CodeDom.@this.Call("GetTable")(CodeDom.Field(
+                        new CodeTypeReference(TablesLink),
+                        WXMLCodeDomGeneratorNameHelper.GetSafeName(sf.Identifier)
+                    ))
+                );
+            }
+            else
+            {
+                return CodeDom.GetExpression(() => CodeDom.@this.Property("Table"));
+            }
+        }
+
+        private CodeObjectCreateExpression GetMapField2ColumObjectCreationExpression(EntityDefinition entity, PropertyDefinition p)
         {
             ScalarPropertyDefinition prop = p as ScalarPropertyDefinition;
             if (p is EntityPropertyDefinition)
@@ -518,14 +680,15 @@ namespace WXMLToWorm.CodeDomExtensions
 
             if (m_entityClass.Entity.GetSourceFragments().Count() > 1)
             {
-                //string tableLink = new WXMLCodeDomGeneratorNameHelper(_settings).
-                //    GetEntitySchemaDefClassQualifiedName(m_entityClass.Entity, false) + ".TablesLink";
-                string tableLink = "TablesLink";
+                SourceFragmentDefinition tbl = prop.SourceFragment;
+                if (prop.FromBase)
+                    tbl = entity.GetSourceFragments().Single(item =>
+                        item.Replaces != null && item.Replaces.Identifier == tbl.Identifier);
 
                 expression.Parameters.Add(CodeDom.GetExpression(()=>
                     CodeDom.@this.Call("GetTable")(CodeDom.Field(
-                        new CodeTypeReference(tableLink),
-                        WXMLCodeDomGeneratorNameHelper.GetSafeName(prop.SourceFragment.Identifier)
+                        new CodeTypeReference(TablesLink),
+                        WXMLCodeDomGeneratorNameHelper.GetSafeName(tbl.Identifier)
                     ))
                 ));
             }
@@ -549,13 +712,21 @@ namespace WXMLToWorm.CodeDomExtensions
 
         private static CodeExpression GetPropAttributesEnumValues(WXML.Model.Field2DbRelations attrs)
         {
-            Worm.Entities.Meta.Field2DbRelations a = (Worm.Entities.Meta.Field2DbRelations) attrs;
+            Field2DbRelations a = (Field2DbRelations) attrs;
             return CodeDom.GetExpression(() => a);
         }
 
         private void OnPopulateTableMember()
         {
-            if (m_entityClass.Entity.GetSourceFragments().Count() == 1 && m_entityClass.Entity.BaseEntity == null)
+            EntityDefinition entity = m_entityClass.Entity;
+
+            if (entity.OwnSourceFragments.Count() == 1 && entity.GetSourceFragments().Count() == 1 &&
+                (entity.BaseEntity == null || 
+                    (entity.BaseEntity.GetSourceFragments().Count() == 1 &&
+                        entity.BaseEntity.GetSourceFragments().Single().Identifier != entity.OwnSourceFragments.Single().Identifier
+                    )
+                )
+            )
             {
 
                 // private SourceFragment m_table;
@@ -583,7 +754,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 lockField.InitExpression = new CodeObjectCreateExpression(lockField.Type);
 
 
-                var table = m_entityClass.Entity.GetSourceFragments().First();
+                var table = entity.GetSourceFragments().First();
 
                 CodeMemberProperty prop = new CodeMemberProperty();
                 Members.Add(prop);
@@ -1183,8 +1354,13 @@ namespace WXMLToWorm.CodeDomExtensions
 
         private void OnPopulateBaseClass()
         {
-            if (EntityClass.Entity.BaseEntity != null)
-                BaseTypes.Add(new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(_settings).GetEntitySchemaDefClassQualifiedName(EntityClass.Entity.BaseEntity, true)));
+            EntityDefinition entity = EntityClass.Entity;
+
+            if (entity.BaseEntity != null)
+                BaseTypes.Add(new CodeTypeReference(new WXMLCodeDomGeneratorNameHelper(_settings).GetEntitySchemaDefClassQualifiedName(entity.BaseEntity, true)));
+
+            if (_hasTableFilter.HasValue && !_hasTableFilter.Value)
+                BaseTypes.Add(new CodeTypeReference(typeof (IContextObjectSchema)));
         }
 
         private void OnPupulateSchemaInterfaces()

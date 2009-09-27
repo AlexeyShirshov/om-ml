@@ -160,12 +160,16 @@ namespace WXMLTests
 
                 Assert.AreEqual(2, entity.GetActiveProperties().Count());
 
-                Assert.AreEqual("Prop1", entity.GetActiveProperties().Single(item => item.PropertyAlias == "Prop1").Name);
+                var p = entity.GetActiveProperties().SingleOrDefault(item => item.PropertyAlias == "Prop1");
+                Assert.IsNotNull(p);
+                Assert.IsFalse(p.FromBase);
+                Assert.AreEqual("Prop1", p.Name);
 
                 WXMLModel newModel = new WXMLModel();
 
-                ScalarPropertyDefinition oldProp = ((ScalarPropertyDefinition) entity.GetActiveProperties()
-                    .Single(item => item.PropertyAlias == "Prop1")).Clone();
+                ScalarPropertyDefinition oldProp = ((ScalarPropertyDefinition)p).Clone();
+
+                Assert.IsFalse(oldProp.FromBase);
 
                 TypeDefinition newType = new TypeDefinition("tInt16", typeof(short));
 
@@ -237,7 +241,7 @@ namespace WXMLTests
                 newEntity.AddSourceFragment(sf);
 
                 newEntity.AddProperty(new ScalarPropertyDefinition(newEntity, "ID", "ID", Field2DbRelations.None,
-                    string.Empty, newModel.GetOrCreateClrType(typeof(Int32)), new SourceFieldDefinition(sf, "id"), AccessLevel.Private,
+                    string.Empty, newModel.GetOrCreateType(typeof(Int32)), new SourceFieldDefinition(sf, "id"), AccessLevel.Private,
                     AccessLevel.Public));
 
                 model.Merge(Normalize(newModel));

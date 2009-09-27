@@ -28,5 +28,14 @@ namespace WormCodeGenTests
                 TestCodeGen.TestCSCodeInternal(stream);
             }
         }
+
+        [TestMethod]
+        public void TestDiscriminator()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("hierarchy"))
+            {
+                TestCodeGen.TestCSCodeInternal(stream);
+            }
+        }
     }
 }

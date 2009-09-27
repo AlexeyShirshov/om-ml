@@ -129,7 +129,10 @@ namespace WXML.CodeDom
 
         public string GetEntitySchemaDefClassQualifiedName(EntityDefinition entity, bool addNamespace)
         {
-            return string.Format("{0}.{1}", GetEntityClassName(entity, addNamespace), GetEntitySchemaDefClassName(entity));
+            if (entity.NeedOwnSchema())
+                return string.Format("{0}.{1}", GetEntityClassName(entity, addNamespace), GetEntitySchemaDefClassName(entity));
+            else
+                return GetEntitySchemaDefClassQualifiedName(entity.BaseEntity, true);
         }
 
         public string GetEntityInterfaceName(EntityDefinition entity)

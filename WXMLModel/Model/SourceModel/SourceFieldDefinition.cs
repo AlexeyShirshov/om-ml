@@ -5,7 +5,7 @@ using System.Linq;
 namespace WXML.Model.Descriptors
 {
     [Serializable]
-    public class SourceFieldDefinition
+    public class SourceFieldDefinition : ICloneable
     {
         private SourceFragmentDefinition _tbl;
         protected internal string _column;
@@ -159,5 +159,23 @@ namespace WXML.Model.Descriptors
 
             return attrs;
         }
+
+        #region ICloneable Members
+
+        public SourceFieldDefinition Clone()
+        {
+            SourceFieldDefinition sf = new SourceFieldDefinition(SourceFragment,
+                SourceFieldExpression, SourceTypeSize, IsNullable, SourceType, 
+                IsAutoIncrement, DefaultValue);
+
+            return sf;
+        }
+
+        object ICloneable.Clone()
+        {
+            return Clone();
+        }
+
+        #endregion
     }
 }

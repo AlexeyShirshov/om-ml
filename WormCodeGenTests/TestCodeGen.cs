@@ -296,7 +296,9 @@ namespace WormCodeGenTests
                 result = prov.CompileAssemblyFromDom(prms, l.ToArray());
             }
 
-            if(result.Errors.HasErrors)
+            prov.GenerateCodeFromCompileUnit(singleUnit, Console.Out, new CodeGeneratorOptions());
+
+            if (result.Errors.HasErrors)
             {
                 StringBuilder sb = new StringBuilder();
                 foreach (CompilerError str in result.Errors)
@@ -305,8 +307,6 @@ namespace WormCodeGenTests
                 }
                 Assert.Fail(sb.ToString());
             }
-
-            prov.GenerateCodeFromCompileUnit(singleUnit, Console.Out, new CodeGeneratorOptions());
 
             //foreach (CompilerError error in result.Errors)
             //{

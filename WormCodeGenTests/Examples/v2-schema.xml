@@ -15,7 +15,7 @@
       <oos:SourceFragments />
       <oos:Properties>
         <oos:Property attributes="PrimaryKey" fieldName="id" propertyName="Identifier2" table="tblEntity1" typeRef="tInt32" />
-        <oos:Property propertyName="Code" table="tblEntity1" typeRef="tInt32" fieldName="code" />
+        <oos:Property propertyName="Code" table="tblEntity1" typeRef="tInt32" fieldName="code" classfieldAccessLevel="Family" />
         <oos:Property propertyName="Code2" table="tblEntity1" typeRef="tInt32" fieldName="code2" attributes="ReadOnly" />
       </oos:Properties>
     </oos:Entity>
@@ -25,6 +25,13 @@
         <oos:Property propertyName="Code" typeRef="tDouble" />
         <oos:Property propertyName="Code2" typeRef="tDouble" />
       </oos:Properties>
-    </oos:Entity>      
-	</oos:Entities>
+    </oos:Entity>
+    <oos:Entity id="advEntity5" name="Entity5" baseEntity="advEntity3" familyName="Entity3">
+      <oos:SourceFragments />
+      <oos:Properties>
+        <oos:Property propertyName="Code" propertyAlias="xxx" typeRef="tInt32" />
+        <oos:Property propertyName="Code2" table="tblEntity1" typeRef="tInt32" fieldName="code3" />
+      </oos:Properties>
+    </oos:Entity>
+  </oos:Entities>
 </oos:WXMLModel>

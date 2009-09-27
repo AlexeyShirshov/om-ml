@@ -167,7 +167,11 @@
         </xs:keyref>
         <xs:keyref name="TableAnchorRef" refer="SourceFragmentId">
           <xs:selector xpath="." />
-          <xs:field xpath="@anchorTableRef" />
+          <xs:field xpath="@joinTableRef" />
+        </xs:keyref>
+        <xs:keyref name="TableReplaceRef" refer="SourceFragmentId">
+          <xs:selector xpath="." />
+          <xs:field xpath="@replaces" />
         </xs:keyref>
       </xs:element>
     </xs:sequence>
@@ -184,18 +188,18 @@
       <xs:documentation>Ссылка на сурс фрагмент</xs:documentation>
     </xs:annotation>
     <xs:sequence minOccurs="0" maxOccurs="unbounded">
-      <xs:element name="join" minOccurs="1" maxOccurs="1">
+      <xs:element name="condition" minOccurs="1" maxOccurs="1">
         <xs:complexType>
-          <xs:attribute name="refColumn" type="xs:string" use="required" />
-          <xs:attribute name="anchorColumn" type="xs:string" use="optional" />
+          <xs:attribute name="refColumn" type="xs:string" use="optional" />
+          <xs:attribute name="joinColumn" type="xs:string" use="optional" />
           <xs:attribute name="constant" type="xs:string" use="optional" />
         </xs:complexType>
       </xs:element>
     </xs:sequence>
     <xs:attribute name="ref" type="xs:Name" use="required" />
-    <xs:attribute name="anchorTableRef" type="xs:Name" />
+    <xs:attribute name="joinTableRef" use="optional" type="xs:Name" />
     <xs:attribute name="type" type="JoinTypeEnum_t" use="optional" default="inner" />
-    <!--<xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />-->
+    <xs:attribute name="replaces" type="xs:Name" use="optional" />
   </xs:complexType>
   <xs:complexType name="EntitiesCollection_t">
     <xs:annotation>
@@ -385,9 +389,9 @@
         <xs:documentation>Описание свойства</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="typeRef" type="xs:Name" use="optional">
+    <xs:attribute name="referencedEntity" type="xs:Name" use="optional">
       <xs:annotation>
-        <xs:documentation>Тип свойства (возможна ссылка на сущность)</xs:documentation>
+        <xs:documentation>Имя сущности</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="table" type="xs:Name" use="optional">

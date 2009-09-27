@@ -116,7 +116,8 @@ namespace LinqCodeGenerator
                               .Select(n => new { name = n, ns = c.AddNamespace(n) })
                               .ToArray();
 
-            foreach(EntityDefinition e in Model.GetActiveEntities())
+            foreach(EntityDefinition e in Model.GetActiveEntities()
+                .Where(item=>item.GetSourceFragments().Count() > 0))
             {
                 CodeNamespace ens = ns;
                 var nns = namespaces.SingleOrDefault(item => item.name == e.EntitySpecificNamespace);
@@ -337,10 +338,10 @@ namespace LinqCodeGenerator
                 .Inherits(typeof(System.ComponentModel.INotifyPropertyChanging))
                 .Inherits(typeof(System.ComponentModel.INotifyPropertyChanged));
 
-            SourceFragmentDefinition tbl = e.GetSourceFragments().SingleOrDefault();
+            SourceFragmentDefinition tbl = e.GetSourceFragments().Single();
 
-            if (tbl == null)
-                throw new WXMLException(string.Format("Entity {0} has no sources", e.Identifier));
+            //if (tbl == null)
+            //    throw new WXMLException(string.Format("Entity {0} has no sources", e.Identifier));
 
             var c = Define.Attribute(typeof(System.Data.Linq.Mapping.TableAttribute));
             cls.AddAttribute(c);
@@ -1197,8 +1198,9 @@ namespace LinqCodeGenerator
         private void AddProps(CodeTypeDeclaration ctx)
         {
             var n = new WXMLCodeDomGeneratorNameHelper(Settings);
-            
-            foreach (EntityDefinition e in Model.GetActiveEntities())
+
+            foreach (EntityDefinition e in Model.GetActiveEntities()
+                .Where(item => item.GetSourceFragments().Count() > 0))
             {
                 CodeTypeReference t = new CodeTypeReference(typeof(System.Data.Linq.Table<>));
                 CodeTypeReference et = new CodeTypeReference(n.GetEntityClassName(e, true));
@@ -1233,7 +1235,8 @@ namespace LinqCodeGenerator
             
             var n = new WXMLCodeDomGeneratorNameHelper(Settings);
 
-            foreach (EntityDefinition e in Model.GetActiveEntities())
+            foreach (EntityDefinition e in Model.GetActiveEntities()
+                .Where(item => item.GetSourceFragments().Count() > 0))
             {
                 CodeTypeReference et = new CodeTypeReference(n.GetEntityClassName(e, true));
                 
@@ -1261,7 +1264,7 @@ namespace LinqCodeGenerator
             lastMethod.EndDirective();
         }
 
-        private void AddCtors(CodeTypeDeclaration ctx)
+        private static void AddCtors(CodeTypeDeclaration ctx)
         {
             ctx.AddCtor((string connection) => MemberAttributes.Public,
                 Emit.stmt(()=>CodeDom.Call(null, "OnCreated")))

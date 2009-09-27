@@ -52,9 +52,9 @@
 		<oos:Entity id="eArtist" name="Artist" description="Artist Description" makeInterface="true" >
       <oos:SourceFragments>
 				<oos:SourceFragment ref="tblArtists"/>
-        <oos:SourceFragment ref="tblSiteAccess" type="inner" anchorTableRef="tblArtists">
-          <oos:join refColumn="object_id" anchorColumn="id" />
-          <oos:join refColumn="object_type" constant="artist" />
+        <oos:SourceFragment ref="tblSiteAccess" type="inner" joinTableRef="tblArtists">
+          <oos:condition refColumn="object_id" joinColumn="id" />
+          <oos:condition refColumn="object_type" constant="artist" />
         </oos:SourceFragment>
 			</oos:SourceFragments>
 			<oos:Properties>
@@ -74,13 +74,13 @@
     <oos:Entity id="eAlbum" name="Album" description="Album Description" namespace="AlbumNS">
       <oos:SourceFragments>
 				<oos:SourceFragment ref="tblAlbums"/>
-        <oos:SourceFragment ref="tblSiteAccess" anchorTableRef="tblAlbums">
-          <oos:join refColumn="object_type" constant="album" />
-          <oos:join refColumn="object_id" anchorColumn="id" />
+        <oos:SourceFragment ref="tblSiteAccess" joinTableRef="tblAlbums">
+          <oos:condition refColumn="object_type" constant="album" />
+          <oos:condition refColumn="object_id" joinColumn="id" />
         </oos:SourceFragment>
-        <oos:SourceFragment ref="tblSites" anchorTableRef="tblSiteAccess">
-          <oos:join refColumn="id" anchorColumn="sid" />
-          <oos:join refColumn="x" constant="y" />
+        <oos:SourceFragment ref="tblSites" joinTableRef="tblSiteAccess">
+          <oos:condition refColumn="id" joinColumn="sid" />
+          <oos:condition refColumn="x" constant="y" />
         </oos:SourceFragment>
 			</oos:SourceFragments>
 			<oos:Properties>
@@ -105,13 +105,13 @@
 		</oos:Entity>
 	  <oos:Entity id="eA2B" name="Artist2Band" description="Artist2Band description">
       <oos:SourceFragments>
-		  <oos:SourceFragment ref="tbla2b"/>
-		</oos:SourceFragments>
-		<oos:Properties>
-		  <oos:Property propertyName="ID" attributes="PK" table="tbla2b" fieldName="id" typeRef="tInt32" description="relation id"/>
-		  <oos:Property propertyName="Band" table="tbla2b" fieldName="band_id" typeRef="tArtist" description="band"  />
-		  <oos:Property propertyName="Artist" table="tbla2b" fieldName="artist_id" typeRef="tArtist" description="band"  />
-		</oos:Properties>
+		    <oos:SourceFragment ref="tbla2b"/>
+		  </oos:SourceFragments>
+		  <oos:Properties>
+		    <oos:Property propertyName="ID" attributes="PK" table="tbla2b" fieldName="id" typeRef="tInt32" description="relation id"/>
+		    <oos:Property propertyName="Band" table="tbla2b" fieldName="band_id" typeRef="tArtist" description="band"  />
+		    <oos:Property propertyName="Artist" table="tbla2b" fieldName="artist_id" typeRef="tArtist" description="band"  />
+		  </oos:Properties>
 	  </oos:Entity>
 		<oos:Entity id="disabledEntity" name="DisabledEntity" description="DisabledEntity description" disabled="true">
 			<oos:SourceFragments>

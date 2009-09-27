@@ -87,6 +87,13 @@ namespace WXML.Model.Descriptors
             set { _description = value; }
         }
 
+        public WXMLModel Model
+        {
+            get { return _model; }
+        }
+
+        #endregion
+
         public IEnumerable<SourceFragmentRefDefinition> GetSourceFragments()
         {
             if (InheritsBaseTables && _baseEntity != null)
@@ -94,17 +101,6 @@ namespace WXML.Model.Descriptors
                     new EqualityComparer<SourceFragmentRefDefinition, string>(item => item.Identifier)
                 ).OrderBy(item=>_sourceFragments.Any(p=>p.Identifier == item.Identifier)?2:1);
             return _sourceFragments;
-        }
-
-        public IEnumerable<PropertyDefinition> GetProperties()
-        {
-            if (_baseEntity != null)
-                return 
-                    OwnProperties
-                        .Union(_baseEntity.GetProperties().Select(item => item.Clone(this)),
-                            new EqualityComparer<PropertyDefinition, string>(item=>item.PropertyAlias))
-                        .OrderBy(item=>OwnProperties.Any(p=>p.Identifier == item.Identifier)?2:1);
-            return OwnProperties;
         }
 
         public void RemoveSourceFragment(SourceFragmentRefDefinition sf)
@@ -142,6 +138,19 @@ namespace WXML.Model.Descriptors
             _sourceFragments.Clear();
         }
 
+        #region Property collection
+
+        public IEnumerable<PropertyDefinition> GetProperties()
+        {
+            if (_baseEntity != null)
+                return
+                    OwnProperties
+                        .Union(_baseEntity.GetProperties().Select(item => item.Clone(this)),
+                            new EqualityComparer<PropertyDefinition, string>(item => item.Name))
+                        .OrderBy(item => OwnProperties.Any(p => p.Identifier == item.Identifier) ? 2 : 1);
+            return OwnProperties;
+        }
+
         public IEnumerable<PropertyDefinition> OwnProperties
         {
             get { return _properties; }
@@ -152,71 +161,9 @@ namespace WXML.Model.Descriptors
             return GetProperties().Where(p => !p.Disabled);
         }
 
-        public WXMLModel Model
-        {
-            get { return _model; }
-        }
-
-        //public bool HasPk
-        //{
-        //    get
-        //    {
-        //        return GetPKCount(false) > 0;
-        //    }
-        //}
-
-        //public bool HasPkFlatEntity
-        //{
-        //    get
-        //    {
-        //        return GetPKCount() > 0;
-        //    }
-        //}
-
-        //public bool HasSinglePk
-        //{
-        //    get
-        //    {
-        //        int s = GetPKCount();
-        //        return (BaseEntity == null && s == 1) || (BaseEntity != null && BaseEntity.HasSinglePk);
-        //    }
-        //}
-
-        #endregion
-
-        //public int GetPKCount()
-        //{
-        //    return GetPKCount(true);
-        //}
-
-        //public int GetPKCount(bool flatEntity)
-        //{
-        //    var properties = flatEntity ? GetProperties() : SelfProperties;
-        //    //int s = 0;
-        //    //foreach (var propertyDescription in properties)
-        //    //{
-        //    //    if (propertyDescription.HasAttribute(Field2DbRelations.PK) 
-        //    //        //&& propertyDescription.PropertyType.IsClrType && propertyDescription.PropertyType.ClrType.IsAssignableFrom(typeof(Int32))
-        //    //        )
-        //    //        s++;
-        //    //}
-        //    //return s;
-        //    return properties.Count(propertyDescription =>
-        //        !propertyDescription.Disabled && propertyDescription.HasAttribute(Field2DbRelations.PK));
-        //}
-
         public PropertyDefinition GetProperty(string propertyId)
         {
             return GetProperty(propertyId, false);
-        }
-
-        public bool IsAssignableFrom(EntityDefinition ed)
-        {
-            if (ed == this)
-                return true;
-            if (ed.BaseEntity == null)
-                return false;
-            return IsAssignableFrom(ed.BaseEntity);
         }
 
         public PropertyDefinition GetProperty(string propertyId, bool throwNotFoundException)
@@ -228,12 +175,86 @@ namespace WXML.Model.Descriptors
             return result;
         }
 
-        public SourceFragmentDefinition GetSourceFragment(string sourceFragmentId)
+        public IEnumerable<ScalarPropertyDefinition> GetPkProperties()
+        {
+            return GetProperties()
+                .Where(p => !p.Disabled && p.HasAttribute(Field2DbRelations.PK))
+                .Cast<ScalarPropertyDefinition>();
+        }
+
+        public bool HasDefferedLoadableProperties
+        {
+            get
+            {
+                return OwnProperties.Any(p => !p.Disabled && !string.IsNullOrEmpty(p.DefferedLoadGroup));
+            }
+        }
+
+        public bool HasDefferedLoadablePropertiesInHierarhy
+        {
+            get
+            {
+                return GetProperties().Any(p => !p.Disabled && !string.IsNullOrEmpty(p.DefferedLoadGroup));
+            }
+        }
+
+        public Dictionary<string, List<PropertyDefinition>> GetDefferedLoadProperties()
+        {
+            Dictionary<string, List<PropertyDefinition>> groups = new Dictionary<string, List<PropertyDefinition>>();
+
+            foreach (var property in GetProperties())
+            {
+                if (property.Disabled || string.IsNullOrEmpty(property.DefferedLoadGroup))
+                    continue;
+
+                List<PropertyDefinition> lst;
+                if (!groups.TryGetValue(property.DefferedLoadGroup, out lst))
+                    groups[property.DefferedLoadGroup] = lst = new List<PropertyDefinition>();
+
+                lst.Add(property);
+            }
+            return groups;
+            //var res = new List<PropertyDescription[]>();
+            //foreach (var list in groups.Values)
+            //{
+            //    res.Add(list.ToArray());
+            //}
+            //return res.ToArray();
+        }
+
+        public IEnumerable<PropertyDefinition> GetPropertiesFromBase()
+        {
+            var be = BaseEntity;
+
+            List<PropertyDefinition> baseProperties = new List<PropertyDefinition>();
+
+            while (be != null)
+            {
+                baseProperties.AddRange(be.OwnProperties);
+                be = be.BaseEntity;
+            }
+
+            return baseProperties;
+            //return GetProperties().Except(SelfProperties);
+        }
+
+        #endregion
+
+        public bool IsAssignableFrom(EntityDefinition ed)
+        {
+            if (ed == this)
+                return true;
+            if (ed.BaseEntity == null)
+                return false;
+            return IsAssignableFrom(ed.BaseEntity);
+        }
+
+        public SourceFragmentRefDefinition GetSourceFragment(string sourceFragmentId)
         {
             return GetSourceFragment(sourceFragmentId, false);
         }
 
-        public SourceFragmentDefinition GetSourceFragment(string tableId, bool throwNotFoundException)
+        public SourceFragmentRefDefinition GetSourceFragment(string tableId, bool throwNotFoundException)
         {
             //System.Text.RegularExpressions.Match nameMatch = Worm.CodeGen.Core.Model.GetNsNameMatch(tableId);
             //string localTableId = tableId;
@@ -557,53 +578,6 @@ namespace WXML.Model.Descriptors
         //    }
         //}
 
-        public IEnumerable<ScalarPropertyDefinition> GetPkProperties()
-        {
-            return GetProperties()
-                .Where(p => !p.Disabled && p.HasAttribute(Field2DbRelations.PK))
-                .Cast<ScalarPropertyDefinition>();
-        }
-
-        public bool HasDefferedLoadableProperties
-        {
-            get
-            {
-                return OwnProperties.Any(p => !p.Disabled && !string.IsNullOrEmpty(p.DefferedLoadGroup));
-            }
-        }
-
-        public bool HasDefferedLoadablePropertiesInHierarhy
-        {
-            get
-            {
-                return GetProperties().Any(p => !p.Disabled && !string.IsNullOrEmpty(p.DefferedLoadGroup));
-            }
-        }
-
-        public Dictionary<string, List<PropertyDefinition>> GetDefferedLoadProperties()
-        {
-            Dictionary<string, List<PropertyDefinition>> groups = new Dictionary<string, List<PropertyDefinition>>();
-
-            foreach (var property in GetProperties())
-            {
-                if (property.Disabled || string.IsNullOrEmpty(property.DefferedLoadGroup))
-                    continue;
-
-                List<PropertyDefinition> lst;
-                if (!groups.TryGetValue(property.DefferedLoadGroup, out lst))
-                    groups[property.DefferedLoadGroup] = lst = new List<PropertyDefinition>();
-
-                lst.Add(property);
-            }
-            return groups;
-            //var res = new List<PropertyDescription[]>();
-            //foreach (var list in groups.Values)
-            //{
-            //    res.Add(list.ToArray());
-            //}
-            //return res.ToArray();
-        }
-
         public bool IsImplementMultitable
         {
             get
@@ -619,22 +593,6 @@ namespace WXML.Model.Descriptors
                 return multitable;
                 //return GetSourceFragments().Count() > 1;
             }
-        }
-
-        public IEnumerable<PropertyDefinition> GetPropertiesFromBase()
-        {
-            var be = BaseEntity;
-
-            List<PropertyDefinition> baseProperties = new List<PropertyDefinition>();
-
-            while (be != null)
-            {
-                baseProperties.AddRange(be.OwnProperties);
-                be = be.BaseEntity;
-            }
-
-            return baseProperties;
-            //return GetProperties().Except(SelfProperties);
         }
 
         public void AddProperty(PropertyDefinition pe)
@@ -711,7 +669,13 @@ namespace WXML.Model.Descriptors
         {
             get
             {
-                return string.IsNullOrEmpty(_familyName) ? Name : _familyName;
+                if (!string.IsNullOrEmpty(_familyName))
+                    return _familyName;
+
+                if (_baseEntity != null && !string.IsNullOrEmpty(_baseEntity._familyName))
+                    return _baseEntity._familyName;
+
+                return Name;
             }
             set
             {
@@ -725,6 +689,35 @@ namespace WXML.Model.Descriptors
             {
                 return _sourceFragments;
             }
+        }
+
+        public bool NeedOwnSchema()
+        {
+            if (OwnProperties.Any(item => !item.Disabled && item.HasMapping) ||
+                Model.GetActiveRelations().OfType<RelationDefinition>()
+                    .Any(item => item.Left.Entity.Identifier == Identifier ||
+                                 item.Right.Entity.Identifier == Identifier) ||
+                Model.GetActiveRelations().OfType<SelfRelationDefinition>()
+                    .Any(item => item.Entity.Identifier == Identifier))
+                return true;
+
+            foreach (SourceFragmentRefDefinition tbl in OwnSourceFragments)
+            {
+                if (tbl.Replaces != null)
+                    return true;
+
+                if (tbl.AnchorTable != null)
+                    return true;
+
+                foreach (SourceFragmentRefDefinition.Condition condition in tbl.Conditions)
+                {
+                    if (!string.IsNullOrEmpty(condition.LeftColumn) &&
+                        !string.IsNullOrEmpty(condition.RightConstant))
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         //public void MarkAsDeleted(SourceFragmentRefDefinition sf)

@@ -32,7 +32,7 @@ namespace WXML.Model.Descriptors
 
         public SourceFragmentDefinition AnchorTable { get; set; }
         public JoinTypeEnum JoinType { get; set; }
-        //public MergeAction Action { get; internal set; }
+        public SourceFragmentDefinition Replaces { get; set; }
 
         public List<Condition> _c = new List<Condition>();
         public List<Condition> Conditions
