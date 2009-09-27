@@ -76,10 +76,10 @@
       </oos:SourceFragments>
       <oos:Properties>
         <oos:Property propertyName="ID" attributes="PK" table="tblAl2Ar" typeRef="tInt32" description="relation id" fieldName="id" />
-        <oos:EntityProperty propertyName="Album" table="tblAl2Ar" typeRef="tAlbum" description="album" classfieldAccessLevel="Family">
+        <oos:EntityProperty propertyName="Album" table="tblAl2Ar" referencedEntity="eAlbum" description="album" classfieldAccessLevel="Family">
           <oos:field relatedProperty="ID" fieldName="album_id" />
         </oos:EntityProperty>
-        <oos:EntityProperty propertyName="Artist" table="tblAl2Ar" typeRef="tArtist" description="artist" classfieldAccessLevel="Family">
+        <oos:EntityProperty propertyName="Artist" table="tblAl2Ar" referencedEntity="eArtist" description="artist" classfieldAccessLevel="Family">
           <oos:field relatedProperty="ID" fieldName="artist_id" />
         </oos:EntityProperty>
         <oos:Property propertyName="SomeGuid" table="tblAl2Ar" typeRef="tGuidnullable" description="descriptionofsomeguid" fieldName="someGuid" />
@@ -91,10 +91,10 @@
       </oos:SourceFragments>
       <oos:Properties>
         <oos:Property propertyName="ID" attributes="PK" table="tbla2b" typeRef="tInt32" description="relation id" fieldName="id" />
-        <oos:EntityProperty propertyName="Band" table="tbla2b" typeRef="tArtist" description="band">
+        <oos:EntityProperty propertyName="Band" table="tbla2b" referencedEntity="eArtist" description="band">
           <oos:field relatedProperty="ID" fieldName="band_id" />
         </oos:EntityProperty>
-        <oos:EntityProperty propertyName="Artist" table="tbla2b" typeRef="tArtist" description="band">
+        <oos:EntityProperty propertyName="Artist" table="tbla2b" referencedEntity="eArtist" description="band">
           <oos:field relatedProperty="ID" fieldName="artist_id" />
         </oos:EntityProperty>
       </oos:Properties>
@@ -105,7 +105,7 @@
       </oos:SourceFragments>
       <oos:Properties>
         <oos:Property propertyName="ID" attributes="PK" table="tbla2b" typeRef="tInt32" description="relation id" fieldName="id" />
-        <oos:EntityProperty propertyName="Band" table="tbla2b" typeRef="tArtist" description="band">
+        <oos:EntityProperty propertyName="Band" table="tbla2b" referencedEntity="eArtist" description="band">
           <oos:field relatedProperty="ID" fieldName="band_id" />
         </oos:EntityProperty>
       </oos:Properties>
