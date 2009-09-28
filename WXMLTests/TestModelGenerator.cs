@@ -563,18 +563,18 @@ namespace TestsSourceModel
         {
             SourceView view;
 
-            BinaryFormatter f = new BinaryFormatter() { AssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple };
+            BinaryFormatter f = new BinaryFormatter { AssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple };
 
-            ResolveEventHandler d = null;
-            d = (sender, args) =>
-            {
-                AppDomain.CurrentDomain.AssemblyResolve -= d;
-                //string simpleName = args.Name.Substring(0, args.Name.IndexOf(','));
-                //string assemblyPath = simpleName + ".dll";
-                //return Assembly.LoadFrom(assemblyPath);
-                return typeof(WXMLModel).Assembly;
-            };
-            AppDomain.CurrentDomain.AssemblyResolve += d;
+            //ResolveEventHandler d = null;
+            //d = (sender, args) =>
+            //{
+            //    AppDomain.CurrentDomain.AssemblyResolve -= d;
+            //    //string simpleName = args.Name.Substring(0, args.Name.IndexOf(','));
+            //    //string assemblyPath = simpleName + ".dll";
+            //    //return Assembly.LoadFrom(assemblyPath);
+            //    return typeof(WXMLModel).Assembly;
+            //};
+            //AppDomain.CurrentDomain.AssemblyResolve += d;
 
             Assembly assembly = Assembly.GetExecutingAssembly();
             using (Stream fs = assembly.GetManifestResourceStream(
