@@ -9,6 +9,8 @@ using System.Xml.Serialization;
 using System;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Reflection;
+using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace TestsSourceModel
 {
@@ -100,7 +102,7 @@ namespace TestsSourceModel
             Assert.AreEqual(2, model.GetEntities().Count());
 
             Assert.IsNotNull(model.GetEntity("e_dbo_ent1"));
-            
+
             Assert.IsNotNull(model.GetEntity("e_dbo_ent2"));
 
             Assert.AreEqual(1, model.GetEntity("e_dbo_ent1").GetProperties().Count());
@@ -187,7 +189,7 @@ namespace TestsSourceModel
 
             EntityDefinition membership = model.GetEntity("e_dbo_aspnet_Membership");
             Assert.IsNotNull(membership);
-            
+
             EntityDefinition users = model.GetEntity("e_dbo_aspnet_Users");
             Assert.IsNotNull(users);
 
@@ -327,7 +329,7 @@ namespace TestsSourceModel
 
             Assert.AreEqual(4, model.GetActiveEntities().First().GetActiveProperties().Count());
 
-            SourceFieldDefinition fld = sv.SourceFields.Find(item=>item.SourceFieldExpression == "[Description]");
+            SourceFieldDefinition fld = sv.SourceFields.Find(item => item.SourceFieldExpression == "[Description]");
 
             sv.SourceFields.Remove(fld);
 
@@ -376,7 +378,7 @@ namespace TestsSourceModel
         public void TestM2MSimilarRelations()
         {
             SourceView sv = CreateComplexSourceView();
-            
+
             WXMLModel model = new WXMLModel();
 
             SourceToModelConnector c = new SourceToModelConnector(sv, model);
@@ -506,13 +508,13 @@ namespace TestsSourceModel
             SourceFieldDefinition pkField = new SourceFieldDefinition(sf1, "id", "int") { IsNullable = false };
 
             sv.SourceFields.Add(pkField);
-            sv.SourceFields.Add(new SourceFieldDefinition(sf2, "id", "int"){IsNullable = false});
+            sv.SourceFields.Add(new SourceFieldDefinition(sf2, "id", "int") { IsNullable = false });
             sv.SourceFields.Add(new SourceFieldDefinition(sf2, "prop1_id", "int"));
             sv.SourceFields.Add(new SourceFieldDefinition(sf2, "prop2_id", "int"));
 
             SourceConstraint pk = new SourceConstraint(SourceConstraint.PrimaryKeyConstraintTypeName, "pk1");
             pk.SourceFields.Add(pkField);
-            
+
             SourceConstraint pk2 = new SourceConstraint(SourceConstraint.PrimaryKeyConstraintTypeName, "pk2");
             pk2.SourceFields.Add(sv.GetSourceFields(sf2).Single(item => item.SourceFieldExpression == "id"));
 
@@ -527,8 +529,8 @@ namespace TestsSourceModel
             sf2.Constraints.Add(fk1);
             sf2.Constraints.Add(fk2);
 
-            sv.References.Add(new SourceReferences(pk, fk1, pkField, 
-                sv.GetSourceFields(sf2).Single(item=>item.SourceFieldExpression == "prop1_id")
+            sv.References.Add(new SourceReferences(pk, fk1, pkField,
+                sv.GetSourceFields(sf2).Single(item => item.SourceFieldExpression == "prop1_id")
             ));
 
             sv.References.Add(new SourceReferences(pk, fk2, pkField,
@@ -561,7 +563,18 @@ namespace TestsSourceModel
         {
             SourceView view;
 
-            BinaryFormatter f = new BinaryFormatter();
+            BinaryFormatter f = new BinaryFormatter() { AssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple };
+
+            ResolveEventHandler d = null;
+            d = (sender, args) =>
+            {
+                AppDomain.CurrentDomain.AssemblyResolve -= d;
+                //string simpleName = args.Name.Substring(0, args.Name.IndexOf(','));
+                //string assemblyPath = simpleName + ".dll";
+                //return Assembly.LoadFrom(assemblyPath);
+                return typeof(WXMLModel).Assembly;
+            };
+            AppDomain.CurrentDomain.AssemblyResolve += d;
 
             Assembly assembly = Assembly.GetExecutingAssembly();
             using (Stream fs = assembly.GetManifestResourceStream(
