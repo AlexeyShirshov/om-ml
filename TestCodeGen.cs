@@ -267,6 +267,14 @@ namespace LinqCodeGenTests
 
             BinaryFormatter f = new BinaryFormatter();
 
+            ResolveEventHandler d = null;
+            d = (sender, args) =>
+            {
+                AppDomain.CurrentDomain.AssemblyResolve -= d;
+                return typeof(WXMLModel).Assembly;
+            };
+            AppDomain.CurrentDomain.AssemblyResolve += d;
+
             Assembly assembly = Assembly.GetExecutingAssembly();
             using (Stream fs = assembly.GetManifestResourceStream(
                 string.Format("{0}.Files.{1}", assembly.GetName().Name, "AdventureWorks.sourceview")))
