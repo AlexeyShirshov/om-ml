@@ -72,9 +72,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LinqCodeGenerator\LinqCodeGenerator.csproj">
+    <ProjectReference Include="..\LinqCodeGenerator\WXML2Linq.csproj">
       <Project>{38B63D82-9F09-495B-9D24-F838A3BB8BB0}</Project>
-      <Name>LinqCodeGenerator</Name>
+      <Name>WXML2Linq</Name>
     </ProjectReference>
     <ProjectReference Include="..\WXMLModel\WXMLModel.csproj">
       <Project>{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}</Project>

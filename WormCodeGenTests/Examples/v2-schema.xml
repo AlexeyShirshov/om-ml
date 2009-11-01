@@ -14,23 +14,23 @@
     <oos:Entity id="advEntity3" name="Entity3" baseEntity="eEntity1">
       <oos:SourceFragments />
       <oos:Properties>
-        <oos:Property attributes="PrimaryKey" fieldName="id" propertyName="Identifier2" table="tblEntity1" typeRef="tInt32" />
-        <oos:Property propertyName="Code" table="tblEntity1" typeRef="tInt32" fieldName="code" classfieldAccessLevel="Family" />
-        <oos:Property propertyName="Code2" table="tblEntity1" typeRef="tInt32" fieldName="code2" attributes="ReadOnly" />
+        <oos:Property attributes="PrimaryKey" fieldName="id" name="Identifier2" table="tblEntity1" type="tInt32" />
+        <oos:Property name="Code" table="tblEntity1" type="tInt32" fieldName="code" classfieldAccessLevel="Family" />
+        <oos:Property name="Code2" table="tblEntity1" type="tInt32" fieldName="code2" attributes="ReadOnly" />
       </oos:Properties>
     </oos:Entity>
     <oos:Entity id="advEntity4" name="Entity4" baseEntity="advEntity3">
       <oos:SourceFragments />
       <oos:Properties>
-        <oos:Property propertyName="Code" typeRef="tDouble" />
-        <oos:Property propertyName="Code2" typeRef="tDouble" />
+        <oos:Property name="Code" type="tDouble" />
+        <oos:Property name="Code2" type="tDouble" />
       </oos:Properties>
     </oos:Entity>
     <oos:Entity id="advEntity5" name="Entity5" baseEntity="advEntity3" familyName="Entity3">
       <oos:SourceFragments />
       <oos:Properties>
-        <oos:Property propertyName="Code" propertyAlias="xxx" typeRef="tInt32" />
-        <oos:Property propertyName="Code2" table="tblEntity1" typeRef="tInt32" fieldName="code3" />
+        <oos:Property name="Code" propertyAlias="xxx" type="tInt32" />
+        <oos:Property name="Code2" table="tblEntity1" type="tInt32" fieldName="code3" />
       </oos:Properties>
     </oos:Entity>
   </oos:Entities>

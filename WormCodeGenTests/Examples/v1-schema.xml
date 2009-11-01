@@ -14,7 +14,7 @@
 				<oos:SourceFragment ref="tblEntity1"/>
 			</oos:SourceFragments>
 			<oos:Properties>
-				<oos:Property attributes="PrimaryKey" fieldName="id" propertyName="Identifier1" table="tblEntity1" typeRef="tInt32" />
+				<oos:Property attributes="PrimaryKey" fieldName="id" name="Identifier1" table="tblEntity1" type="tInt32" />
 			</oos:Properties>
 		</oos:Entity>
     <oos:Entity id="eEntity2" name="Entity2">
@@ -22,9 +22,9 @@
         <oos:SourceFragment ref="tblEntity2"/>
       </oos:SourceFragments>
       <oos:Properties>
-        <oos:Property attributes="PrimaryKey" fieldName="id" propertyName="Identifier1" table="tblEntity2" typeRef="tInt32" />
-        <oos:EntityProperty propertyName="Entity1" referencedEntity="eEntity1" table="tblEntity2">
-          <oos:field relatedProperty="Identifier1" sourceFieldDefault="ent1_id" />
+        <oos:Property attributes="PrimaryKey" fieldName="id" name="Identifier1" table="tblEntity2" type="tInt32" />
+        <oos:EntityProperty name="Entity1" referencedEntity="eEntity1" table="tblEntity2">
+          <oos:field relatedProperty="Identifier1" fieldDefault="ent1_id" />
         </oos:EntityProperty>
       </oos:Properties>
     </oos:Entity>

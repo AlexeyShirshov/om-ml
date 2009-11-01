@@ -44,20 +44,21 @@
     </oos:Type>
   </oos:Types>
   <oos:Entities>
-    <oos:Entity id="eArtist" name="Artist" description="Artist Description" makeInterface="true" >
+    <oos:Entity id="eArtist" name="Artist" description="Artist Description">
+      <oos:autoInterface />
       <oos:SourceFragments>
         <oos:SourceFragment ref="tblArtists"/>
         <oos:SourceFragment ref="tblSiteAccess"/>
       </oos:SourceFragments>
       <oos:Properties>
-        <oos:Property propertyName="ID" attributes="PK" table="tblArtists" typeRef="tInt32" description="Property ID Description" fieldName="id" />
-        <oos:Property propertyName="Title" table="tblArtists" typeRef="tString" description="Property Title Description" propertyAccessLevel="Assembly" fieldName="name" />
-        <oos:Property propertyName="DisplayTitle" table="tblArtists" typeRef="tString" description="Property Title Description" classfieldAccessLevel="Family" propertyAccessLevel="Family" propertyAlias="DisplayName" fieldName="display_name" />
-        <oos:Property propertyName="Fact" attributes="Factory" table="tblArtists" typeRef="tString" fieldName="obj" />
-        <oos:Property propertyName="Test" table="tblArtists" typeRef="tString" fieldName="[test]" />
-        <oos:Property propertyName="TestInsDef" attributes="InsertDefault" table="tblArtists" typeRef="tString" enablePropertyChanged="true" fieldName="[TestInsDef]" />
-        <oos:Property propertyName="TestNullabe" table="tblArtists" typeRef="tInt32Nullable" description="Property Title Description" propertyAccessLevel="Assembly" fieldName="nulableint" />
-        <oos:Property propertyName="TestDisabled" table="tblArtists" typeRef="tInt32Nullable" description="Property Title Description" propertyAccessLevel="Assembly" disabled="true" fieldName="disabled" />
+        <oos:Property name="ID" attributes="PK" table="tblArtists" type="tInt32" description="Property ID Description" fieldName="id" />
+        <oos:Property name="Title" table="tblArtists" type="tString" description="Property Title Description" propertyAccessLevel="Assembly" fieldName="name" />
+        <oos:Property name="DisplayTitle" table="tblArtists" type="tString" description="Property Title Description" classfieldAccessLevel="Family" propertyAccessLevel="Family" propertyAlias="DisplayName" fieldName="display_name" />
+        <oos:Property name="Fact" attributes="Factory" table="tblArtists" type="tString" fieldName="obj" />
+        <oos:Property name="Test" table="tblArtists" type="tString" fieldName="[test]" />
+        <oos:Property name="TestInsDef" attributes="InsertDefault" table="tblArtists" type="tString" enablePropertyChanged="true" fieldName="[TestInsDef]" />
+        <oos:Property name="TestNullabe" table="tblArtists" type="tInt32Nullable" description="Property Title Description" propertyAccessLevel="Assembly" fieldName="nulableint" />
+        <oos:Property name="TestDisabled" table="tblArtists" type="tInt32Nullable" description="Property Title Description" propertyAccessLevel="Assembly" disabled="true" fieldName="disabled" />
       </oos:Properties>
     </oos:Entity>
     <oos:Entity id="eAlbum" name="Album" description="Album Description" namespace="AlbumNS">
@@ -66,23 +67,24 @@
         <oos:SourceFragment ref="tblSiteAccess"/>
       </oos:SourceFragments>
       <oos:Properties>
-        <oos:Property propertyName="ID" attributes="PK" table="tblAlbums" typeRef="tInt32" description="Property ID Description" fieldName="id" />
-        <oos:Property propertyName="Title" table="tblAlbums" typeRef="tString" description="Property Title Description" propertyAccessLevel="Assembly" fieldName="title" />
+        <oos:Property name="ID" attributes="PK" table="tblAlbums" type="tInt32" description="Property ID Description" fieldName="id" />
+        <oos:Property name="Title" table="tblAlbums" type="tString" description="Property Title Description" propertyAccessLevel="Assembly" fieldName="title" />
       </oos:Properties>
     </oos:Entity>
-    <oos:Entity id="Album2ArtistRelation" name="Album2ArtistRelation" description="Album2ArtistRelation Description" namespace="xRelations">
+    <oos:Entity id="Album2ArtistRelation" description="Album2ArtistRelation Description" namespace="xRelations">
+      <oos:autoInterface />
       <oos:SourceFragments>
         <oos:SourceFragment ref="tblAl2Ar"/>
       </oos:SourceFragments>
       <oos:Properties>
-        <oos:Property propertyName="ID" attributes="PK" table="tblAl2Ar" typeRef="tInt32" description="relation id" fieldName="id" />
-        <oos:EntityProperty propertyName="Album" table="tblAl2Ar" referencedEntity="eAlbum" description="album" classfieldAccessLevel="Family">
+        <oos:Property name="ID" attributes="PK" table="tblAl2Ar" type="tInt32" description="relation id" fieldName="id" />
+        <oos:EntityProperty name="Album" table="tblAl2Ar" referencedEntity="eAlbum" description="album" classfieldAccessLevel="Family">
           <oos:field relatedProperty="ID" fieldName="album_id" />
         </oos:EntityProperty>
-        <oos:EntityProperty propertyName="Artist" table="tblAl2Ar" referencedEntity="eArtist" description="artist" classfieldAccessLevel="Family">
+        <oos:EntityProperty name="Artist" table="tblAl2Ar" referencedEntity="eArtist" description="artist" classfieldAccessLevel="Family">
           <oos:field relatedProperty="ID" fieldName="artist_id" />
         </oos:EntityProperty>
-        <oos:Property propertyName="SomeGuid" table="tblAl2Ar" typeRef="tGuidnullable" description="descriptionofsomeguid" fieldName="someGuid" />
+        <oos:Property name="SomeGuid" table="tblAl2Ar" type="tGuidnullable" description="descriptionofsomeguid" fieldName="someGuid" />
       </oos:Properties>
     </oos:Entity>
     <oos:Entity id="eA2B" name="Artist2Band" description="Artist2Band description">
@@ -90,11 +92,11 @@
         <oos:SourceFragment ref="tbla2b"/>
       </oos:SourceFragments>
       <oos:Properties>
-        <oos:Property propertyName="ID" attributes="PK" table="tbla2b" typeRef="tInt32" description="relation id" fieldName="id" />
-        <oos:EntityProperty propertyName="Band" table="tbla2b" referencedEntity="eArtist" description="band">
+        <oos:Property name="ID" attributes="PK" table="tbla2b" type="tInt32" description="relation id" fieldName="id" />
+        <oos:EntityProperty name="Band" table="tbla2b" referencedEntity="eArtist" description="band">
           <oos:field relatedProperty="ID" fieldName="band_id" />
         </oos:EntityProperty>
-        <oos:EntityProperty propertyName="Artist" table="tbla2b" referencedEntity="eArtist" description="band">
+        <oos:EntityProperty name="Artist" table="tbla2b" referencedEntity="eArtist" description="band">
           <oos:field relatedProperty="ID" fieldName="artist_id" />
         </oos:EntityProperty>
       </oos:Properties>
@@ -104,10 +106,24 @@
         <oos:SourceFragment ref="tbla2b"/>
       </oos:SourceFragments>
       <oos:Properties>
-        <oos:Property propertyName="ID" attributes="PK" table="tbla2b" typeRef="tInt32" description="relation id" fieldName="id" />
-        <oos:EntityProperty propertyName="Band" table="tbla2b" referencedEntity="eArtist" description="band">
+        <oos:Property name="ID" attributes="PK" table="tbla2b" type="tInt32" description="relation id" fieldName="id" />
+        <oos:EntityProperty name="Band" table="tbla2b" referencedEntity="eArtist" description="band">
           <oos:field relatedProperty="ID" fieldName="band_id" />
         </oos:EntityProperty>
+      </oos:Properties>
+    </oos:Entity>
+    <oos:Entity id="customProps">
+      <oos:Properties>
+        <oos:CustomProperty name="prop1" type="tInt32">
+          <oos:Get>
+            <oos:CS><![CDATA[return 1]]></oos:CS>
+            <oos:VB><![CDATA[Return 1]]></oos:VB>
+          </oos:Get>
+          <oos:Set>
+            <oos:CS><![CDATA[value = 1]]></oos:CS>
+            <oos:VB><![CDATA[Value = 1]]></oos:VB>
+          </oos:Set>
+        </oos:CustomProperty>
       </oos:Properties>
     </oos:Entity>
   </oos:Entities>

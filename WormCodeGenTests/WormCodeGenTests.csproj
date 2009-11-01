@@ -93,9 +93,9 @@
     <EmbeddedResource Include="Examples\m2mCheck4.xml" />
     <EmbeddedResource Include="Examples\linqctx.xml" />
     <EmbeddedResource Include="Examples\hierarchy.xml" />
-    <Content Include="Examples\Relations.xml">
+    <EmbeddedResource Include="Examples\pure-classes.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </EmbeddedResource>
     <EmbeddedResource Include="Examples\types.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>

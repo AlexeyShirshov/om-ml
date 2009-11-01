@@ -121,6 +121,8 @@ namespace WXML.Model.Descriptors
 
         public string DefferedLoadGroup { get; set; }
 
+        public TypeDefinition Interface { get; set; }
+
         public bool HasAttribute(Field2DbRelations attribute)
         {
             return (_attributes & attribute) == attribute;

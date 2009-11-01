@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeDom\CodeCompileFileUnit.cs" />
+    <Compile Include="Model\Descriptors\CustomProperty.cs" />
     <Compile Include="Model\Descriptors\EntityProperty.cs" />
     <Compile Include="Model\SourceModel\ISourceProvider.cs" />
     <Compile Include="Model\SourceModel\SourceReferences.cs" />

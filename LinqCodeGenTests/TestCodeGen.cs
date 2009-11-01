@@ -10,7 +10,7 @@ using TestsCodeGenLib;
 using WXML.Model;
 using System.Xml;
 using WXML.CodeDom.CodeDomExtensions;
-using LinqCodeGenerator;
+using WXML2Linq;
 using WXML.Model.Database.Providers;
 using WXML.Model.Descriptors;
 using WXML.SourceConnector;
@@ -83,7 +83,7 @@ namespace LinqCodeGenTests
 
                 Assert.IsNotNull(model);
 
-                LinqCodeDomGenerator gen = new LinqCodeDomGenerator(model, new WXML.CodeDom.WXMLCodeDomGeneratorSettings());
+                LinqContextGenerator gen = new LinqContextGenerator(model, new WXML.CodeDom.WXMLCodeDomGeneratorSettings());
 
                 //CodeCompileFileUnit u = gen.GetFullSingleUnit(LinqToCodedom.CodeDomGenerator.Language.VB);
 
@@ -109,7 +109,7 @@ namespace LinqCodeGenTests
                 ContextName = "TestCtxDataContext"
             };
 
-            LinqCodeDomGenerator gen = new LinqCodeDomGenerator(model, new WXML.CodeDom.WXMLCodeDomGeneratorSettings());
+            LinqContextGenerator gen = new LinqContextGenerator(model, new WXML.CodeDom.WXMLCodeDomGeneratorSettings());
 
             Console.WriteLine(gen.GenerateCode(LinqToCodedom.CodeDomGenerator.Language.VB));
 
@@ -146,7 +146,7 @@ namespace LinqCodeGenTests
 
             model.Namespace = "LinqCodeGenTests";
 
-            LinqCodeDomGenerator gen = new LinqCodeDomGenerator(model, new WXML.CodeDom.WXMLCodeDomGeneratorSettings());
+            LinqContextGenerator gen = new LinqContextGenerator(model, new WXML.CodeDom.WXMLCodeDomGeneratorSettings());
 
             Console.WriteLine(gen.GenerateCode(LinqToCodedom.CodeDomGenerator.Language.CSharp));
 
@@ -215,7 +215,7 @@ namespace LinqCodeGenTests
 
             model.Namespace = "LinqCodeGenTests";
 
-            LinqCodeDomGenerator gen = new LinqCodeDomGenerator(model, new WXML.CodeDom.WXMLCodeDomGeneratorSettings());
+            LinqContextGenerator gen = new LinqContextGenerator(model, new WXML.CodeDom.WXMLCodeDomGeneratorSettings());
 
             Console.WriteLine(gen.GenerateCode(LinqToCodedom.CodeDomGenerator.Language.CSharp));
 
@@ -298,8 +298,8 @@ namespace LinqCodeGenTests
 
             c.ApplySourceViewToModel(false, relation1to1.Default, false, false);
 
-            LinqCodeDomGenerator gen = new LinqCodeDomGenerator(model);
-
+            LinqContextGenerator gen = new LinqContextGenerator(model);
+            
             Console.WriteLine(gen.GenerateCode(LinqToCodedom.CodeDomGenerator.Language.CSharp));
         }
 

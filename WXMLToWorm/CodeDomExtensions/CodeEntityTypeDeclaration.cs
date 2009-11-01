@@ -8,6 +8,7 @@ using Worm.Entities.Meta;
 using WXML.Model;
 using Worm.Query;
 using WXML.CodeDom;
+using LinqToCodedom.Extensions;
 
 namespace WXMLToWorm.CodeDomExtensions
 {
@@ -993,7 +994,8 @@ namespace WXMLToWorm.CodeDomExtensions
                 m_entityInterface = value;
                 if (m_entityInterface != null)
                 {
-                    BaseTypes.Add(m_entityInterface.TypeReference);
+                    ((CodeTypeDeclaration)this).Implements(m_entityInterface.TypeReference);
+                    //BaseTypes.Add(m_entityInterface.TypeReference);
                     m_entityInterface.EnsureData();
                 }
             }

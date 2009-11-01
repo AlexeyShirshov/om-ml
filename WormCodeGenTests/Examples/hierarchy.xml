@@ -15,9 +15,9 @@
         <oos:SourceFragment ref="tblUsers" />
 			</oos:SourceFragments>
 			<oos:Properties>
-				<oos:Property attributes="PrimaryKey" fieldName="id" propertyName="ID" table="tblUsers" typeRef="tInt32" />
-        <oos:Property fieldName="name" propertyName="Name" table="tblUsers" typeRef="tString" />
-        <oos:Property fieldName="type" propertyName="Type" table="tblUsers" typeRef="tInt32" />
+				<oos:Property attributes="PrimaryKey" fieldName="id" name="ID" table="tblUsers" type="tInt32" />
+        <oos:Property fieldName="name" name="Name" table="tblUsers" type="tString" />
+        <oos:Property fieldName="type" name="Type" table="tblUsers" type="tInt32" />
 			</oos:Properties>
 		</oos:Entity>
     <oos:Entity id="eCustomer" name="Customer" baseEntity="eUser">
@@ -27,7 +27,7 @@
         </oos:SourceFragment>
       </oos:SourceFragments>
       <oos:Properties>
-        <oos:EntityProperty propertyName="Manager" table="tblUsers" referencedEntity="eManager">
+        <oos:EntityProperty name="Manager" table="tblUsers" referencedEntity="eManager">
           <oos:field fieldName="manager_id" relatedProperty="ID" />
         </oos:EntityProperty>
       </oos:Properties>

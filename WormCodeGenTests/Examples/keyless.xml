@@ -13,8 +13,8 @@
 				--><!--<SourceFragment ref="tblS1"/>--><!--
 			</SourceFragments>
 			<Properties>
-				<Property fieldName="id" propertyName="Identifier" propertyAlias="ID" description="prop" table="tbl1" typeRef="tInt32"/>
-				<Property fieldName="title" propertyName="Title" description="prop title" table="tbl1" typeRef="tString" dbTypeName="nvarchar" dbTypeSize="50" dbTypeNullable="false"/>
+				<Property fieldName="id" name="Identifier" propertyAlias="ID" description="prop" table="tbl1" type="tInt32"/>
+				<Property fieldName="title" name="Title" description="prop title" table="tbl1" type="tString" fieldTypeName="nvarchar" fieldTypeSize="50" fieldNullable="false"/>
 			</Properties>
 		</Entity>-->
     <Entity id="e2" name="E2">
@@ -22,8 +22,8 @@
         <SourceFragment ref="tbl1"/>
       </SourceFragments>
       <Properties>
-        <Property propertyName="Title" table="tbl1" typeRef="tString" fieldName="title" />
-        <Property propertyName="Code" table="tbl1" typeRef="tInt32" fieldName="code" />
+        <Property name="Title" table="tbl1" type="tString" fieldName="title" />
+        <Property name="Code" table="tbl1" type="tInt32" fieldName="code" />
       </Properties>
     </Entity>
 	</Entities>

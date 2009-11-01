@@ -66,8 +66,6 @@ namespace WXMLToWorm.CodeDomExtensions
 			EntityTypeDeclaration = entityTypeDeclaration;
 
 			m_typeReference.BaseType = FullName;
-		    
-			
 		}
 
 		public string FullName
@@ -119,7 +117,7 @@ namespace WXMLToWorm.CodeDomExtensions
 		protected internal void EnsureData()
 		{
 			base.Name = Name;
-			if(Entity != null && Entity.BaseEntity != null && Entity.BaseEntity.MakeInterface)
+			if(Entity != null && Entity.BaseEntity != null && Entity.BaseEntity.AutoInterface)
 			{
 				if(m_baseInterfaceTypeReference != null)
 				{

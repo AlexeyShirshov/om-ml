@@ -57,6 +57,7 @@ namespace WXML.Model.Descriptors
             if (model != null && !model.GetEntities().Any(item=>item.Identifier == id))
                 model.AddEntity(this);
 
+            Interfaces = new List<TypeDefinition>();
         }
 
         #region Properties
@@ -548,7 +549,8 @@ namespace WXML.Model.Descriptors
 
         public bool UseGenerics { get; set; }
 
-        public bool MakeInterface { get; set; }
+        public bool AutoInterface { get; set; }
+        public List<TypeDefinition> Interfaces { get; set; }
 
         public bool Disabled { get; set; }
 
@@ -689,6 +691,17 @@ namespace WXML.Model.Descriptors
             {
                 return _sourceFragments;
             }
+        }
+
+        public bool NeedSchema()
+        {
+            if (NeedOwnSchema())
+                return true;
+
+            if (BaseEntity != null)
+                return BaseEntity.NeedSchema();
+
+            return false;
         }
 
         public bool NeedOwnSchema()

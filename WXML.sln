@@ -26,7 +26,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLDatabase", "DatabaseCon
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LINQ to SQL", "LINQ to SQL", "{C316B8E1-2755-4D7A-B913-6B6EECDFC643}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqCodeGenerator", "LinqCodeGenerator\LinqCodeGenerator.csproj", "{38B63D82-9F09-495B-9D24-F838A3BB8BB0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXML2Linq", "LinqCodeGenerator\WXML2Linq.csproj", "{38B63D82-9F09-495B-9D24-F838A3BB8BB0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{45666568-9C5A-4359-A947-EDB0EB7848CA}"
 	ProjectSection(SolutionItems) = preProject
@@ -49,9 +49,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Help", "Help", "{A7B4E429-0
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenTests", "WormCodeGenTests\WormCodeGenTests.csproj", "{FD0ADB48-33C6-4399-9943-6ACAB857CF53}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Repository", "Repository\Repository.vbproj", "{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 10
+		SccNumberOfProjects = 11
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs04.codeplex.com/
 		SccLocalPath0 = .
@@ -75,22 +77,26 @@ Global
 		SccProjectTopLevelParentUniqueName5 = WXML.sln
 		SccProjectName5 = WXMLToWorm
 		SccLocalPath5 = WXMLToWorm
-		SccProjectUniqueName6 = LinqCodeGenerator\\LinqCodeGenerator.csproj
+		SccProjectUniqueName6 = LinqCodeGenTests\\LinqCodeGenTests.csproj
 		SccProjectTopLevelParentUniqueName6 = WXML.sln
-		SccProjectName6 = LinqCodeGenerator
-		SccLocalPath6 = LinqCodeGenerator
-		SccProjectUniqueName7 = LinqCodeGenTests\\LinqCodeGenTests.csproj
+		SccProjectName6 = LinqCodeGenTests
+		SccLocalPath6 = LinqCodeGenTests
+		SccProjectUniqueName7 = WXMLTests\\WXMLTests.csproj
 		SccProjectTopLevelParentUniqueName7 = WXML.sln
-		SccProjectName7 = LinqCodeGenTests
-		SccLocalPath7 = LinqCodeGenTests
-		SccProjectUniqueName8 = WXMLTests\\WXMLTests.csproj
+		SccProjectName7 = WXMLTests
+		SccLocalPath7 = WXMLTests
+		SccProjectUniqueName8 = WormCodeGenTests\\WormCodeGenTests.csproj
 		SccProjectTopLevelParentUniqueName8 = WXML.sln
-		SccProjectName8 = WXMLTests
-		SccLocalPath8 = WXMLTests
-		SccProjectUniqueName9 = WormCodeGenTests\\WormCodeGenTests.csproj
+		SccProjectName8 = WormCodeGenTests
+		SccLocalPath8 = WormCodeGenTests
+		SccProjectUniqueName9 = Repository\\Repository.vbproj
 		SccProjectTopLevelParentUniqueName9 = WXML.sln
-		SccProjectName9 = WormCodeGenTests
-		SccLocalPath9 = WormCodeGenTests
+		SccProjectName9 = Repository
+		SccLocalPath9 = Repository
+		SccProjectUniqueName10 = LinqCodeGenerator\\WXML2Linq.csproj
+		SccProjectTopLevelParentUniqueName10 = WXML.sln
+		SccProjectName10 = LinqCodeGenerator
+		SccLocalPath10 = LinqCodeGenerator
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = WXML.vsmdi
@@ -193,6 +199,16 @@ Global
 		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
 		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.Debug AddIn|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.Debug AddIn|Any CPU.Build.0 = Debug|Any CPU
+		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.Debug_Trace|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.Debug_Trace|Any CPU.Build.0 = Debug|Any CPU
+		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.DebugNonUserInstance|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.DebugNonUserInstance|Any CPU.Build.0 = Debug|Any CPU
+		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -201,6 +217,7 @@ Global
 		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
 		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
 		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
+		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
 		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0} = {6D9187BB-6467-42E5-853C-85A048443B79}

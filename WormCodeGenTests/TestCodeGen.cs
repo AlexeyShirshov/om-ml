@@ -15,6 +15,7 @@ using WXML.Model.Descriptors;
 using WXMLToWorm;
 using System.Reflection;
 using LinqToCodedom;
+using LinqToCodedom.Generator;
 
 namespace WormCodeGenTests
 {
@@ -209,14 +210,15 @@ namespace WormCodeGenTests
            
         }
 
-        public static void TestCSCodeInternal(WXMLModel model, WXMLCodeDomGeneratorSettings settings,
+        public static Assembly TestCSCodeInternal(WXMLModel model, WXMLCodeDomGeneratorSettings settings,
             params CodeCompileUnit[] units)
         {
-            CodeDomProvider prov = new Microsoft.CSharp.CSharpCodeProvider();
+            var providerOptions = new Dictionary<string, string> { { "CompilerVersion", "v3.5" } };
+            CodeDomProvider prov = new Microsoft.CSharp.CSharpCodeProvider(providerOptions);
             settings.LanguageSpecificHacks = LanguageSpecificHacks.CSharp;
             //settings.RemoveOldM2M = true;
             //settings.Split = false;
-            CompileCode(prov, settings, model, units);
+            return CompileCode(prov, true, settings, model, units);
 
             //stream.Position = 0;
 
@@ -240,13 +242,13 @@ namespace WormCodeGenTests
         private static void CompileCode(CodeDomProvider prov, WXMLCodeDomGeneratorSettings settings,
             XmlReader reader)
         {
-            CompileCode(prov, settings, WXMLModel.LoadFromXml(reader, new TestXmlUrlResolver()));
+            CompileCode(prov, false, settings, WXMLModel.LoadFromXml(reader, new TestXmlUrlResolver()));
         }
 
 
-        private static void CompileCode(CodeDomProvider prov, WXMLCodeDomGeneratorSettings settings, 
+        private static Assembly CompileCode(CodeDomProvider prov, bool v35, WXMLCodeDomGeneratorSettings settings, 
             WXMLModel model, params CodeCompileUnit[] units)
-        {
+        {            
             WormCodeDomGenerator gen = new WormCodeDomGenerator(model, settings);
             CompilerResults result;
             CompilerParameters prms = new CompilerParameters
@@ -260,6 +262,8 @@ namespace WormCodeGenTests
             prms.ReferencedAssemblies.Add("System.dll");
             prms.ReferencedAssemblies.Add("System.Data.dll");
             prms.ReferencedAssemblies.Add("System.XML.dll");
+            if (v35)
+                prms.ReferencedAssemblies.Add("System.Core.dll");
             if ((settings.GenerateMode.HasValue ? settings.GenerateMode.Value : model.GenerateMode) != GenerateModeEnum.EntityOnly)
             {
                 //prms.ReferencedAssemblies.Add("CoreFramework.dll");
@@ -277,8 +281,13 @@ namespace WormCodeGenTests
                 var l = new List<CodeCompileUnit>();
                 l.Add(singleUnit);
                 if (units != null)
+                {
                     l.AddRange(units);
-
+                    foreach (var item in units)
+                    {
+                        singleUnit.Namespaces.AddRange(item.Namespaces);
+                    }
+                }
                 result = prov.CompileAssemblyFromDom(prms, l.ToArray());
             }
             else
@@ -292,7 +301,13 @@ namespace WormCodeGenTests
                 }
                 var l = new List<CodeCompileUnit>(dic.Values.OfType<CodeCompileUnit>());
                 if (units != null)
+                {
                     l.AddRange(units);
+                    foreach (var item in units)
+                    {
+                        singleUnit.Namespaces.AddRange(item.Namespaces);
+                    }
+                }
                 result = prov.CompileAssemblyFromDom(prms, l.ToArray());
             }
 
@@ -308,10 +323,7 @@ namespace WormCodeGenTests
                 Assert.Fail(sb.ToString());
             }
 
-            //foreach (CompilerError error in result.Errors)
-            //{
-            //    Assert.IsTrue(error.IsWarning, error.ToString());
-            //}
+            return result.CompiledAssembly;
         }
 
         [TestMethod]
@@ -498,6 +510,55 @@ namespace WormCodeGenTests
             }
         }
 
+        [TestMethod]
+        public void TestPureClasses()
+        {
+            using (Stream stream = Resources.GetXmlDocumentStream("pure-classes"))
+            {
+                WXMLModel model = WXMLModel.LoadFromXml(XmlReader.Create(stream), new TestXmlUrlResolver());
+                Assert.IsNotNull(model);
+
+                var wxmlDocumentSet = model.GetWXMLDocumentSet(new WXMLModelWriterSettings());
+
+                Assert.IsNotNull(wxmlDocumentSet);
+
+                CodeDomGenerator c = new CodeDomGenerator();
+                c.AddNamespace("test")
+                    .AddInterface(Define.Interface("MyInterface")
+                        .AddProperty(typeof(int), MemberAttributes.Public, "ID")
+                        .AddProperty(typeof(string), MemberAttributes.Public, "Name")
+                        //.AddGetProperty(CodeDom.TypeRef(typeof(IQueryable<>), "MyInterface2"), MemberAttributes.Public, "e4s")
+                    )
+                    .AddInterface(Define.Interface("MyInterface2")
+                        .AddProperty(typeof(int), MemberAttributes.Public, "ID")
+                        .AddProperty(CodeDom.TypeRef("MyInterface"), MemberAttributes.Public, "prop1")
+                    )
+                ;
+
+                Assembly a = TestCSCodeInternal(model, new WXMLCodeDomGeneratorSettings(), 
+                    c.GetCompileUnit(CodeDomGenerator.Language.CSharp));
+
+                Assert.IsNotNull(a);
+
+                Type t = a.GetType("e3");
+
+                Assert.IsNotNull(t);
+
+                Assert.IsTrue(t.GetInterfaces().Any(i => i.Name == "MyInterface"));
+
+                a = TestVBCodeInternal(model, new WXMLCodeDomGeneratorSettings(),
+                    c.GetCompileUnit(CodeDomGenerator.Language.VB));
+
+                Assert.IsNotNull(a);
+
+                t = a.GetType("e3");
+
+                Assert.IsNotNull(t);
+
+                Assert.IsTrue(t.GetInterfaces().Any(i => i.Name == "MyInterface"));
+            }
+        }
+
         public void TestVBCodeInternal(Stream stream)
         {
             TestVBCodeInternal(stream, new WXMLCodeDomGeneratorSettings());
@@ -517,6 +578,23 @@ namespace WormCodeGenTests
 
 			//settings.Split = true;
 			//CompileCode(prov, settings, XmlReader.Create(stream));
+        }
+
+        public Assembly TestVBCodeInternal(WXMLModel model, WXMLCodeDomGeneratorSettings settings,
+            params CodeCompileUnit[] units)
+        {
+            var providerOptions = new Dictionary<string, string> { { "CompilerVersion", "v3.5" } };
+            CodeDomProvider prov = new Microsoft.VisualBasic.VBCodeProvider(providerOptions);
+
+            settings.LanguageSpecificHacks = LanguageSpecificHacks.VisualBasic;
+            //settings.RemoveOldM2M = true;
+
+            //settings.Split = false;
+            return CompileCode(prov, true, settings, model, units);
+            //stream.Position = 0;
+
+            //settings.Split = true;
+            //CompileCode(prov, settings, XmlReader.Create(stream));
         }
     }
 }

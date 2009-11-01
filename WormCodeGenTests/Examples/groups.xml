@@ -12,15 +12,15 @@
 				<!--<SourceFragment ref="tblS1"/>-->
 			</SourceFragments>
 			<Properties>
-				<Property fieldName="id" propertyName="Identifier1" propertyAlias="ID" description="prop" table="tbl1" typeRef="tInt32" attributes="PrimaryKey"/>
-				<Property fieldName="title" propertyName="Title" description="prop title" table="tbl1" typeRef="tString" dbTypeName="nvarchar" dbTypeSize="50" dbTypeNullable="false"/>
+				<Property fieldName="id" name="Identifier1" propertyAlias="ID" description="prop" table="tbl1" type="tInt32" attributes="PrimaryKey"/>
+				<Property fieldName="title" name="Title" description="prop title" table="tbl1" type="tString" fieldTypeName="nvarchar" fieldTypeSize="50" fieldNullable="false"/>
         <Group name="grp">
-          <Property fieldName="prop1" propertyName="prop1" table="tbl1" typeRef="tString"/>
-          <Property fieldName="prop2" propertyName="prop2" table="tbl1" typeRef="tString"/>
+          <Property fieldName="prop1" name="prop1" table="tbl1" type="tString"/>
+          <Property fieldName="prop2" name="prop2" table="tbl1" type="tString"/>
         </Group>
         <Group name="grp1" hide="false">
-          <Property fieldName="prop3" propertyName="prop3" table="tbl1" typeRef="tString"/>
-          <Property fieldName="prop4" propertyName="prop4" table="tbl1" typeRef="tString"/>
+          <Property fieldName="prop3" name="prop3" table="tbl1" type="tString"/>
+          <Property fieldName="prop4" name="prop4" table="tbl1" type="tString"/>
         </Group>
 			</Properties>
 		</Entity>

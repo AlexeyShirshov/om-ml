@@ -12,8 +12,8 @@
 				<!--<SourceFragment ref="tblS1"/>-->
 			</SourceFragments>
 			<Properties>
-				<Property fieldName="id" propertyName="Identifier1" propertyAlias="ID" description="prop" table="tbl1" typeRef="tInt32" attributes="PrimaryKey"/>
-				<Property fieldName="title" propertyName="Title" description="prop title" table="tbl1" typeRef="tString" dbTypeName="nvarchar" dbTypeSize="50" dbTypeNullable="false"/>
+				<Property fieldName="id" name="Identifier1" propertyAlias="ID" description="prop" table="tbl1" type="tInt32" attributes="PrimaryKey"/>
+				<Property fieldName="title" name="Title" description="prop title" table="tbl1" type="tString" fieldTypeName="nvarchar" fieldTypeSize="50" fieldNullable="false"/>
 			</Properties>
 		</Entity>
     <Entity id="e2" name="E2" >
@@ -23,8 +23,8 @@
         <!--<SourceFragment ref="tblS1"/>-->
       </SourceFragments>
       <Properties>
-          <Property fieldName="prop4" propertyName="prop4" table="tbl2" typeRef="tString"/>
-          <Property fieldName="id" propertyName="Identifier1" propertyAlias="ID" description="prop" table="tbl2" typeRef="tInt32" attributes="PrimaryKey"/>
+          <Property fieldName="prop4" name="prop4" table="tbl2" type="tString"/>
+          <Property fieldName="id" name="Identifier1" propertyAlias="ID" description="prop" table="tbl2" type="tInt32" attributes="PrimaryKey"/>
       </Properties>
     </Entity>
     <Entity id="e12" name="E12" >
@@ -34,9 +34,9 @@
         <!--<SourceFragment ref="tblS1"/>-->
       </SourceFragments>
       <Properties>
-        <Property fieldName="id" propertyName="Identifier1" propertyAlias="ID" description="prop" table="tbl12" typeRef="tInt32" attributes="PrimaryKey"/>
-        <Property fieldName="e1" propertyName="E1" table="tbl12" typeRef="tE1"/>
-        <Property fieldName="e2" propertyName="E2" table="tbl12" typeRef="tE2"/>
+        <Property fieldName="id" name="Identifier1" propertyAlias="ID" description="prop" table="tbl12" type="tInt32" attributes="PrimaryKey"/>
+        <Property fieldName="e1" name="E1" table="tbl12" type="tE1"/>
+        <Property fieldName="e2" name="E2" table="tbl12" type="tE2"/>
       </Properties>
     </Entity>
     <Entity id="e12n" name="E12" baseEntity="e12">
@@ -46,7 +46,7 @@
         <!--<SourceFragment ref="tblS1"/>-->
       </SourceFragments>
       <Properties>
-        <Property fieldName="peop" propertyName="peop" table="tbl12" typeRef="tString"/>
+        <Property fieldName="peop" name="peop" table="tbl12" type="tString"/>
       </Properties>
     </Entity>
 	</Entities>

@@ -305,8 +305,8 @@ namespace WXMLTests
 
             WXMLModel ormObjectDef = parser.Model;
 
-            Assert.AreEqual<int>(5, ormObjectDef.GetEntities().Count());
-            Assert.AreEqual<int>(4, ormObjectDef.GetActiveEntities().Count());
+            Assert.AreEqual<int>(6, ormObjectDef.GetEntities().Count());
+            Assert.AreEqual<int>(5, ormObjectDef.GetActiveEntities().Count());
             Assert.IsTrue(ormObjectDef.GetEntities().Any(delegate(EntityDefinition match) { return match.Identifier == "eArtist" && match.Name == "Artist"; }));
             Assert.IsTrue(ormObjectDef.GetEntities().Any(delegate(EntityDefinition match) { return match.Identifier == "eAlbum" && match.Name == "Album"; }));
             Assert.IsTrue(ormObjectDef.GetEntities().Any(delegate(EntityDefinition match) { return match.Identifier == "Album2ArtistRelation" && match.Name == "Album2ArtistRelation"; }));
