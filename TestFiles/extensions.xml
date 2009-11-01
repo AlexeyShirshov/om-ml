@@ -11,20 +11,21 @@
   </extensions>
   
   <Entities>
-		<Entity id="e1" name="E1" namespace="NS1" makeInterface="true">
-			<SourceFragments>
+		<Entity id="e1" name="E1" namespace="NS1">
+      <autoInterface />
+      <SourceFragments>
 				<SourceFragment ref="tbl1"/>
 			</SourceFragments>
 			<Properties>
-				<!--<Property propertyName="ID" attributes="PK" table="tblArtists" fieldName="id" typeRef="tInt32" description="Идентификатор"/>-->
-				<Property propertyName="Identifier1" attributes="PK" table="tbl1" fieldName="id" typeRef="tInt32" description="prop" propertyAlias="ID" />
-				<Property propertyName="Prop1" table="tbl1" fieldName="title" typeRef="tString" description="prop"  />
-			</Properties>
+				<!--<Property name="ID" attributes="PK" table="tblArtists" fieldName="id" type="tInt32" description="Идентификатор"/>-->
+				<Property name="Identifier1" attributes="PK" table="tbl1" fieldName="id" type="tInt32" description="prop" propertyAlias="ID" />
+				<Property name="Prop1" table="tbl1" fieldName="title" type="tString" description="prop"  />
+			</Properties>      
 		</Entity>
 		<Entity id="e11" name="E1" namespace="NS2" baseEntity="e1">
 			<SourceFragments />
 			<Properties>
-				<Property propertyName="Prop11" table="tbl1" fieldName="prop11" typeRef="tString" description="prop11"/>				
+				<Property name="Prop11" table="tbl1" fieldName="prop11" type="tString" description="prop11"/>				
 			</Properties>
 			<SuppressedProperties>
 				<Property name="Prop1"/>

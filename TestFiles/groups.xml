@@ -14,17 +14,17 @@
         <oos:SourceFragment ref="tbl1"/>
 			</oos:SourceFragments>
       <oos:Properties>
-        <oos:Property propertyName="Identifier1" attributes="PrimaryKey" table="tbl1" typeRef="tInt32" description="prop" propertyAlias="ID" fieldName="id" />
-        <oos:Property propertyName="Title" table="tbl1" typeRef="tString" description="prop title" fieldName="title" dbTypeName="nvarchar" dbTypeSize="50" dbTypeNullable="false"/>
+        <oos:Property name="Identifier1" attributes="PrimaryKey" table="tbl1" type="tInt32" description="prop" propertyAlias="ID" fieldName="id" />
+        <oos:Property name="Title" table="tbl1" type="tString" description="prop title" fieldName="title" fieldTypeName="nvarchar" fieldTypeSize="50" fieldNullable="false"/>
         <oos:Group name="grp">
-          <oos:Property propertyName="prop1" table="tbl1" typeRef="tString" fieldName="prop1" />
-          <oos:Property propertyName="prop2" table="tbl1" typeRef="tString" fieldName="prop2" />
+          <oos:Property name="prop1" table="tbl1" type="tString" fieldName="prop1" />
+          <oos:Property name="prop2" table="tbl1" type="tString" fieldName="prop2" />
         </oos:Group>
         <oos:Group name="grp1" hide="false">
-          <oos:Property propertyName="prop3" table="tbl1" typeRef="tString" fieldName="prop3" />
-          <oos:Property propertyName="prop4" table="tbl1" typeRef="tString" fieldName="prop4" />
+          <oos:Property name="prop3" table="tbl1" type="tString" fieldName="prop3" />
+          <oos:Property name="prop4" table="tbl1" type="tString" fieldName="prop4" />
         </oos:Group>
-        <oos:Property propertyName="Size" table="tbl1" typeRef="tInt32" description="prop title" fieldName="sz" dbTypeName="int" />
+        <oos:Property name="Size" table="tbl1" type="tInt32" description="prop title" fieldName="sz" fieldTypeName="int" />
 			</oos:Properties>
 		</oos:Entity>
 	</oos:Entities>
