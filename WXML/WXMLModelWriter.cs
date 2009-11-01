@@ -341,7 +341,9 @@ namespace WXML.Model
                 XmlElement entityElement = CreateElement("Entity");
 
                 entityElement.SetAttribute("id", entity.Identifier);
-                entityElement.SetAttribute("name", entity.Name);
+                if (entity.Identifier != entity.Name)
+                    entityElement.SetAttribute("name", entity.Name);
+
                 if (!string.IsNullOrEmpty(entity.Description))
                     entityElement.SetAttribute("description", entity.Description);
                 if (entity.Namespace != entity.Model.Namespace)
@@ -350,8 +352,8 @@ namespace WXML.Model
                     entityElement.SetAttribute("behaviour", entity.Behaviour.ToString());
                 if (entity.UseGenerics)
                     entityElement.SetAttribute("useGenerics", XmlConvert.ToString(entity.UseGenerics));
-                if (entity.MakeInterface)
-                    entityElement.SetAttribute("makeInterface", XmlConvert.ToString(entity.MakeInterface));
+                //if (entity.MakeInterface)
+                //    entityElement.SetAttribute("makeInterface", XmlConvert.ToString(entity.MakeInterface));
                 if (entity.BaseEntity != null)
                     entityElement.SetAttribute("baseEntity", entity.BaseEntity.Identifier);
                 if (entity.Disabled)
@@ -364,19 +366,39 @@ namespace WXML.Model
                 if (entity.CacheCheckRequired)
                     entityElement.SetAttribute("cacheCheckRequired", XmlConvert.ToString(entity.CacheCheckRequired));
 
+                if (entity.Interfaces.Count > 0 || entity.AutoInterface)
+                {
+                    XmlElement e = null;
+                    if (entity.AutoInterface)
+                    {
+                        e = CreateElement("autoInterface");
+                    }
+                    else
+                    {
+                        e = CreateElement("interfaces");
+                        foreach (TypeDefinition tp in entity.Interfaces)
+                        {
+                            var t = CreateElement("interface");
+                            t.InnerText = tp.Identifier;
+                            e.AppendChild(t);
+                        }
+                    }
+                    entityElement.AppendChild(e);
+                }
 
                 XmlElement tablesElement = CreateElement("SourceFragments");
                 if (!entity.InheritsBaseTables)
                 {
                     tablesElement.SetAttribute("inheritsBase", XmlConvert.ToString(entity.InheritsBaseTables));
-                    FillEntityTables(entity.GetSourceFragments(), tablesElement);
+                    if (FillEntityTables(entity.GetSourceFragments(), tablesElement))
+                        entityElement.AppendChild(tablesElement);
                 }
                 else
                 {
                     FillEntityTables(entity.OwnSourceFragments, tablesElement);
+                    entityElement.AppendChild(tablesElement);
                 }
 
-                entityElement.AppendChild(tablesElement);
 
                 FillEntityProperties(entityElement, entity);
 
@@ -466,7 +488,7 @@ namespace WXML.Model
             }
         }
 
-        private void FillEntityTables(IEnumerable<SourceFragmentRefDefinition> tables, XmlNode tablesElement)
+        private bool FillEntityTables(IEnumerable<SourceFragmentRefDefinition> tables, XmlNode tablesElement)
         {
             foreach (SourceFragmentRefDefinition table in tables)
             {
@@ -497,6 +519,7 @@ namespace WXML.Model
                 }
                 tablesElement.AppendChild(tableElement);
             }
+            return tables.Count() > 0;
         }
 
         private void FillEntityProperties(PropertyDefinition rp, XmlNode propertiesNode)
@@ -506,10 +529,23 @@ namespace WXML.Model
                 propertyElement = CreateElement("Property");
             else if (rp is EntityPropertyDefinition)
                 propertyElement = CreateElement("EntityProperty");
+            else if (rp is CustomPropertyDefinition)
+                propertyElement = CreateElement("CustomProperty");
             else
                 throw new NotSupportedException(rp.GetType().ToString());
 
-            propertyElement.SetAttribute("propertyName", rp.Name);
+            if (rp.PropertyAccessLevel == AccessLevel.Private &&
+                rp.Interface != null)
+            {
+                string[] ss = rp.Name.Split(':');
+                if (ss.Length > 1)
+                    propertyElement.SetAttribute("name", ss[1]);
+                else
+                    propertyElement.SetAttribute("name", rp.Name);
+            }
+            else
+                propertyElement.SetAttribute("name", rp.Name);
+
             if (rp.Attributes != Field2DbRelations.None)
             {
                 propertyElement.SetAttribute("attributes",
@@ -521,8 +557,8 @@ namespace WXML.Model
 
             if (rp.PropertyType != null)
             {
-                if (rp is ScalarPropertyDefinition)
-                    propertyElement.SetAttribute("typeRef", rp.PropertyType.Identifier);
+                if (rp is ScalarPropertyDefinition || rp is CustomPropertyDefinition)
+                    propertyElement.SetAttribute("type", rp.PropertyType.Identifier);
                 else if (rp is EntityPropertyDefinition)
                     propertyElement.SetAttribute("referencedEntity", rp.PropertyType.Entity.Identifier);
                 else
@@ -532,7 +568,7 @@ namespace WXML.Model
             if (!string.IsNullOrEmpty(rp.Description))
                 propertyElement.SetAttribute("description", rp.Description);
 
-            if (rp.FieldAccessLevel != AccessLevel.Private)
+            if (rp.FieldAccessLevel != AccessLevel.Private && !(rp is CustomPropertyDefinition))
                 propertyElement.SetAttribute("classfieldAccessLevel", rp.FieldAccessLevel.ToString());
 
             if (rp.PropertyAccessLevel != AccessLevel.Public)
@@ -550,14 +586,17 @@ namespace WXML.Model
             if (!string.IsNullOrEmpty(rp.ObsoleteDescripton))
                 propertyElement.SetAttribute("obsoleteDescription", rp.ObsoleteDescripton);
 
-            if (rp.EnablePropertyChanged)
+            if (rp.EnablePropertyChanged && !(rp is CustomPropertyDefinition))
                 propertyElement.SetAttribute("enablePropertyChanged", XmlConvert.ToString(rp.EnablePropertyChanged));
 
             if (rp.Action != MergeAction.Merge)
                 propertyElement.SetAttribute("action", rp.Action.ToString());
 
-            if (!string.IsNullOrEmpty(rp.DefferedLoadGroup))
+            if (!string.IsNullOrEmpty(rp.DefferedLoadGroup) && !(rp is CustomPropertyDefinition))
                 propertyElement.SetAttribute("defferedLoadGroup", rp.DefferedLoadGroup);
+
+            if (rp.Interface != null)
+                propertyElement.SetAttribute("interface", rp.Interface.Identifier);
 
             if (rp is ScalarPropertyDefinition)
             {
@@ -571,20 +610,20 @@ namespace WXML.Model
                     propertyElement.SetAttribute("fieldName", property.SourceFieldExpression);
 
                     if (!string.IsNullOrEmpty(property.SourceType))
-                        propertyElement.SetAttribute("dbTypeName", property.SourceType);
+                        propertyElement.SetAttribute("fieldTypeName", property.SourceType);
 
                     if (property.SourceTypeSize.HasValue)
-                        propertyElement.SetAttribute("dbTypeSize", XmlConvert.ToString(property.SourceTypeSize.Value));
+                        propertyElement.SetAttribute("fieldTypeSize", XmlConvert.ToString(property.SourceTypeSize.Value));
 
                     if (!property.IsNullable)
-                        propertyElement.SetAttribute("dbTypeNullable", XmlConvert.ToString(property.IsNullable));
+                        propertyElement.SetAttribute("fieldNullable", XmlConvert.ToString(property.IsNullable));
 
                     if (!string.IsNullOrEmpty(property.SourceField.DefaultValue))
-                        propertyElement.SetAttribute("sourceFieldDefault", property.SourceField.DefaultValue);
+                        propertyElement.SetAttribute("fieldDefault", property.SourceField.DefaultValue);
                 }
 
             }
-            else
+            else if (rp is EntityPropertyDefinition)
             {
                 EntityPropertyDefinition property = rp as EntityPropertyDefinition;
                 foreach (EntityPropertyDefinition.SourceField field in property.SourceFields)
@@ -597,25 +636,69 @@ namespace WXML.Model
                         fields.SetAttribute("fieldName", field.SourceFieldExpression);
 
                     if (!string.IsNullOrEmpty(field.SourceType))
-                        fields.SetAttribute("dbTypeName", field.SourceType);
+                        fields.SetAttribute("fieldTypeName", field.SourceType);
 
                     if (field.SourceTypeSize.HasValue)
-                        fields.SetAttribute("dbTypeSize", XmlConvert.ToString(field.SourceTypeSize.Value));
+                        fields.SetAttribute("fieldTypeSize", XmlConvert.ToString(field.SourceTypeSize.Value));
 
                     if (!field.IsNullable)
-                        fields.SetAttribute("dbTypeNullable", XmlConvert.ToString(field.IsNullable));
+                        fields.SetAttribute("fieldNullable", XmlConvert.ToString(field.IsNullable));
 
                     if (!string.IsNullOrEmpty(field.SourceFieldAlias))
                         fields.SetAttribute("fieldAlias", field.SourceFieldAlias);
 
                     if (!string.IsNullOrEmpty(field.DefaultValue))
-                        fields.SetAttribute("sourceFieldDefault", field.DefaultValue);
+                        fields.SetAttribute("fieldDefault", field.DefaultValue);
 
                     propertyElement.AppendChild(fields);
                 }
             }
+            else if (rp is CustomPropertyDefinition)
+            {
+                CustomPropertyDefinition property = rp as CustomPropertyDefinition;
+                XmlElement get = CreateElement("Get");
+                FillBody(get, property.GetBody);
+                propertyElement.AppendChild(get);
+
+                if (property.SetBody != null)
+                {
+                    XmlElement set = CreateElement("Set");
+                    FillBody(set, property.SetBody);
+                    propertyElement.AppendChild(set);
+                }
+            }
+            else
+            {
+                throw new NotSupportedException(rp.GetType().ToString());
+            }
 
             propertiesNode.AppendChild(propertyElement);
+        }
+
+        private void FillBody(XmlElement element, CustomPropertyDefinition.Body body)
+        {
+            if (!string.IsNullOrEmpty(body.PropertyName))
+            {
+                XmlElement propElement = CreateElement("Property");
+                propElement.SetAttribute("name", body.PropertyName);
+                element.AppendChild(propElement);
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(body.CSCode))
+                {
+                    XmlElement cs = CreateElement("CS");
+                    cs.AppendChild(CreateCData(body.CSCode));
+                    element.AppendChild(cs);
+                }
+
+                if (!string.IsNullOrEmpty(body.VBCode))
+                {
+                    XmlElement vb = CreateElement("VB");
+                    vb.AppendChild(CreateCData(body.VBCode));
+                    element.AppendChild(vb);
+                }
+            }
         }
 
         private void FillTypes()
@@ -673,6 +756,11 @@ namespace WXML.Model
         private XmlElement CreateElement(string name)
         {
             return _ormXmlDocumentMain.CreateElement(WXMLModel.NS_PREFIX, name, WXMLModel.NS_URI);
+        }
+
+        private XmlCDataSection CreateCData(string data)
+        {
+            return _ormXmlDocumentMain.CreateCDataSection(data);
         }
 
         private void FillFileDescriptions()

@@ -219,7 +219,7 @@ namespace WXML.Model.Descriptors
         {
             get
             {
-                return _fields.Count > 0;
+                return _fields.Count(f=>!string.IsNullOrEmpty(f.SourceFieldExpression)) > 0;
             }
         }
     }

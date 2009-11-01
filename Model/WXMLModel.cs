@@ -446,9 +446,10 @@ namespace WXML.Model
                     entity.Description = newEntity.Description;
                     entity.Disabled = newEntity.Disabled;
                     entity.InheritsBaseTables = newEntity.InheritsBaseTables;
-                    entity.MakeInterface = newEntity.MakeInterface;
+                    entity.AutoInterface = newEntity.AutoInterface;
                     entity.UseGenerics = newEntity.UseGenerics;
                     entity.FamilyName = newEntity.FamilyName;
+                    entity.Interfaces.AddRange(newEntity.Interfaces);
 
                     entity.ClearSourceFragments();
                     foreach (SourceFragmentRefDefinition newsf in newEntity.OwnSourceFragments)

@@ -22,9 +22,10 @@ namespace WXML.Model
 
         private readonly XmlResolver _xmlResolver;
 
-        internal protected WXMLModelReader(XmlReader reader) : this(reader, null)
+        internal protected WXMLModelReader(XmlReader reader)
+            : this(reader, null)
         {
-            
+
         }
 
         internal protected WXMLModelReader(XmlReader reader, XmlResolver xmlResolver)
@@ -44,7 +45,7 @@ namespace WXML.Model
             _ormXmlDocument = document;
             _nametable = document.NameTable;
             _nsMgr = new XmlNamespaceManager(_nametable);
-            _nsMgr.AddNamespace(WXMLModel.NS_PREFIX, WXMLModel.NS_URI);            
+            _nsMgr.AddNamespace(WXMLModel.NS_PREFIX, WXMLModel.NS_URI);
         }
 
         internal protected static WXMLModel Parse(XmlReader reader, XmlResolver xmlResolver)
@@ -80,7 +81,7 @@ namespace WXML.Model
                 }
             }
             parser.FillModel();
-            return parser._model;                
+            return parser._model;
         }
 
         private void FillModel()
@@ -91,7 +92,7 @@ namespace WXML.Model
 
             FillImports();
 
-        	FillSourceFragments();
+            FillSourceFragments();
 
             FindEntities();
 
@@ -138,7 +139,7 @@ namespace WXML.Model
         private void FillLinqSettings()
         {
             var settingsNode =
-                (XmlElement)_ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:Linq", WXMLModel.NS_PREFIX),_nsMgr);
+                (XmlElement)_ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:Linq", WXMLModel.NS_PREFIX), _nsMgr);
 
             if (settingsNode == null)
                 return;
@@ -152,10 +153,10 @@ namespace WXML.Model
             };
 
             string behaviourValue = settingsNode.GetAttribute("contextClassBehaviour");
-            if(!string.IsNullOrEmpty(behaviourValue))
+            if (!string.IsNullOrEmpty(behaviourValue))
             {
                 var type =
-                    (ContextClassBehaviourType) Enum.Parse(typeof (ContextClassBehaviourType), behaviourValue);
+                    (ContextClassBehaviourType)Enum.Parse(typeof(ContextClassBehaviourType), behaviourValue);
                 _model.LinqSettings.ContextClassBehaviour = type;
             }
         }
@@ -185,10 +186,10 @@ namespace WXML.Model
                 TypeDefinition type;
                 XmlElement typeElement = (XmlElement)typeNode;
                 string id = typeElement.GetAttribute("id");
-                
+
                 XmlNode typeDefNode = typeNode.LastChild;
                 XmlElement typeDefElement = (XmlElement)typeDefNode;
-                if(typeDefNode.LocalName.Equals("Entity"))
+                if (typeDefNode.LocalName.Equals("Entity"))
                 {
                     string entityId = typeDefElement.GetAttribute("ref");
                     EntityDefinition entity = _model.GetEntity(entityId);
@@ -205,7 +206,7 @@ namespace WXML.Model
                         UserTypeHintFlags? hint = null;
                         XmlAttribute hintAttribute = typeDefNode.Attributes["hint"];
                         if (hintAttribute != null)
-                            hint = (UserTypeHintFlags) Enum.Parse(typeof (UserTypeHintFlags), hintAttribute.Value.Replace(" ", ", "));
+                            hint = (UserTypeHintFlags)Enum.Parse(typeof(UserTypeHintFlags), hintAttribute.Value.Replace(" ", ", "));
                         type = new TypeDefinition(id, name, hint);
                     }
                     else
@@ -224,7 +225,24 @@ namespace WXML.Model
                 XmlElement entityElement = (XmlElement)_ormXmlDocument.DocumentElement.SelectSingleNode(
                         string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX,
                                       entity.Identifier), _nsMgr);
-                
+
+                XmlNode interfaces = entityElement.SelectSingleNode(string.Format("{0}:autoInterface", WXMLModel.NS_PREFIX), _nsMgr);
+
+                if (interfaces != null)
+                    entity.AutoInterface = true;
+                else
+                {
+                    interfaces = entityElement.SelectSingleNode(string.Format("{0}:interfaces", WXMLModel.NS_PREFIX), _nsMgr);
+                    if (interfaces != null)
+                    {
+                        foreach (XmlElement @interface in interfaces.SelectNodes(string.Format("{0}:interface", WXMLModel.NS_PREFIX), _nsMgr))
+                        {
+                            TypeDefinition type = _model.GetType(@interface.InnerText, true);
+                            entity.Interfaces.Add(type);
+                        }
+                    }
+                }
+
                 string baseEntityId = entityElement.GetAttribute("baseEntity");
 
                 if (!string.IsNullOrEmpty(baseEntityId))
@@ -264,7 +282,7 @@ namespace WXML.Model
             XmlNodeList relationsList = entityNode.SelectNodes(
                 string.Format("{0}:Relations/{0}:Relation", WXMLModel.NS_PREFIX), _nsMgr);
 
-            foreach(XmlElement relationNode in relationsList)
+            foreach (XmlElement relationNode in relationsList)
             {
                 string entityId = relationNode.GetAttribute("entity");
 
@@ -314,7 +332,7 @@ namespace WXML.Model
 
             foreach (XmlNode propertyNode in propertiesList)
             {
-                XmlElement propertyElement = (XmlElement) propertyNode;
+                XmlElement propertyElement = (XmlElement)propertyNode;
                 string name = propertyElement.GetAttribute("name");
 
                 //PropertyDescription property = new PropertyDescription(name);
@@ -327,7 +345,7 @@ namespace WXML.Model
         {
             _model.Namespace = _ormXmlDocument.DocumentElement.GetAttribute("defaultNamespace");
             _model.SchemaVersion = _ormXmlDocument.DocumentElement.GetAttribute("schemaVersion");
-        	_model.EntityBaseTypeName = _ormXmlDocument.DocumentElement.GetAttribute("entityBaseType");
+            _model.EntityBaseTypeName = _ormXmlDocument.DocumentElement.GetAttribute("entityBaseType");
 
             //string generateEntityName = _ormXmlDocument.DocumentElement.GetAttribute("generateEntityName");            
             //_model.GenerateEntityName = string.IsNullOrEmpty(generateEntityName) ? true : XmlConvert.ToBoolean(generateEntityName);
@@ -338,12 +356,12 @@ namespace WXML.Model
                 Uri baseUri = new Uri(baseUriString, UriKind.RelativeOrAbsolute);
                 _model.FileName = Path.GetFileName(baseUri.ToString());
             }
-        	
+
             string enableCommonPropertyChangedFireAttr =
-        		_ormXmlDocument.DocumentElement.GetAttribute("enableCommonPropertyChangedFire");
-			
+                _ormXmlDocument.DocumentElement.GetAttribute("enableCommonPropertyChangedFire");
+
             if (!string.IsNullOrEmpty(enableCommonPropertyChangedFireAttr))
-				_model.EnableCommonPropertyChangedFire = XmlConvert.ToBoolean(enableCommonPropertyChangedFireAttr);
+                _model.EnableCommonPropertyChangedFire = XmlConvert.ToBoolean(enableCommonPropertyChangedFireAttr);
 
             string mode = _ormXmlDocument.DocumentElement.GetAttribute("generateMode");
             if (!string.IsNullOrEmpty(mode))
@@ -368,35 +386,37 @@ namespace WXML.Model
             {
                 EntityBehaviuor behaviour = EntityBehaviuor.ForcePartial;
 
-                XmlElement entityElement = (XmlElement) entityNode;
+                XmlElement entityElement = (XmlElement)entityNode;
                 string id = entityElement.GetAttribute("id");
                 string name = entityElement.GetAttribute("name");
+                if (string.IsNullOrEmpty(name))
+                    name = id;
+
                 string description = entityElement.GetAttribute("description");
                 string nameSpace = entityElement.GetAttribute("namespace");
                 string behaviourName = entityElement.GetAttribute("behaviour");
                 string familyName = entityElement.GetAttribute("familyName");
-            	string useGenericsAttribute = entityElement.GetAttribute("useGenerics");
-            	string makeInterfaceAttribute = entityElement.GetAttribute("makeInterface");
-            	string disbledAttribute = entityElement.GetAttribute("disabled");
-				string cacheCheckRequiredAttribute = entityElement.GetAttribute("cacheCheckRequired");
+                string useGenericsAttribute = entityElement.GetAttribute("useGenerics");
+                //string makeInterfaceAttribute = entityElement.GetAttribute("makeInterface");
+                string disbledAttribute = entityElement.GetAttribute("disabled");
+                string cacheCheckRequiredAttribute = entityElement.GetAttribute("cacheCheckRequired");
                 string mergeAction = entityElement.GetAttribute("action");
 
-				bool useGenerics = !string.IsNullOrEmpty(useGenericsAttribute) && XmlConvert.ToBoolean(useGenericsAttribute);
-            	bool makeInterface = !string.IsNullOrEmpty(makeInterfaceAttribute) &&
-            	                     XmlConvert.ToBoolean(makeInterfaceAttribute);
-            	bool disabled = !string.IsNullOrEmpty(disbledAttribute) && XmlConvert.ToBoolean(disbledAttribute);
-            	bool cacheCheckRequired = !string.IsNullOrEmpty(cacheCheckRequiredAttribute) &&
-            	                          XmlConvert.ToBoolean(cacheCheckRequiredAttribute);
+                bool useGenerics = !string.IsNullOrEmpty(useGenericsAttribute) && XmlConvert.ToBoolean(useGenericsAttribute);
+                //bool makeInterface = !string.IsNullOrEmpty(makeInterfaceAttribute) &&
+                //                     XmlConvert.ToBoolean(makeInterfaceAttribute);
+                bool disabled = !string.IsNullOrEmpty(disbledAttribute) && XmlConvert.ToBoolean(disbledAttribute);
+                bool cacheCheckRequired = !string.IsNullOrEmpty(cacheCheckRequiredAttribute) &&
+                                          XmlConvert.ToBoolean(cacheCheckRequiredAttribute);
 
                 if (!string.IsNullOrEmpty(behaviourName))
-                    behaviour = (EntityBehaviuor) Enum.Parse(typeof (EntityBehaviuor), behaviourName);
+                    behaviour = (EntityBehaviuor)Enum.Parse(typeof(EntityBehaviuor), behaviourName);
 
 
                 EntityDefinition entity = new EntityDefinition(id, name, nameSpace, description, _model)
                 {
                     Behaviour = behaviour,
                     UseGenerics = useGenerics,
-                    MakeInterface = makeInterface,
                     Disabled = disabled,
                     CacheCheckRequired = cacheCheckRequired,
                     FamilyName = familyName
@@ -410,6 +430,13 @@ namespace WXML.Model
             }
         }
 
+        class DefPropAdd
+        {
+            public XmlElement node;
+            public PropertyGroup group;
+            public int idx;
+        }
+
         internal protected void FillProperties(EntityDefinition entity)
         {
             if (entity == null)
@@ -417,12 +444,20 @@ namespace WXML.Model
 
             XmlNode entityNode = _ormXmlDocument.DocumentElement.SelectSingleNode(string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX, entity.Identifier), _nsMgr);
 
-            foreach (XmlElement node in entityNode.SelectNodes(string.Format("{0}:Properties/*", WXMLModel.NS_PREFIX), _nsMgr))
+            XmlNodeList entityNodeSelectNodes = entityNode.SelectNodes(string.Format("{0}:Properties/*", WXMLModel.NS_PREFIX), _nsMgr);
+            List<DefPropAdd> s = new List<DefPropAdd>();
+            int i = 0;
+            foreach (XmlElement node in entityNodeSelectNodes)
             {
                 if (node.LocalName == "Property")
-                    FillEntityProperties(entity, node, null);
+                    FillEntityProperty(entity, node, null);
                 else if (node.LocalName == "EntityProperty")
-                    FillEntityEProperties(entity, node, null);
+                    FillEntityEProperty(entity, node, null);
+                else if (node.LocalName == "CustomProperty")
+                {
+                    if (!FillCustomProperty(entity, node, null, -1))
+                        s.Add(new DefPropAdd { node = node, idx = i });
+                }
                 else if (node.LocalName == "Group")
                 {
                     string hideValue = node.GetAttribute("hide");
@@ -436,37 +471,192 @@ namespace WXML.Model
                     foreach (XmlElement groupNode in node.SelectNodes("*", _nsMgr))
                     {
                         if (groupNode.LocalName == "Property")
-                            FillEntityProperties(entity, groupNode, group);
+                            FillEntityProperty(entity, groupNode, group);
                         else if (groupNode.LocalName == "EntityProperty")
-                            FillEntityEProperties(entity, groupNode, group);
+                            FillEntityEProperty(entity, groupNode, group);
+                        else if (node.LocalName == "CustomProperty")
+                        {
+                            if (!FillCustomProperty(entity, groupNode, group, -1))
+                                s.Add(new DefPropAdd { node = groupNode, idx = i, group = group });
+                        }
                         else
                             throw new NotSupportedException(groupNode.LocalName);
+
+                        i++;
                     }
                 }
                 else
                     throw new NotSupportedException(node.LocalName);
+
+                i++;
+            }
+
+            foreach (var item in s)
+            {
+                FillCustomProperty(entity, item.node, item.group, item.idx);
             }
         }
 
-        private void FillEntityEProperties(EntityDefinition entity, XmlNode propertyNode, PropertyGroup group)
+        private CustomPropertyDefinition.Body FillPropertyBody(EntityDefinition entity, XmlElement element)
         {
-            AccessLevel fieldAccessLevel, propertyAccessLevel;
-            bool disabled = false, enablePropertyChanged = false;
+            XmlElement prop = (XmlElement)element.SelectSingleNode(string.Format("{0}:Property", WXMLModel.NS_PREFIX), _nsMgr);
+            if (prop != null)
+            {
+                string name = prop.GetAttribute("name");
+                //PropertyDefinition d = entity.GetProperties().SingleOrDefault(p => p.Name == name);
+                //if (d == null)
+                //    return null;
 
-            XmlElement propertyElement = (XmlElement)propertyNode;
-            string description = propertyElement.GetAttribute("description");
-            string name = propertyElement.GetAttribute("propertyName");
+                return new CustomPropertyDefinition.Body(name);
+            }
+            else
+            {
+                XmlElement vb = (XmlElement)element.SelectSingleNode(string.Format("{0}:VB", WXMLModel.NS_PREFIX), _nsMgr);
+                string vbCode = null;
+                if (vb != null)
+                    vbCode = vb.InnerText;
+
+                XmlElement cs = (XmlElement)element.SelectSingleNode(string.Format("{0}:CS", WXMLModel.NS_PREFIX), _nsMgr);
+                string csCode = null;
+                if (cs != null)
+                    csCode = cs.InnerText;
+
+                return new CustomPropertyDefinition.Body(vbCode, csCode);
+            }
+        }
+
+        private bool FillCustomProperty(EntityDefinition entity, XmlElement propertyElement, PropertyGroup group, int idx)
+        {
+            propGroup g = new propGroup(propertyElement);
+            
+            string typeId = propertyElement.GetAttribute("type");
+
+            XmlElement get = (XmlElement)propertyElement.SelectSingleNode(string.Format("{0}:Get", WXMLModel.NS_PREFIX), _nsMgr);
+            if (get == null)
+                throw new WXMLParserException(string.Format("CustomProperty {0} has no Get", g.name));
+
+            CustomPropertyDefinition.Body getBody = FillPropertyBody(entity, get);
+            if (getBody == null)
+                return false;
+
+            XmlElement set = (XmlElement)propertyElement.SelectSingleNode(string.Format("{0}:Set", WXMLModel.NS_PREFIX), _nsMgr);
+            CustomPropertyDefinition.Body setBody = null;
+            if (set != null)
+            {
+                setBody = FillPropertyBody(entity, set);
+                if (setBody == null)
+                    return false;
+            }
+
+            TypeDefinition typeDesc = _model.GetType(typeId, true);
+
+            CustomPropertyDefinition property = new CustomPropertyDefinition(g.name, typeDesc,
+                getBody, setBody, entity)
+            {
+                Disabled = g.disabled,
+                Description = g.description,
+                Obsolete = g.obsolete,
+                ObsoleteDescripton = g.propertyObsoleteDescription,
+                PropertyAccessLevel = g.propertyAccessLevel
+            };
+
+            g.PostProcess(property, _model);
+
+            if (property.PropertyAccessLevel == AccessLevel.Private &&
+                property.Interface != null)
+                property.Name = "private:" + property.Name;
+
+            entity.AddProperty(property);
+
+            return true;
+        }
+
+        class propGroup
+        {
+            public string description;
+            public string name;
+            public AccessLevel propertyAccessLevel;
+            public bool disabled;
+            public ObsoleteType obsolete = ObsoleteType.None;
+            public string propertyObsoleteDescription;
+            public string mergeAction;
+            public string interf;
+
+            public propGroup(XmlElement propertyElement)
+            {
+                description = propertyElement.GetAttribute("description");
+                name = propertyElement.GetAttribute("name");
+                string propertyAccessLevelName = propertyElement.GetAttribute("propertyAccessLevel");
+                string propertyDisabled = propertyElement.GetAttribute("disabled");
+                string propertyObsolete = propertyElement.GetAttribute("obsolete");
+                propertyObsoleteDescription = propertyElement.GetAttribute("obsoleteDescription");
+                mergeAction = propertyElement.GetAttribute("action");
+                interf = propertyElement.GetAttribute("interface");
+
+                if (!string.IsNullOrEmpty(propertyAccessLevelName))
+                    propertyAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), propertyAccessLevelName);
+                else
+                    propertyAccessLevel = AccessLevel.Public;
+
+                if (!String.IsNullOrEmpty(propertyDisabled))
+                    disabled = XmlConvert.ToBoolean(propertyDisabled);
+
+                if (!string.IsNullOrEmpty(propertyObsolete))
+                {
+                    obsolete = (ObsoleteType)Enum.Parse(typeof(ObsoleteType), propertyObsolete);
+                }
+            }
+
+            public void PostProcess(PropertyDefinition property, WXMLModel model)
+            {
+                if (!string.IsNullOrEmpty(interf))
+                    property.Interface = model.GetType(interf, true);
+
+                if (!string.IsNullOrEmpty(mergeAction))
+                    property.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
+
+            }
+        }
+
+        class fieldGroup
+        {
+            public string fieldAlias;
+            public string dbTypeNameAttribute;
+            public string dbTypeDefault;
+            public string fieldname;
+            public int? sz;
+            public bool isNullable = true;
+
+            public fieldGroup(XmlElement fieldMap)
+            {
+                fieldAlias = fieldMap.GetAttribute("fieldAlias");
+                dbTypeNameAttribute = fieldMap.GetAttribute("fieldTypeName");
+                string dbTypeSizeAttribute = fieldMap.GetAttribute("fieldTypeSize");
+                string dbTypeNullableAttribute = fieldMap.GetAttribute("fieldNullable");
+                dbTypeDefault = fieldMap.GetAttribute("fieldDefault");
+                fieldname = fieldMap.GetAttribute("fieldName");
+
+                if (!string.IsNullOrEmpty(dbTypeSizeAttribute))
+                    sz = XmlConvert.ToInt32(dbTypeSizeAttribute);
+
+                if (!string.IsNullOrEmpty(dbTypeNullableAttribute))
+                    isNullable = XmlConvert.ToBoolean(dbTypeNullableAttribute);
+            }
+        }
+
+        private void FillEntityEProperty(EntityDefinition entity, XmlElement propertyElement, PropertyGroup group)
+        {
+            AccessLevel fieldAccessLevel;
+            bool enablePropertyChanged = false;
+
+            propGroup g = new propGroup(propertyElement);
+
             string entityRef = propertyElement.GetAttribute("referencedEntity");
             string sAttributes = propertyElement.GetAttribute("attributes");
             string tableId = propertyElement.GetAttribute("table");
             string fieldAccessLevelName = propertyElement.GetAttribute("classfieldAccessLevel");
-            string propertyAccessLevelName = propertyElement.GetAttribute("propertyAccessLevel");
             string propertyAlias = propertyElement.GetAttribute("propertyAlias");
-            string propertyDisabled = propertyElement.GetAttribute("disabled");
-            string propertyObsolete = propertyElement.GetAttribute("obsolete");
-            string propertyObsoleteDescription = propertyElement.GetAttribute("obsoleteDescription");
             string enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
-            string mergeAction = propertyElement.GetAttribute("action");
             string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
 
             string[] attrString = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
@@ -476,11 +666,6 @@ namespace WXML.Model
                 attributes |= (Field2DbRelations)Enum.Parse(typeof(Field2DbRelations), attr);
             }
 
-            if (!string.IsNullOrEmpty(propertyAccessLevelName))
-                propertyAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), propertyAccessLevelName);
-            else
-                propertyAccessLevel = AccessLevel.Public;
-
             if (!string.IsNullOrEmpty(fieldAccessLevelName))
                 fieldAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), fieldAccessLevelName);
             else
@@ -488,87 +673,51 @@ namespace WXML.Model
 
             SourceFragmentDefinition table = entity.GetSourceFragment(tableId);
 
-            if (!String.IsNullOrEmpty(propertyDisabled))
-                disabled = XmlConvert.ToBoolean(propertyDisabled);
-
             TypeDefinition typeDesc = _model.GetOrCreateType(_model.GetEntity(entityRef, true));
-
-            ObsoleteType obsolete = ObsoleteType.None;
-            if (!string.IsNullOrEmpty(propertyObsolete))
-            {
-                obsolete = (ObsoleteType)Enum.Parse(typeof(ObsoleteType), propertyObsolete);
-            }
 
             if (!string.IsNullOrEmpty(enablePropertyChangedAttribute))
                 enablePropertyChanged = XmlConvert.ToBoolean(enablePropertyChangedAttribute);
 
-            EntityPropertyDefinition property = new EntityPropertyDefinition(name, propertyAlias, attributes, description, fieldAccessLevel, propertyAccessLevel, typeDesc, table, entity)
+            EntityPropertyDefinition property = new EntityPropertyDefinition(g.name, propertyAlias, attributes, g.description, fieldAccessLevel, g.propertyAccessLevel, typeDesc, table, entity)
             {
-                Disabled = disabled,
-                Obsolete = obsolete,
-                ObsoleteDescripton = propertyObsoleteDescription,
+                Disabled = g.disabled,
+                Obsolete = g.obsolete,
+                ObsoleteDescripton = g.propertyObsoleteDescription,
                 EnablePropertyChanged = enablePropertyChanged,
                 Group = group,
                 DefferedLoadGroup = defferedLoadGroup,
             };
 
-            if (!string.IsNullOrEmpty(mergeAction))
-                property.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
+            g.PostProcess(property, _model);
 
             entity.AddProperty(property);
 
-            foreach (XmlElement fieldMap in propertyNode.SelectNodes(string.Format("{0}:field", WXMLModel.NS_PREFIX), _nsMgr))
+            foreach (XmlElement fieldMap in propertyElement.SelectNodes(string.Format("{0}:field", WXMLModel.NS_PREFIX), _nsMgr))
             {
-                string fieldAlias = fieldMap.GetAttribute("fieldAlias");
-                string dbTypeNameAttribute = fieldMap.GetAttribute("dbTypeName");
-                string dbTypeSizeAttribute = fieldMap.GetAttribute("dbTypeSize");
-                string dbTypeNullableAttribute = fieldMap.GetAttribute("dbTypeNullable");
-                string dbTypeDefault = fieldMap.GetAttribute("sourceFieldDefault");
-                string fieldname = fieldMap.GetAttribute("fieldName");
                 string propAlias = fieldMap.GetAttribute("relatedProperty");
 
-                int? sz = null;
-                if (!string.IsNullOrEmpty(dbTypeSizeAttribute))
-                    sz = XmlConvert.ToInt32(dbTypeSizeAttribute);
+                fieldGroup f = new fieldGroup(fieldMap);
 
-                bool isNullable = true;
-                if (!string.IsNullOrEmpty(dbTypeNullableAttribute))
-                    isNullable = XmlConvert.ToBoolean(dbTypeNullableAttribute);
-
-                property.AddSourceFieldUnckeck(propAlias, fieldname, fieldAlias, dbTypeNameAttribute,
-                    sz, isNullable, dbTypeDefault);
-
+                property.AddSourceFieldUnckeck(propAlias, f.fieldname, f.fieldAlias, f.dbTypeNameAttribute,
+                    f.sz, f.isNullable, f.dbTypeDefault);
             }
         }
 
-        private void FillEntityProperties(EntityDefinition entity, XmlNode propertyNode, PropertyGroup group)
+        private void FillEntityProperty(EntityDefinition entity, XmlElement propertyElement, PropertyGroup group)
         {
-            AccessLevel fieldAccessLevel, propertyAccessLevel;
-            bool disabled = false, enablePropertyChanged = false;
-            ObsoleteType obsolete;
+            AccessLevel fieldAccessLevel;
+            bool enablePropertyChanged = false;
 
-            XmlElement propertyElement = (XmlElement) propertyNode;
-            string description = propertyElement.GetAttribute("description");
-            string name = propertyElement.GetAttribute("propertyName");
-            string fieldname = propertyElement.GetAttribute("fieldName");
-            string typeId = propertyElement.GetAttribute("typeRef");
+            propGroup g = new propGroup(propertyElement);
+            fieldGroup f = new fieldGroup(propertyElement);
+
+            string typeId = propertyElement.GetAttribute("type");
             string sAttributes = propertyElement.GetAttribute("attributes");
             string tableId = propertyElement.GetAttribute("table");
             string fieldAccessLevelName = propertyElement.GetAttribute("classfieldAccessLevel");
-            string propertyAccessLevelName = propertyElement.GetAttribute("propertyAccessLevel");
             string propertyAlias = propertyElement.GetAttribute("propertyAlias");
-            string propertyDisabled = propertyElement.GetAttribute("disabled");
-            string propertyObsolete = propertyElement.GetAttribute("obsolete");
-            string propertyObsoleteDescription = propertyElement.GetAttribute("obsoleteDescription");
             string enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
-            string fieldAlias = propertyElement.GetAttribute("fieldAlias");
-            string mergeAction = propertyElement.GetAttribute("action");
-            string dbTypeNameAttribute = propertyElement.GetAttribute("dbTypeName");
-            string dbTypeSizeAttribute = propertyElement.GetAttribute("dbTypeSize");
-            string dbTypeNullableAttribute = propertyElement.GetAttribute("dbTypeNullable");
-            string dbTypeDefault = propertyElement.GetAttribute("sourceFieldDefault");
-
-        	string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
+            string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
 
             string[] attrString = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             Field2DbRelations attributes = Field2DbRelations.None;
@@ -577,11 +726,6 @@ namespace WXML.Model
                 attributes |= (Field2DbRelations)Enum.Parse(typeof(Field2DbRelations), attr);
             }
 
-            if (!string.IsNullOrEmpty(propertyAccessLevelName))
-                propertyAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), propertyAccessLevelName);
-            else
-                propertyAccessLevel = AccessLevel.Public;
-
             if (!string.IsNullOrEmpty(fieldAccessLevelName))
                 fieldAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), fieldAccessLevelName);
             else
@@ -589,48 +733,31 @@ namespace WXML.Model
 
             SourceFragmentDefinition table = entity.GetSourceFragment(tableId);
 
-            if (!String.IsNullOrEmpty(propertyDisabled))
-                disabled = XmlConvert.ToBoolean(propertyDisabled);
-
             TypeDefinition typeDesc = _model.GetType(typeId, true);
-            
-            if(!string.IsNullOrEmpty(propertyObsolete))
-            {
-                obsolete = (ObsoleteType) Enum.Parse(typeof (ObsoleteType), propertyObsolete);
-            }
-            else
-            {
-                obsolete = ObsoleteType.None;
-            }
 
             if (!string.IsNullOrEmpty(enablePropertyChangedAttribute))
                 enablePropertyChanged = XmlConvert.ToBoolean(enablePropertyChangedAttribute);
 
-            SourceFieldDefinition sf = new SourceFieldDefinition(table, fieldname)
+            SourceFieldDefinition sf = new SourceFieldDefinition(table, f.fieldname)
             {
-                SourceType = dbTypeNameAttribute,
-                DefaultValue = dbTypeDefault
+                SourceType = f.dbTypeNameAttribute,
+                DefaultValue = f.dbTypeDefault,
+                IsNullable = f.isNullable,
+                SourceTypeSize = f.sz
             };
 
-            if (!string.IsNullOrEmpty(dbTypeSizeAttribute))
-                sf.SourceTypeSize = XmlConvert.ToInt32(dbTypeSizeAttribute);
-
-            if (!string.IsNullOrEmpty(dbTypeNullableAttribute))
-                sf.IsNullable = XmlConvert.ToBoolean(dbTypeNullableAttribute);
-
-            ScalarPropertyDefinition property = new ScalarPropertyDefinition(entity, name, propertyAlias, attributes, description, typeDesc, sf, fieldAccessLevel, propertyAccessLevel)
+            ScalarPropertyDefinition property = new ScalarPropertyDefinition(entity, g.name, propertyAlias, attributes, g.description, typeDesc, sf, fieldAccessLevel, g.propertyAccessLevel)
             {
-                Disabled = disabled,
-                Obsolete = obsolete,
-                ObsoleteDescripton = propertyObsoleteDescription,
+                Disabled = g.disabled,
+                Obsolete = g.obsolete,
+                ObsoleteDescripton = g.propertyObsoleteDescription,
                 EnablePropertyChanged = enablePropertyChanged,
                 Group = group,
-                SourceFieldAlias = fieldAlias,
+                SourceFieldAlias = f.fieldAlias,
                 DefferedLoadGroup = defferedLoadGroup
             };
 
-            if (!string.IsNullOrEmpty(mergeAction))
-                property.Action = (MergeAction)Enum.Parse(typeof (MergeAction), mergeAction);
+            g.PostProcess(property, _model);
 
             if (typeDesc.IsEntityType)
             {
@@ -645,36 +772,36 @@ namespace WXML.Model
 
         internal protected void FillRelations()
         {
-			XmlNodeList relationNodes = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:EntityRelations/{0}:Relation", WXMLModel.NS_PREFIX), _nsMgr);
+            XmlNodeList relationNodes = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:EntityRelations/{0}:Relation", WXMLModel.NS_PREFIX), _nsMgr);
 
             #region Relations
             foreach (XmlElement relationElement in relationNodes)
-			{
+            {
                 XmlNode leftTargetNode = relationElement.SelectSingleNode(string.Format("{0}:Left", WXMLModel.NS_PREFIX), _nsMgr);
                 XmlNode rightTargetNode = relationElement.SelectSingleNode(string.Format("{0}:Right", WXMLModel.NS_PREFIX), _nsMgr);
 
-				string relationTableId = relationElement.GetAttribute("table");
-				string underlyingEntityId = relationElement.GetAttribute("underlyingEntity");
-				string disabledValue = relationElement.GetAttribute("disabled");
+                string relationTableId = relationElement.GetAttribute("table");
+                string underlyingEntityId = relationElement.GetAttribute("underlyingEntity");
+                string disabledValue = relationElement.GetAttribute("disabled");
                 string mergeAction = relationElement.GetAttribute("action");
-			    string constraint = relationElement.GetAttribute("constraint");
+                string constraint = relationElement.GetAttribute("constraint");
 
-				XmlElement leftTargetElement = (XmlElement)leftTargetNode;
-				string leftLinkTargetEntityId = leftTargetElement.GetAttribute("entity");
-				XmlElement rightTargetElement = (XmlElement)rightTargetNode;
-				string rightLinkTargetEntityId = rightTargetElement.GetAttribute("entity");
+                XmlElement leftTargetElement = (XmlElement)leftTargetNode;
+                string leftLinkTargetEntityId = leftTargetElement.GetAttribute("entity");
+                XmlElement rightTargetElement = (XmlElement)rightTargetNode;
+                string rightLinkTargetEntityId = rightTargetElement.GetAttribute("entity");
 
-				string leftFieldName = leftTargetElement.GetAttribute("fieldName");
-				string rightFieldName = rightTargetElement.GetAttribute("fieldName");
+                string leftFieldName = leftTargetElement.GetAttribute("fieldName");
+                string rightFieldName = rightTargetElement.GetAttribute("fieldName");
 
-				bool leftCascadeDelete = XmlConvert.ToBoolean(leftTargetElement.GetAttribute("cascadeDelete"));
-				bool rightCascadeDelete = XmlConvert.ToBoolean(rightTargetElement.GetAttribute("cascadeDelete"));
+                bool leftCascadeDelete = XmlConvert.ToBoolean(leftTargetElement.GetAttribute("cascadeDelete"));
+                bool rightCascadeDelete = XmlConvert.ToBoolean(rightTargetElement.GetAttribute("cascadeDelete"));
 
-				string leftAccessorName = leftTargetElement.GetAttribute("accessorName");
-				string rightAccessorName = rightTargetElement.GetAttribute("accessorName");
+                string leftAccessorName = leftTargetElement.GetAttribute("accessorName");
+                string rightAccessorName = rightTargetElement.GetAttribute("accessorName");
 
-				string leftAccessedEntityTypeId = leftTargetElement.GetAttribute("accessedEntityType");
-				string rightAccessedEntityTypeId = rightTargetElement.GetAttribute("accessedEntityType");
+                string leftAccessedEntityTypeId = leftTargetElement.GetAttribute("accessedEntityType");
+                string rightAccessedEntityTypeId = rightTargetElement.GetAttribute("accessedEntityType");
 
                 string leftAccessorDescription = leftTargetElement.GetAttribute("accessorDescription");
                 string rightAccessorDescription = rightTargetElement.GetAttribute("accessorDescription");
@@ -682,45 +809,45 @@ namespace WXML.Model
                 string leftEntityProperties = leftTargetElement.GetAttribute("entityProperties");
                 string rightEntityProperties = rightTargetElement.GetAttribute("entityProperties");
 
-				TypeDefinition leftAccessedEntityType = _model.GetType(leftAccessedEntityTypeId, true);
-				TypeDefinition rightAccessedEntityType = _model.GetType(rightAccessedEntityTypeId, true);
+                TypeDefinition leftAccessedEntityType = _model.GetType(leftAccessedEntityTypeId, true);
+                TypeDefinition rightAccessedEntityType = _model.GetType(rightAccessedEntityTypeId, true);
 
-				SourceFragmentDefinition relationTable = _model.GetSourceFragment(relationTableId);
+                SourceFragmentDefinition relationTable = _model.GetSourceFragment(relationTableId);
 
-				EntityDefinition underlyingEntity;
-				if (string.IsNullOrEmpty(underlyingEntityId))
-					underlyingEntity = null;
-				else
-					underlyingEntity = _model.GetEntity(underlyingEntityId);
+                EntityDefinition underlyingEntity;
+                if (string.IsNullOrEmpty(underlyingEntityId))
+                    underlyingEntity = null;
+                else
+                    underlyingEntity = _model.GetEntity(underlyingEntityId);
 
-				bool disabled;
-				if (string.IsNullOrEmpty(disabledValue))
-					disabled = false;
-				else
-					disabled = XmlConvert.ToBoolean(disabledValue);
+                bool disabled;
+                if (string.IsNullOrEmpty(disabledValue))
+                    disabled = false;
+                else
+                    disabled = XmlConvert.ToBoolean(disabledValue);
 
-				EntityDefinition leftLinkTargetEntity = _model.GetEntity(leftLinkTargetEntityId);
+                EntityDefinition leftLinkTargetEntity = _model.GetEntity(leftLinkTargetEntityId);
 
-				EntityDefinition rightLinkTargetEntity = _model.GetEntity(rightLinkTargetEntityId);
+                EntityDefinition rightLinkTargetEntity = _model.GetEntity(rightLinkTargetEntityId);
 
-                LinkTarget leftLinkTarget = new LinkTarget(leftLinkTargetEntity, leftFieldName.Split(' '), 
+                LinkTarget leftLinkTarget = new LinkTarget(leftLinkTargetEntity, leftFieldName.Split(' '),
                     leftEntityProperties.Split(' '),
-                    leftCascadeDelete, leftAccessorName) 
-                { 
+                    leftCascadeDelete, leftAccessorName)
+                {
                     AccessorDescription = leftAccessorDescription,
                     AccessedEntityType = leftAccessedEntityType
                 };
 
-                LinkTarget rightLinkTarget = new LinkTarget(rightLinkTargetEntity, rightFieldName.Split(' '), 
+                LinkTarget rightLinkTarget = new LinkTarget(rightLinkTargetEntity, rightFieldName.Split(' '),
                     rightEntityProperties.Split(' '),
-                    rightCascadeDelete, rightAccessorName) 
-                { 
+                    rightCascadeDelete, rightAccessorName)
+                {
                     AccessorDescription = rightAccessorDescription,
                     AccessedEntityType = rightAccessedEntityType
                 };
 
                 RelationDefinition relation = new RelationDefinition(leftLinkTarget, rightLinkTarget, relationTable, underlyingEntity, disabled);
-			    relation.Constraint = (RelationConstraint) Enum.Parse(typeof (RelationConstraint), constraint, true);
+                relation.Constraint = (RelationConstraint)Enum.Parse(typeof(RelationConstraint), constraint, true);
                 //SourceConstraint cns = null;
                 //switch ((RelationConstraint)Enum.Parse(typeof(RelationConstraint), constraint, true))
                 //{
@@ -737,77 +864,77 @@ namespace WXML.Model
                 //    relationTable.Constraints.Add(cns);
                 //}
 
-			    if (!string.IsNullOrEmpty(mergeAction))
+                if (!string.IsNullOrEmpty(mergeAction))
                     relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
-                
+
                 _model.AddRelation(relation);
 
-			    XmlNodeList constantsNodeList =
-			        relationElement.SelectNodes(string.Format("{0}:Constants/{0}:Constant", WXMLModel.NS_PREFIX), _nsMgr);
+                XmlNodeList constantsNodeList =
+                    relationElement.SelectNodes(string.Format("{0}:Constants/{0}:Constant", WXMLModel.NS_PREFIX), _nsMgr);
 
-			    foreach (XmlElement constantNode in constantsNodeList)
-			    {
-			        string name = constantNode.GetAttribute("name");
-			        string value = constantNode.GetAttribute("value");
+                foreach (XmlElement constantNode in constantsNodeList)
+                {
+                    string name = constantNode.GetAttribute("name");
+                    string value = constantNode.GetAttribute("value");
 
                     if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(value))
                         continue;
 
-			        RelationConstantDescriptor con = new RelationConstantDescriptor
+                    RelationConstantDescriptor con = new RelationConstantDescriptor
                     {
                         Name = name,
                         Value = value
                     };
 
-			        relation.Constants.Add(con);
-			    }
-			} 
-			#endregion
+                    relation.Constants.Add(con);
+                }
+            }
+            #endregion
 
-			#region SelfRelations
-			relationNodes = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:EntityRelations/{0}:SelfRelation", WXMLModel.NS_PREFIX), _nsMgr);
+            #region SelfRelations
+            relationNodes = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:EntityRelations/{0}:SelfRelation", WXMLModel.NS_PREFIX), _nsMgr);
 
-			foreach (XmlElement relationElement in relationNodes)
-			{
+            foreach (XmlElement relationElement in relationNodes)
+            {
                 XmlNode directTargetNode = relationElement.SelectSingleNode(string.Format("{0}:Direct", WXMLModel.NS_PREFIX), _nsMgr);
                 XmlNode reverseTargetNode = relationElement.SelectSingleNode(string.Format("{0}:Reverse", WXMLModel.NS_PREFIX), _nsMgr);
 
                 string relationTableId = relationElement.GetAttribute("table");
-				string underlyingEntityId = relationElement.GetAttribute("underlyingEntity");
-				string disabledValue = relationElement.GetAttribute("disabled");
-				string entityId = relationElement.GetAttribute("entity");
+                string underlyingEntityId = relationElement.GetAttribute("underlyingEntity");
+                string disabledValue = relationElement.GetAttribute("disabled");
+                string entityId = relationElement.GetAttribute("entity");
                 string entityProperties = relationElement.GetAttribute("entityProperties");
                 string mergeAction = relationElement.GetAttribute("action");
                 string constraint = relationElement.GetAttribute("constraint");
 
-				XmlElement directTargetElement = (XmlElement)directTargetNode;
-				XmlElement reverseTargetElement = (XmlElement)reverseTargetNode;
+                XmlElement directTargetElement = (XmlElement)directTargetNode;
+                XmlElement reverseTargetElement = (XmlElement)reverseTargetNode;
 
-				string directFieldName = directTargetElement.GetAttribute("fieldName");
-				string reverseFieldName = reverseTargetElement.GetAttribute("fieldName");
+                string directFieldName = directTargetElement.GetAttribute("fieldName");
+                string reverseFieldName = reverseTargetElement.GetAttribute("fieldName");
 
-				bool directCascadeDelete = XmlConvert.ToBoolean(directTargetElement.GetAttribute("cascadeDelete"));
-				bool reverseCascadeDelete = XmlConvert.ToBoolean(reverseTargetElement.GetAttribute("cascadeDelete"));
+                bool directCascadeDelete = XmlConvert.ToBoolean(directTargetElement.GetAttribute("cascadeDelete"));
+                bool reverseCascadeDelete = XmlConvert.ToBoolean(reverseTargetElement.GetAttribute("cascadeDelete"));
 
-				string directAccessorName = directTargetElement.GetAttribute("accessorName");
-				string reverseAccessorName = reverseTargetElement.GetAttribute("accessorName");
+                string directAccessorName = directTargetElement.GetAttribute("accessorName");
+                string reverseAccessorName = reverseTargetElement.GetAttribute("accessorName");
 
-				string directAccessedEntityTypeId = directTargetElement.GetAttribute("accessedEntityType");
-				string reverseAccessedEntityTypeId = reverseTargetElement.GetAttribute("accessedEntityType");
+                string directAccessedEntityTypeId = directTargetElement.GetAttribute("accessedEntityType");
+                string reverseAccessedEntityTypeId = reverseTargetElement.GetAttribute("accessedEntityType");
 
                 string directAccessorDescription = directTargetElement.GetAttribute("accessorDescription");
                 string reverseAccessorDescription = reverseTargetElement.GetAttribute("accessorDescription");
-                
+
                 TypeDefinition directAccessedEntityType = _model.GetType(directAccessedEntityTypeId, true);
-				TypeDefinition reverseAccessedEntityType = _model.GetType(reverseAccessedEntityTypeId, true);
+                TypeDefinition reverseAccessedEntityType = _model.GetType(reverseAccessedEntityTypeId, true);
 
-				var relationTable = _model.GetSourceFragment(relationTableId);
+                var relationTable = _model.GetSourceFragment(relationTableId);
 
-			    EntityDefinition underlyingEntity = string.IsNullOrEmpty(underlyingEntityId) ? null : _model.GetEntity(underlyingEntityId);
+                EntityDefinition underlyingEntity = string.IsNullOrEmpty(underlyingEntityId) ? null : _model.GetEntity(underlyingEntityId);
 
-			    bool disabled = !string.IsNullOrEmpty(disabledValue) && XmlConvert.ToBoolean(disabledValue);
+                bool disabled = !string.IsNullOrEmpty(disabledValue) && XmlConvert.ToBoolean(disabledValue);
 
-				EntityDefinition entity = _model.GetEntity(entityId);
+                EntityDefinition entity = _model.GetEntity(entityId);
 
                 SelfRelationTarget directTarget = new SelfRelationTarget(directFieldName.Split(' '), directCascadeDelete, directAccessorName)
                 {
@@ -821,7 +948,7 @@ namespace WXML.Model
                     AccessedEntityType = reverseAccessedEntityType
                 };
 
-				SelfRelationDefinition relation = new SelfRelationDefinition(entity, entityProperties.Split(' '),
+                SelfRelationDefinition relation = new SelfRelationDefinition(entity, entityProperties.Split(' '),
                     directTarget, reverseTarget, relationTable, underlyingEntity, disabled)
                 {
                     Constraint = (RelationConstraint)Enum.Parse(typeof(RelationConstraint), constraint, true)
@@ -830,25 +957,25 @@ namespace WXML.Model
                 if (!string.IsNullOrEmpty(mergeAction))
                     relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
 
-				_model.AddRelation(relation);
-			}
-			#endregion
+                _model.AddRelation(relation);
+            }
+            #endregion
         }
 
-		internal protected void FillSourceFragments()
-		{
-			var sourceFragmentNodes = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:SourceFragments/{0}:SourceFragment", WXMLModel.NS_PREFIX), _nsMgr);
+        internal protected void FillSourceFragments()
+        {
+            var sourceFragmentNodes = _ormXmlDocument.DocumentElement.SelectNodes(string.Format("{0}:SourceFragments/{0}:SourceFragment", WXMLModel.NS_PREFIX), _nsMgr);
 
-			foreach (XmlNode tableNode in sourceFragmentNodes)
-			{
-				XmlElement tableElement = (XmlElement)tableNode;
-				string id = tableElement.GetAttribute("id");
-				string name = tableElement.GetAttribute("name");
-				string selector = tableElement.GetAttribute("selector");
+            foreach (XmlNode tableNode in sourceFragmentNodes)
+            {
+                XmlElement tableElement = (XmlElement)tableNode;
+                string id = tableElement.GetAttribute("id");
+                string name = tableElement.GetAttribute("name");
+                string selector = tableElement.GetAttribute("selector");
 
-				_model.AddSourceFragment(new SourceFragmentDefinition(id, name, selector));
-			}
-		}
+                _model.AddSourceFragment(new SourceFragmentDefinition(id, name, selector));
+            }
+        }
 
         internal protected void FillEntityTables(EntityDefinition entity)
         {
@@ -909,8 +1036,11 @@ namespace WXML.Model
             }
 
             XmlNode tablesNode = entityNode.SelectSingleNode(string.Format("{0}:SourceFragments", WXMLModel.NS_PREFIX), _nsMgr);
-            string inheritsTablesValue = ((XmlElement)tablesNode).GetAttribute("inheritsBase");
-            entity.InheritsBaseTables = string.IsNullOrEmpty(inheritsTablesValue) || XmlConvert.ToBoolean(inheritsTablesValue);
+            if (tablesNode != null)
+            {
+                string inheritsTablesValue = ((XmlElement)tablesNode).GetAttribute("inheritsBase");
+                entity.InheritsBaseTables = string.IsNullOrEmpty(inheritsTablesValue) || XmlConvert.ToBoolean(inheritsTablesValue);
+            }
         }
 
         internal protected void Read()
@@ -921,7 +1051,7 @@ namespace WXML.Model
             schemaSet.Add(schema);
             schema = ResourceManager.GetXmlSchema(SCHEMA_NAME);
             schemaSet.Add(schema);
-            
+
             XmlReaderSettings xmlReaderSettings = new XmlReaderSettings
             {
                 CloseInput = false,
@@ -967,7 +1097,7 @@ namespace WXML.Model
 
         void xmlReaderSettings_ValidationEventHandler(object sender, ValidationEventArgs e)
         {
-            if(e.Severity == XmlSeverityType.Warning)
+            if (e.Severity == XmlSeverityType.Warning)
                 return;
             throw new WXMLParserException(string.Format("Xml document format error{1}: {0}", e.Message, (e.Exception != null) ? string.Format("({0},{1})", e.Exception.LineNumber, e.Exception.LinePosition) : string.Empty));
         }

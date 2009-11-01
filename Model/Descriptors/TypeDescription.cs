@@ -12,9 +12,14 @@ namespace WXML.Model.Descriptors
         private readonly Type _clrType;
         private readonly EntityDefinition _entity;
         private readonly UserTypeHintFlags? _userTpeHint;
-        //private WXMLCodeDomGeneratorSettings _settings;
+        private CodeTypeReference _tr;
 
         #region Ctors
+
+        public TypeDefinition(CodeTypeReference tr)
+        {
+            _tr = tr;
+        }
 
         public TypeDefinition(string id, string typeName, bool treatAsUserType)
             : this(id, typeName, null, treatAsUserType, null)
@@ -184,11 +189,19 @@ namespace WXML.Model.Descriptors
 
         public CodeTypeReference ToCodeType(WXMLCodeDomGeneratorSettings settings)
         {
+            if (_tr != null)
+                return _tr;
+
             TypeDefinition propertyTypeDesc = this;
 
-            return new CodeTypeReference(propertyTypeDesc.IsEntityType
+            var t = new CodeTypeReference(propertyTypeDesc.IsEntityType
                   ? new WXMLCodeDomGeneratorNameHelper(settings).GetEntityClassName(propertyTypeDesc.Entity, true)
                   : propertyTypeDesc.GetTypeName(settings));
+
+            //if (IsUserType && (UserTypeHint & UserTypeHintFlags.Interface) == UserTypeHintFlags.Interface)
+            //    t.Is
+
+            return t;
         }
     }
 
@@ -199,5 +212,6 @@ namespace WXML.Model.Descriptors
         Enum = 0x0001,
         ValueType = 0x0002,
         Nullable = 0x0004,
+        Interface = 8
     }
 }

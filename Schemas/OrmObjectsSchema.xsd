@@ -14,6 +14,24 @@
     </xs:annotation>
     <xs:sequence>
       <xs:sequence>
+        <xs:choice minOccurs="0" maxOccurs="1">
+          <xs:element name="autoInterface">
+            <xs:annotation>
+              <xs:documentation>Определяет генерировать интерфейс для сущности</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="interfaces">
+            <xs:complexType>
+              <xs:sequence minOccurs="1" maxOccurs="unbounded">
+                <xs:element name="interface" type="xs:Name" />
+              </xs:sequence>
+            </xs:complexType>
+            <xs:keyref name="interfaceType" refer="TypeId">
+              <xs:selector xpath="NS:interface" />
+              <xs:field xpath="." />
+            </xs:keyref>
+          </xs:element>
+        </xs:choice>
         <xs:element name="SourceFragments" type="SourceFragmentRefCollection_t" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Список используемых таблиц</xs:documentation>
@@ -35,7 +53,7 @@
               <xs:documentation>Свойства объекта сущности должны быть уникальны</xs:documentation>
             </xs:annotation>
             <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
-            <xs:field xpath="@propertyName" />
+            <xs:field xpath="@name" />
           </xs:key>
           <xs:keyref name="propTableRef" refer="SourceFragmentId">
             <xs:annotation>
@@ -46,7 +64,15 @@
           </xs:keyref>
           <xs:keyref name="propType" refer="TypeId">
             <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
-            <xs:field xpath="@typeRef" />
+            <xs:field xpath="@type" />
+          </xs:keyref>
+          <xs:keyref name="epropType" refer="EntityId">
+            <xs:selector xpath="NS:EntityProperty|NS:Group/NS:EntityProperty" />
+            <xs:field xpath="@referencedEntity" />
+          </xs:keyref>
+          <xs:keyref name="interfaceFK" refer="TypeId">
+            <xs:selector xpath="NS:Property|NS:Group/NS:Property|NS:EntityProperty|NS:Group/NS:EntityProperty" />
+            <xs:field xpath="interfaces/interface/." />
           </xs:keyref>
           <xs:unique name="propPropertyAlias">
             <xs:selector xpath="NS:Property|NS:Group/NS:Property" />
@@ -111,11 +137,11 @@
         <xs:documentation>Определяет генерировать generic или строго типизированные методы.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="makeInterface" type="xs:boolean" use="optional" default="false">
+    <!--<xs:attribute name="makeInterface" type="xs:boolean" use="optional" default="false">
       <xs:annotation>
         <xs:documentation>Определяет генерировать интерфейс для сущности</xs:documentation>
       </xs:annotation>
-    </xs:attribute>
+    </xs:attribute>-->
     <xs:attribute name="disabled" type="xs:boolean" use="optional" default="false">
       <xs:annotation>
         <xs:documentation>Определяет генерить ли сущность или нет</xs:documentation>
@@ -214,73 +240,15 @@
       </xs:element>
     </xs:sequence>
   </xs:complexType>
-  <xs:complexType name="Property_t">
-    <xs:annotation>
-      <xs:documentation>Свойство сущности</xs:documentation>
-    </xs:annotation>
-    <!--<xs:attribute name="id" type="xs:Name" use="required">
-			<xs:annotation>
-				<xs:documentation>Идентификатор свойства</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>-->
-    <xs:attribute name="propertyName" type="Name_t" use="required">
+  <xs:attributeGroup name="propertyAttributeGroup">
+    <xs:attribute name="name" type="Name_t" use="required">
       <xs:annotation>
         <xs:documentation>Имя свойства</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="propertyAlias" type="Name_t" use="optional">
-      <xs:annotation>
-        <xs:documentation></xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="attributes" type="PropertyAttributeEnum_t" use="optional">
-      <xs:annotation>
-        <xs:documentation>Атрибуты свойства</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="description" type="xs:string" use="optional">
       <xs:annotation>
         <xs:documentation>Описание свойства</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="typeRef" type="xs:Name" use="optional">
-      <xs:annotation>
-        <xs:documentation>Тип свойства (возможна ссылка на сущность)</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="dbTypeName" type="xs:Name" use="optional">
-      <xs:annotation>
-        <xs:documentation>Имя типа поля БД</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="dbTypeSize" type="xs:integer" use="optional">
-      <xs:annotation>
-        <xs:documentation>Размер типа поля БД</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="dbTypeNullable" type="xs:boolean" use="optional">
-      <xs:annotation>
-        <xs:documentation>Тип поля БД является nullable</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="sourceFieldDefault" type="xs:string" use="optional">
-      <xs:annotation>
-        <xs:documentation>Значение поля по умолчанию</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="fieldName" type="xs:string" use="optional">
-      <xs:annotation>
-        <xs:documentation>Наименование колонки из БД или выражение</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="table" type="xs:Name" use="optional">
-      <xs:annotation>
-        <xs:documentation>Ссылка на таблицу БД</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="classfieldAccessLevel" type="AccessLevel_t" use="optional" default="Private">
-      <xs:annotation>
-        <xs:documentation>Уровень доступа к полю класса</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="propertyAccessLevel" type="AccessLevel_t" use="optional" default="Public">
@@ -303,6 +271,31 @@
         <xs:documentation>Description for obsolete property.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />
+    <xs:attribute name="interface" type="Name_t" use="optional" />
+  </xs:attributeGroup>
+  <xs:attributeGroup name="mappedPropertyAttributeGroup">
+    <xs:attributeGroup ref="NS:propertyAttributeGroup" />
+    <xs:attribute name="propertyAlias" type="Name_t" use="optional">
+      <xs:annotation>
+        <xs:documentation></xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="attributes" type="PropertyAttributeEnum_t" use="optional">
+      <xs:annotation>
+        <xs:documentation>Атрибуты свойства</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="table" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Ссылка на таблицу БД</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="classfieldAccessLevel" type="AccessLevel_t" use="optional" default="Private">
+      <xs:annotation>
+        <xs:documentation>Уровень доступа к полю класса</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="enablePropertyChanged" type="xs:boolean" use="optional" default="false">
       <xs:annotation>
         <xs:documentation>
@@ -317,12 +310,55 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="sourceFieldAttributeGroup">
+    <xs:attribute name="fieldTypeName" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Имя типа поля БД</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="fieldTypeSize" type="xs:integer" use="optional">
+      <xs:annotation>
+        <xs:documentation>Размер типа поля БД</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="fieldNullable" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:documentation>Тип поля БД является nullable</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="fieldDefault" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>Значение поля по умолчанию</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="fieldName" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>Наименование колонки из БД или выражение</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="fieldAlias" type="xs:string" use="optional">
       <xs:annotation>
         <xs:documentation>Алиас колонки из БД</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />
+  </xs:attributeGroup>
+  <xs:complexType name="Property_t">
+    <xs:annotation>
+      <xs:documentation>Свойство сущности</xs:documentation>
+    </xs:annotation>
+    <!--<xs:attribute name="id" type="xs:Name" use="required">
+			<xs:annotation>
+				<xs:documentation>Идентификатор свойства</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>-->
+    <xs:attribute name="type" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Тип свойства (возможна ссылка на сущность)</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attributeGroup ref ="NS:sourceFieldAttributeGroup" />
+    <xs:attributeGroup ref ="NS:mappedPropertyAttributeGroup" />
   </xs:complexType>
   <xs:complexType name="EntityProperty_t">
     <xs:annotation>
@@ -336,118 +372,44 @@
               <xs:documentation>Имя свойства</xs:documentation>
             </xs:annotation>
           </xs:attribute>
-          <xs:attribute name="dbTypeName" type="xs:Name" use="optional">
-            <xs:annotation>
-              <xs:documentation>Имя типа поля БД</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-          <xs:attribute name="dbTypeSize" type="xs:integer" use="optional">
-            <xs:annotation>
-              <xs:documentation>Размер типа поля БД</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-          <xs:attribute name="dbTypeNullable" type="xs:boolean" use="optional">
-            <xs:annotation>
-              <xs:documentation>Тип поля БД является nullable</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-          <xs:attribute name="sourceFieldDefault" type="xs:string" use="optional">
-            <xs:annotation>
-              <xs:documentation>Значение поля по умолчанию</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-          <xs:attribute name="fieldName" type="xs:string" use="optional">
-            <xs:annotation>
-              <xs:documentation>Наименование колонки из БД или выражение</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
-          <xs:attribute name="fieldAlias" type="xs:string" use="optional">
-            <xs:annotation>
-              <xs:documentation>Алиас колонки из БД</xs:documentation>
-            </xs:annotation>
-          </xs:attribute>
+          <xs:attributeGroup ref="NS:sourceFieldAttributeGroup" />
         </xs:complexType>
       </xs:element>
     </xs:sequence>
-    <xs:attribute name="propertyName" type="Name_t" use="required">
-      <xs:annotation>
-        <xs:documentation>Имя свойства</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="propertyAlias" type="Name_t" use="optional">
-      <xs:annotation>
-        <xs:documentation></xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="attributes" type="PropertyAttributeEnum_t" use="optional">
-      <xs:annotation>
-        <xs:documentation>Атрибуты свойства</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="description" type="xs:string" use="optional">
-      <xs:annotation>
-        <xs:documentation>Описание свойства</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
     <xs:attribute name="referencedEntity" type="xs:Name" use="optional">
       <xs:annotation>
         <xs:documentation>Имя сущности</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="table" type="xs:Name" use="optional">
-      <xs:annotation>
-        <xs:documentation>Ссылка на таблицу БД</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="classfieldAccessLevel" type="AccessLevel_t" use="optional" default="Private">
-      <xs:annotation>
-        <xs:documentation>Уровень доступа к полю класса</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="propertyAccessLevel" type="AccessLevel_t" use="optional" default="Public">
-      <xs:annotation>
-        <xs:documentation>Уровень доступа к полю класса</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="disabled" type="xs:boolean" use="optional" default="false">
-      <xs:annotation>
-        <xs:documentation>Признак отключения проперти</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="obsolete" type="ObsoleteType_t" use="optional" default="None">
-      <xs:annotation>
-        <xs:documentation>Make property obsolete.</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="obsoleteDescription" type="xs:string" use="optional">
-      <xs:annotation>
-        <xs:documentation>Description for obsolete property.</xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="enablePropertyChanged" type="xs:boolean" use="optional" default="false">
-      <xs:annotation>
-        <xs:documentation>
-          Включает для свойства поднятие события PropertyChanged, при этом реализация идет на уровне конкретной сущности. При этом в целом для сущности отключается общий механизм этого события.
-        </xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="defferedLoadGroup" type="xs:string" use="optional">
-      <xs:annotation>
-        <xs:documentation>
-          Группа свойства для отложенной загрузки.
-        </xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
-    <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />    
+    <xs:attributeGroup ref ="NS:mappedPropertyAttributeGroup" />
   </xs:complexType>
-  <xs:complexType name="PropertiesCollection_t">
+  <xs:complexType name="CustomProperty_t">
     <xs:annotation>
-      <xs:documentation>Коллекция свойств сущности</xs:documentation>
+      <xs:documentation>Кастомное свойство сущности. Тело задается пользователем</xs:documentation>
     </xs:annotation>
-    <xs:sequence>
-      <xs:element name="Property" type="Property_t" minOccurs="0" maxOccurs="unbounded">
-      </xs:element>
+    <xs:sequence minOccurs="1" maxOccurs="1">
+      <xs:element name="Get" minOccurs="1" maxOccurs="1" type="CustomPropertyBody_t" />
+      <xs:element name="Set" minOccurs="0" maxOccurs="1" type="CustomPropertyBody_t" />
     </xs:sequence>
+    <xs:attribute name="type" type="xs:Name" use="optional">
+      <xs:annotation>
+        <xs:documentation>Тип свойства (возможна ссылка на сущность)</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attributeGroup ref="NS:propertyAttributeGroup" />
+  </xs:complexType>
+  <xs:complexType name="CustomPropertyBody_t">
+    <xs:choice minOccurs="1" maxOccurs="1">
+      <xs:element name="Property" minOccurs="1" maxOccurs="1">
+        <xs:complexType>
+          <xs:attribute name="name" type="xs:Name" />
+        </xs:complexType>
+      </xs:element>
+      <xs:sequence minOccurs="1" maxOccurs="1">
+        <xs:element name="CS" minOccurs="0" maxOccurs="1" type="xs:string" />
+        <xs:element name="VB" minOccurs="0" maxOccurs="1" type="xs:string" />
+      </xs:sequence>
+    </xs:choice>
   </xs:complexType>
   <xs:complexType name="PropertiesGroupedCollection_t">
     <xs:annotation>
@@ -456,19 +418,21 @@
     <xs:sequence minOccurs="0" maxOccurs="unbounded">
       <xs:choice minOccurs="0" maxOccurs="unbounded">
         <xs:element name="Property" type="Property_t" minOccurs="0" maxOccurs="unbounded" />
+        <xs:element name="EntityProperty" type="EntityProperty_t" minOccurs="0" maxOccurs="unbounded" />
+        <xs:element name="CustomProperty" type="CustomProperty_t" minOccurs="0" maxOccurs="unbounded" />
         <xs:element name="Group">
           <xs:complexType>
             <xs:sequence>
               <xs:choice minOccurs="0" maxOccurs="unbounded">
                 <xs:element name="Property" type="Property_t" minOccurs="0" maxOccurs="unbounded" />
                 <xs:element name="EntityProperty" type="EntityProperty_t" minOccurs="0" maxOccurs="unbounded" />
+                <xs:element name="CustomProperty" type="CustomProperty_t" minOccurs="0" maxOccurs="unbounded" />
               </xs:choice>
             </xs:sequence>
             <xs:attribute name="name" type="Name_t" use="required" />
             <xs:attribute name="hide" type="xs:boolean" use="optional" default="true" />
           </xs:complexType>
         </xs:element>
-        <xs:element name="EntityProperty" type="EntityProperty_t" minOccurs="0" maxOccurs="unbounded" />
       </xs:choice>
     </xs:sequence>
   </xs:complexType>
@@ -775,11 +739,11 @@
     <xs:attribute name="name" type="xs:string" use="required" />
     <xs:attribute name="hint" type="TypeHint_t" use="optional" />
   </xs:complexType>
-  <xs:complexType name="TypeRef_t">
+  <!--<xs:complexType name="TypeRef_t">
     <xs:annotation>
       <xs:documentation>Ссылка на тип</xs:documentation>
     </xs:annotation>
-  </xs:complexType>
+  </xs:complexType>-->
   <xs:complexType name="IncludesCollection_t">
     <xs:annotation>
       <xs:documentation>Набор ссылок на документы для импорта</xs:documentation>
