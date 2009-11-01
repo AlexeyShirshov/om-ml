@@ -14,9 +14,9 @@ using Microsoft.VisualBasic;
 using Microsoft.CSharp;
 using System.Collections.Generic;
 
-namespace LinqCodeGenerator
+namespace WXML2Linq
 {
-    public class LinqCodeDomGenerator
+    public class LinqContextGenerator
     {
         public const string LinqRelationField = "LinqRelationField";
         public const string LinqRelationFieldDirect = "LinqRelationField-Direct";
@@ -29,13 +29,13 @@ namespace LinqCodeGenerator
         private readonly WXMLCodeDomGeneratorSettings _settings;
         private Func<string, string> _validId;
 
-        public LinqCodeDomGenerator(WXMLModel ormObjectsDefinition)
+        public LinqContextGenerator(WXMLModel ormObjectsDefinition)
         {
             _ormObjectsDefinition = ormObjectsDefinition;
             _settings = new WXMLCodeDomGeneratorSettings();
         }
 
-        public LinqCodeDomGenerator(WXMLModel ormObjectsDefinition, WXMLCodeDomGeneratorSettings settings)
+        public LinqContextGenerator(WXMLModel ormObjectsDefinition, WXMLCodeDomGeneratorSettings settings)
         {
             _ormObjectsDefinition = ormObjectsDefinition;
             _settings = settings;
@@ -335,8 +335,13 @@ namespace LinqCodeGenerator
             Action<CodeConstructor> addCtor)
         {
             CodeTypeDeclaration cls = ns.AddClass(/*new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(e, true)*/ e.Name)
-                .Inherits(typeof(System.ComponentModel.INotifyPropertyChanging))
-                .Inherits(typeof(System.ComponentModel.INotifyPropertyChanged));
+                .Implements(typeof(System.ComponentModel.INotifyPropertyChanging))
+                .Implements(typeof(System.ComponentModel.INotifyPropertyChanged));
+
+            foreach (var item in e.Interfaces)
+            {
+                cls.Implements(item.ToCodeType(Settings));
+            }
 
             SourceFragmentDefinition tbl = e.GetSourceFragments().Single();
 
@@ -566,6 +571,9 @@ namespace LinqCodeGenerator
                         var attr = AddPropertyAttribute(p, fieldName);
 
                         prop.AddAttribute(attr);
+
+                        if (p_.Interface != null)
+                            prop.Implements(p_.Interface.ToCodeType(Settings));
                     }
                 }
                 else if(p_ is EntityPropertyDefinition)
@@ -790,6 +798,9 @@ namespace LinqCodeGenerator
             );
 
             eprop.AddAttribute(AddPropertyAttribute(p, efieldName));
+
+            if (p.Interface != null)
+                eprop.Implements(p.Interface.ToCodeType(Settings));
         }
 
         private CodeAttributeDeclaration CreateRelPropAttr(EntityDefinition e, string fldName, string ename, 
