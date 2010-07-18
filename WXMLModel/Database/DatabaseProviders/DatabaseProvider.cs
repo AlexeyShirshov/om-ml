@@ -35,8 +35,11 @@ namespace WXML.Model.Database.Providers
         public abstract void GenerateCreatePKScript(IEnumerable<PropDefinition> pks, string constraintName, StringBuilder script, bool pk, bool clustered);
         public abstract void GenerateCreateFKsScript(SourceFragmentDefinition table, IEnumerable<FKDefinition> fks, StringBuilder script);
         public abstract void GenerateAddColumnsScript(IEnumerable<PropDefinition> props, StringBuilder script, bool unicodeStrings);
+        public abstract void GenerateCreateIndexScript(SourceFragmentDefinition table, IndexDefinition indexes, StringBuilder script);
+        public abstract void GenerateDropIndexScript(SourceFragmentDefinition table, string indexName, StringBuilder script);
+        public abstract void GenerateDropTableScript(SourceFragmentDefinition table, StringBuilder script);
 
-        protected abstract DbConnection GetDBConn();
+        public abstract DbConnection GetDBConn();
 
         protected abstract string AppendIdentity();
         

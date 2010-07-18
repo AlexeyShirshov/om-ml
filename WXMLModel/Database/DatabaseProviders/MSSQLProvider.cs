@@ -160,7 +160,7 @@ namespace WXML.Model.Database.Providers
             //return startNum;
         }
 
-        protected override DbConnection GetDBConn()
+        public override DbConnection GetDBConn()
         {
             System.Data.SqlClient.SqlConnectionStringBuilder cb = new System.Data.SqlClient.SqlConnectionStringBuilder();
             string srv = _server;
@@ -616,6 +616,39 @@ namespace WXML.Model.Database.Providers
             return result;
         }
 
+        public override void GenerateCreateIndexScript(SourceFragmentDefinition table, IndexDefinition index, StringBuilder script)
+        {
+            if (index.cols.Count() > 0)
+            {
+                script.AppendFormat("CREATE INDEX {0} ON {1}.{2}(",
+                    index.indexName, table.Selector, table.Name);
+
+                foreach (string c in index.cols)
+                {
+                    script.Append(c).Append(", ");
+                }
+
+                script.Length -= 2;
+                script.AppendLine(");");
+                script.AppendLine();
+            }
+        }
+
+        public override void GenerateDropIndexScript(SourceFragmentDefinition table, string indexName, StringBuilder script)
+        {
+            script.AppendFormat("DROP INDEX {0} ON {1}.{2};",
+                indexName, table.Selector, table.Name);
+            script.AppendLine();
+        }
+
+        public override void GenerateDropTableScript(SourceFragmentDefinition table, StringBuilder script)
+        {
+            script.AppendFormat("DROP TABLE {0}.{1};",
+                table.Selector, table.Name);
+            script.AppendLine();
+        }
+
         #endregion
+
     }
 }

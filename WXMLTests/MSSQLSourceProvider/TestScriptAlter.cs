@@ -84,12 +84,8 @@ namespace WXMLTests.MSSQLSourceProvider
             {
                 foreach (SourceFieldDefinition field in sv.GetSourceFields(sf).Where(item=>!item.IsFK))
                 {
-                    msc.SourceView.SourceFields.Add(new SourceFieldDefinition(
-                        new SourceFragmentDefinition(field.SourceFragment.Identifier,
-                            field.SourceFragment.Name, field.SourceFragment.Selector),
-                        field.SourceFieldExpression, field.SourceTypeSize, field.IsNullable,
-                        field.SourceType, field.IsAutoIncrement, field.DefaultValue
-                    ));
+                    msc.SourceView.SourceFields.Add(new SourceFieldDefinition(new SourceFragmentDefinition(field.SourceFragment.Identifier,
+                            field.SourceFragment.Name, field.SourceFragment.Selector), field.SourceFieldExpression, field.SourceType, field.SourceTypeSize, field.IsNullable, field.IsAutoIncrement, field.DefaultValue));
                     break;
                 }
             }

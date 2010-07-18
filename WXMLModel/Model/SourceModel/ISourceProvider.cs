@@ -12,6 +12,15 @@ namespace WXML.Model.Descriptors
         void GenerateCreatePKScript(IEnumerable<PropDefinition> pks, string constraintName, StringBuilder script, bool pk, bool clustered);
         void GenerateCreateFKsScript(SourceFragmentDefinition table, IEnumerable<FKDefinition> fks, StringBuilder script);
         void GenerateAddColumnsScript(IEnumerable<PropDefinition> props, StringBuilder script, bool unicodeStrings);
+        void GenerateCreateIndexScript(SourceFragmentDefinition table, IndexDefinition indexes, StringBuilder script);
+        void GenerateDropIndexScript(SourceFragmentDefinition table, string indexName, StringBuilder script);
+        void GenerateDropTableScript(SourceFragmentDefinition table, StringBuilder script);
+    }
+
+    public class IndexDefinition
+    {
+        public string indexName;
+        public string[] cols;
     }
 
     public class FKDefinition

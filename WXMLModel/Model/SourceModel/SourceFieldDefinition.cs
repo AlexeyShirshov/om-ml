@@ -21,20 +21,19 @@ namespace WXML.Model.Descriptors
         }
 
         public SourceFieldDefinition(SourceFragmentDefinition sf, string sourceFieldExpression)
-            :this(sf, sourceFieldExpression, null, true, null, false, null)
+            : this(sf, sourceFieldExpression, null, null, true, false, null)
         {
             
         }
 
         public SourceFieldDefinition(SourceFragmentDefinition sf, string sourceFieldExpression, string type)
-            : this(sf, sourceFieldExpression, null, true, type, false, null)
+            : this(sf, sourceFieldExpression, type, null, true, false, null)
         {
 
         }
 
-        public SourceFieldDefinition(SourceFragmentDefinition sf, string sourceFieldExpression, 
-            int? sourceTypeSize,
-            bool isNullable, string type, bool identity, string defaultValue)
+        public SourceFieldDefinition(SourceFragmentDefinition sf, string sourceFieldExpression, string type, 
+            int? sourceTypeSize, bool isNullable, bool identity, string defaultValue)
         {
             _tbl = sf;
             _column = sourceFieldExpression;
@@ -164,9 +163,7 @@ namespace WXML.Model.Descriptors
 
         public SourceFieldDefinition Clone()
         {
-            SourceFieldDefinition sf = new SourceFieldDefinition(SourceFragment,
-                SourceFieldExpression, SourceTypeSize, IsNullable, SourceType, 
-                IsAutoIncrement, DefaultValue);
+            SourceFieldDefinition sf = new SourceFieldDefinition(SourceFragment, SourceFieldExpression, SourceType, SourceTypeSize, IsNullable, IsAutoIncrement, DefaultValue);
 
             return sf;
         }
