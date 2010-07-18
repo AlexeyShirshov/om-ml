@@ -13,7 +13,7 @@ namespace WXML.Model.Descriptors
 
             public SourceField(string propertyAlias, SourceFragmentDefinition sf, string column, int? sourceTypeSize,
                 bool isNullable, string sourceType, string defaultValue, string alias)
-                : base (sf, column, sourceTypeSize, isNullable, sourceType, false, defaultValue)
+                : base(sf, column, sourceType, sourceTypeSize, isNullable, false, defaultValue)
             {
                 _alias = alias;
                 _propertyAlias = propertyAlias;
@@ -166,9 +166,7 @@ namespace WXML.Model.Descriptors
 
             var p = new ScalarPropertyDefinition(Entity, Name)
             {
-                SourceField = new SourceFieldDefinition(SourceFragment,
-                    sf.SourceFieldExpression, sf.SourceTypeSize, sf.IsNullable,
-                    sf.SourceType, false, sf.DefaultValue)
+                SourceField = new SourceFieldDefinition(SourceFragment, sf.SourceFieldExpression, sf.SourceType, sf.SourceTypeSize, sf.IsNullable, false, sf.DefaultValue)
             };
             CopyTo(p);
             return p;
