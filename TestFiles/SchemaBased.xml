@@ -22,7 +22,7 @@
 			<oos:ClrType name="System.String"/>
 		</oos:Type>
 		<oos:Type id="tInt32Nullable">
-			<oos:ClrType name="System.Nullable`1[[System.Int32, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"/>
+			<oos:ClrType name="System.Nullable`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"/>
 		</oos:Type>
 		<oos:Type id="tTestUT1">
 			<oos:UserType name="TestUT1" hint="Enum"/>
@@ -40,7 +40,7 @@
       <oos:UserType name="TestUT5" hint="ValueType Nullable"/>
 		</oos:Type>
 		<oos:Type id="tGuidnullable">
-			<oos:ClrType name="System.Nullable`1[[System.Guid, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
+			<oos:ClrType name="System.Nullable`1[[System.Guid, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
 		</oos:Type>
 	</oos:Types>
 	<oos:Entities>
