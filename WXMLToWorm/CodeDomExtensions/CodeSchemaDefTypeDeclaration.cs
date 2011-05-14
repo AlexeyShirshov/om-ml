@@ -44,6 +44,183 @@ namespace WXMLToWorm.CodeDomExtensions
             OnPopulateMultitableMembers();
             CreateGetFieldColumnMap();
             OnPopulateTableFilter();
+            PopulateInitSchema();
+            CreateChangeValueTypeMethod();
+        }
+
+        private void CreateChangeValueTypeMethod()
+        {
+            EntityDefinition entity = m_entityClass.Entity;
+
+            if (entity.Behaviour != EntityBehaviuor.PartialObjects && entity.BaseEntity == null)
+            {
+                var method = new CodeMemberMethod
+                {
+                    Name = "ChangeValueType",
+                    // тип возвращаемого значения
+                    ReturnType = new CodeTypeReference(typeof(bool)),
+                    // модификаторы доступа
+                    Attributes = MemberAttributes.Public
+                };
+
+                // реализует метод базового класса
+                method.ImplementationTypes.Add(typeof(IEntitySchemaBase));
+
+                Members.Add(method);
+
+                // параметры
+                method.Parameters.Add(
+                    new CodeParameterDeclarationExpression(
+                        new CodeTypeReference(typeof(string)),
+                        "propertyAlias"
+                        )
+                    );
+                method.Parameters.Add(
+                    new CodeParameterDeclarationExpression(
+                        new CodeTypeReference(typeof(object)),
+                        "value"
+                        )
+                    );
+                CodeParameterDeclarationExpression methodParam = new CodeParameterDeclarationExpression(
+                    new CodeTypeReference(typeof(object)),
+                    "newvalue"
+                    )
+                {
+                    Direction = FieldDirection.Ref
+                };
+
+                method.Parameters.Add(methodParam);
+                //method.Statements.Add(
+                //    new CodeConditionStatement(
+                //        new CodeBinaryOperatorExpression(
+                //            new CodeBinaryOperatorExpression(
+                //                new CodeBinaryOperatorExpression(
+                //                    new CodePropertyReferenceExpression(
+                //                        new CodeArgumentReferenceExpression("c"),
+                //                        "Behavior"
+                //                        ),
+                //                    CodeBinaryOperatorType.BitwiseAnd,
+                //                    new CodeFieldReferenceExpression(
+                //                        new CodeTypeReferenceExpression(typeof(Worm.Entities.Meta.Field2DbRelations)),
+                //                        "InsertDefault"
+                //                        )
+                //                    ),
+                //                CodeBinaryOperatorType.ValueEquality,
+                //                new CodeFieldReferenceExpression(
+                //                    new CodeTypeReferenceExpression(typeof(Worm.Entities.Meta.Field2DbRelations)),
+                //                    "InsertDefault"
+                //                    )
+                //                ),
+                //            CodeBinaryOperatorType.BooleanAnd,
+                //            new CodeBinaryOperatorExpression(
+                //                new CodeBinaryOperatorExpression(
+                //                new CodeArgumentReferenceExpression("value"),
+                //                CodeBinaryOperatorType.IdentityEquality,
+                //                new CodePrimitiveExpression(null)
+                //                ),
+                //                CodeBinaryOperatorType.BooleanOr,
+                //                new CodeMethodInvokeExpression(
+                //                    new CodeMethodInvokeExpression(
+                //                        new CodeTypeReferenceExpression(typeof(Activator)),
+                //                        "CreateInstance",
+                //                        new CodeMethodInvokeExpression(
+                //                            new CodeArgumentReferenceExpression("value"),
+                //                            "GetType"
+                //                        )
+                //                    ),
+                //                    "Equals",
+                //                    new CodeArgumentReferenceExpression("value")
+                //                )
+
+                //            )
+                //            ),
+                //        new CodeAssignStatement(
+                //            new CodeArgumentReferenceExpression("newvalue"),
+                //            new CodeFieldReferenceExpression(
+                //                new CodeTypeReferenceExpression(typeof(DBNull)),
+                //                "Value"
+                //            )
+                //            ),
+                //        new CodeMethodReturnStatement(new CodePrimitiveExpression(true))
+                //        )
+                //    );
+                //// newvalue = value;
+                //method.Statements.Add(
+                //    new CodeAssignStatement(
+                //        new CodeArgumentReferenceExpression("newvalue"),
+                //        new CodeArgumentReferenceExpression("value")
+                //        )
+                //    );
+                method.Statements.Add(
+                    new CodeMethodReturnStatement(
+                        new CodePrimitiveExpression(false)
+                        )
+                    );
+            }
+        }
+
+        private void PopulateInitSchema()
+        {
+            EntityDefinition entity = m_entityClass.Entity;
+
+            if (entity.BaseEntity != null)
+                return;
+
+            CodeMemberField schemaField = new CodeMemberField(
+                    new CodeTypeReference(typeof(Worm.ObjectMappingEngine)),
+                    "_schema"
+                    );
+            CodeMemberField typeField = new CodeMemberField(
+                new CodeTypeReference(typeof(Type)),
+                "_entityType"
+                );
+            schemaField.Attributes = MemberAttributes.Family;
+            Members.Add(schemaField);
+            typeField.Attributes = MemberAttributes.Family;
+            Members.Add(typeField);
+            var method = new CodeMemberMethod
+            {
+                Name = "InitSchema",
+                // тип возвращаемого значения
+                ReturnType = null,
+                // модификаторы доступа
+                Attributes = MemberAttributes.Public | MemberAttributes.Final
+            };
+
+            Members.Add(method);
+
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression(
+                    new CodeTypeReference(typeof(Worm.ObjectMappingEngine)),
+                    "schema"
+                    )
+                );
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression(
+                    new CodeTypeReference(typeof(Type)),
+                    "t"
+                    )
+                );
+            // реализует метод базового класса
+            method.ImplementationTypes.Add(typeof(ISchemaInit));
+            method.Statements.Add(
+                new CodeAssignStatement(
+                    new CodeFieldReferenceExpression(
+                        new CodeThisReferenceExpression(),
+                        "_schema"
+                        ),
+                    new CodeArgumentReferenceExpression("schema")
+                    )
+                );
+            method.Statements.Add(
+                new CodeAssignStatement(
+                    new CodeFieldReferenceExpression(
+                        new CodeThisReferenceExpression(),
+                        "_entityType"
+                        ),
+                    new CodeArgumentReferenceExpression("t")
+                    )
+                );
         }
 
         private void OnPopulateTableFilter()
@@ -474,11 +651,13 @@ namespace WXMLToWorm.CodeDomExtensions
                 "_idx");
             Members.Add(field);
 
-            var method = new CodeMemberMethod();
+            //var method = new CodeMemberMethod();
+            var method = new CodeMemberProperty();
+            method.HasSet = false;
             Members.Add(method);
-            method.Name = "GetFieldColumnMap";
+            method.Name = "FieldColumnMap";
             // тип возвращаемого значения
-            method.ReturnType =
+            method.Type =
                 new CodeTypeReference(typeof(IndexedCollection<string, MapField2Column>));
             // модификаторы доступа
             method.Attributes = MemberAttributes.Public;
@@ -511,9 +690,9 @@ namespace WXMLToWorm.CodeDomExtensions
 		                 	    new CodeTypeReference(typeof (OrmObjectIndex))
 		                 	)
          				:
-         					new CodeMethodInvokeExpression(
+         					new CodePropertyReferenceExpression(
          						new CodeBaseReferenceExpression(),
-         						"GetFieldColumnMap"
+         						"FieldColumnMap"
          				    )
          			)
          	};
@@ -613,7 +792,7 @@ namespace WXMLToWorm.CodeDomExtensions
                     new CodeVariableReferenceExpression("idx")
                     )
                 );
-            method.Statements.Add(
+            method.GetStatements.Add(
                 WormCodeDomGenerator.CodePatternDoubleCheckLock(
                     new CodeFieldReferenceExpression(
                         new CodeThisReferenceExpression(),
@@ -630,7 +809,7 @@ namespace WXMLToWorm.CodeDomExtensions
                     condTrueStatements.ToArray()
                     )
                 );
-            method.Statements.Add(
+            method.GetStatements.Add(
                 new CodeMethodReturnStatement(
                     new CodeFieldReferenceExpression(
                         new CodeThisReferenceExpression(),
