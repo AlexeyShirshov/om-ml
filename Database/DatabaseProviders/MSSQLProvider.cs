@@ -381,12 +381,38 @@ namespace WXML.Model.Database.Providers
             script.AppendLine().AppendLine();
         }
 
+        public override void GenerateAddColumnsScript(IEnumerable<SourceFieldDefinition> props, StringBuilder script,
+            bool unicodeStrings)
+        {
+            SourceFragmentDefinition sf = props.First().SourceFragment;
+            script.AppendFormat("ALTER TABLE {0}.{1} ADD ", sf.Selector, sf.Name);
+            GenerateColumns(props.Select((item) => new ColDef() { Field = item, type = GetType(item, null, default(Field2DbRelations), unicodeStrings)}), 
+                script, unicodeStrings);
+            script.Length -= 2;
+            script.AppendLine().AppendLine();
+        }
+
         private static void GenerateColumns(IEnumerable<PropDefinition> props, StringBuilder script, bool unicodeStrings)
         {
-            foreach (PropDefinition prop in props)
+            GenerateColumns(props.Select((item) => new ColDef()
+            {
+                Field = item.Field,
+                type = GetType(item.Field, item.PropType, item.Attr, unicodeStrings)
+            }), script, unicodeStrings);
+        }
+
+        class ColDef
+        {
+            public SourceFieldDefinition Field;
+            public string type;
+        }
+
+        private static void GenerateColumns(IEnumerable<ColDef> props, StringBuilder script, bool unicodeStrings)
+        {
+            foreach (ColDef prop in props)
             {
                 SourceFieldDefinition sp = prop.Field;
-                script.Append(sp.SourceFieldExpression).Append(" ").Append(GetType(sp, prop.PropType, prop.Attr, unicodeStrings));
+                script.Append(sp.SourceFieldExpression).Append(" ").Append(prop.type);
 
                 if (sp.IsAutoIncrement)
                     script.Append(" IDENTITY");
@@ -501,15 +527,15 @@ namespace WXML.Model.Database.Providers
             script.AppendLine();
         }
 
-        public override void GenerateCreatePKScript(IEnumerable<PropDefinition> pks, 
+        public override void GenerateCreatePKScript(IEnumerable<SourceFieldDefinition> pks, 
             string constraintName, StringBuilder script, bool pk, bool clustered)
         {
-            SourceFragmentDefinition sf = pks.First().Field.SourceFragment;
+            SourceFragmentDefinition sf = pks.First().SourceFragment;
             script.AppendFormat("ALTER TABLE {0}.{1} ADD CONSTRAINT {2} {3} {4}(", 
                 sf.Selector, sf.Name, constraintName, pk?"PRIMARY KEY":"UNIQUE",
                 clustered?"CLUSTERED":"NONCLUSTERED");
             
-            foreach (SourceFieldDefinition sp in pks.Select(item=>item.Field))
+            foreach (SourceFieldDefinition sp in pks)
             {
                 script.Append(sp.SourceFieldExpression).Append(", ");
             }
