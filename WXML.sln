@@ -7,9 +7,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binaries", "Binaries", "{06
 		Binaries\LinqToCodedom.pdb = Binaries\LinqToCodedom.pdb
 		Binaries\Mvp.Xml.dll = Binaries\Mvp.Xml.dll
 		Binaries\Mvp.Xml.xml = Binaries\Mvp.Xml.xml
-		Binaries\Worm.Orm.dll = Binaries\Worm.Orm.dll
-		Binaries\Worm.Orm.pdb = Binaries\Worm.Orm.pdb
-		Binaries\Worm.Orm.xml = Binaries\Worm.Orm.xml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Worm", "Worm", "{6D9187BB-6467-42E5-853C-85A048443B79}"
@@ -33,12 +30,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Help", "Help", "{A7B4E429-0
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLModel", "WXMLModel\WXMLModel.csproj", "{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenerator", "WormGenerator\WormCodeGenerator.csproj", "{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLToWorm", "WXMLToWorm\WXMLToWorm.csproj", "{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCustomTool", "WormCustomTool\WormCustomTool.csproj", "{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLDatabase", "DatabaseConnector\WXMLDatabase.csproj", "{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXML2Linq", "LinqCodeGenerator\WXML2Linq.csproj", "{38B63D82-9F09-495B-9D24-F838A3BB8BB0}"
@@ -47,9 +38,22 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqCodeGenTests", "LinqCod
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLTests", "WXMLTests\WXMLTests.csproj", "{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenTests", "WormCodeGenTests\WormCodeGenTests.csproj", "{FD0ADB48-33C6-4399-9943-6ACAB857CF53}"
-EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Repository", "Repository\Repository.vbproj", "{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenTests", "Worm2.4\WormCodeGenTests\WormCodeGenTests.csproj", "{FD0ADB48-33C6-4399-9943-6ACAB857CF53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCustomTool", "Worm2.4\WormCustomTool\WormCustomTool.csproj", "{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenerator", "Worm2.4\WormGenerator\WormCodeGenerator.csproj", "{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLToWorm", "Worm2.4\WXMLToWorm\WXMLToWorm.csproj", "{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binaries", "Binaries", "{87857714-05B0-4517-AEFA-0E473FED9B11}"
+	ProjectSection(SolutionItems) = preProject
+		Worm2.4\Binaries\Worm.Orm.dll = Worm2.4\Binaries\Worm.Orm.dll
+		Worm2.4\Binaries\Worm.Orm.pdb = Worm2.4\Binaries\Worm.Orm.pdb
+		Worm2.4\Binaries\Worm.Orm.xml = Worm2.4\Binaries\Worm.Orm.xml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
@@ -61,42 +65,42 @@ Global
 		SccProjectTopLevelParentUniqueName1 = WXML.sln
 		SccProjectName1 = DatabaseConnector
 		SccLocalPath1 = DatabaseConnector
-		SccProjectUniqueName2 = WormCustomTool\\WormCustomTool.csproj
+		SccProjectUniqueName2 = WXMLModel\\WXMLModel.csproj
 		SccProjectTopLevelParentUniqueName2 = WXML.sln
-		SccProjectName2 = WormCustomTool
-		SccLocalPath2 = WormCustomTool
-		SccProjectUniqueName3 = WormGenerator\\WormCodeGenerator.csproj
+		SccProjectName2 = WXMLModel
+		SccLocalPath2 = WXMLModel
+		SccProjectUniqueName3 = LinqCodeGenTests\\LinqCodeGenTests.csproj
 		SccProjectTopLevelParentUniqueName3 = WXML.sln
-		SccProjectName3 = WormGenerator
-		SccLocalPath3 = WormGenerator
-		SccProjectUniqueName4 = WXMLModel\\WXMLModel.csproj
+		SccProjectName3 = LinqCodeGenTests
+		SccLocalPath3 = LinqCodeGenTests
+		SccProjectUniqueName4 = WXMLTests\\WXMLTests.csproj
 		SccProjectTopLevelParentUniqueName4 = WXML.sln
-		SccProjectName4 = WXMLModel
-		SccLocalPath4 = WXMLModel
-		SccProjectUniqueName5 = WXMLToWorm\\WXMLToWorm.csproj
+		SccProjectName4 = WXMLTests
+		SccLocalPath4 = WXMLTests
+		SccProjectUniqueName5 = Repository\\Repository.vbproj
 		SccProjectTopLevelParentUniqueName5 = WXML.sln
-		SccProjectName5 = WXMLToWorm
-		SccLocalPath5 = WXMLToWorm
-		SccProjectUniqueName6 = LinqCodeGenTests\\LinqCodeGenTests.csproj
+		SccProjectName5 = Repository
+		SccLocalPath5 = Repository
+		SccProjectUniqueName6 = LinqCodeGenerator\\WXML2Linq.csproj
 		SccProjectTopLevelParentUniqueName6 = WXML.sln
-		SccProjectName6 = LinqCodeGenTests
-		SccLocalPath6 = LinqCodeGenTests
-		SccProjectUniqueName7 = WXMLTests\\WXMLTests.csproj
+		SccProjectName6 = LinqCodeGenerator
+		SccLocalPath6 = LinqCodeGenerator
+		SccProjectUniqueName7 = Worm2.4\\WormCodeGenTests\\WormCodeGenTests.csproj
 		SccProjectTopLevelParentUniqueName7 = WXML.sln
-		SccProjectName7 = WXMLTests
-		SccLocalPath7 = WXMLTests
-		SccProjectUniqueName8 = WormCodeGenTests\\WormCodeGenTests.csproj
+		SccProjectName7 = Worm2.4/WormCodeGenTests
+		SccLocalPath7 = Worm2.4\\WormCodeGenTests
+		SccProjectUniqueName8 = Worm2.4\\WormCustomTool\\WormCustomTool.csproj
 		SccProjectTopLevelParentUniqueName8 = WXML.sln
-		SccProjectName8 = WormCodeGenTests
-		SccLocalPath8 = WormCodeGenTests
-		SccProjectUniqueName9 = Repository\\Repository.vbproj
+		SccProjectName8 = Worm2.4/WormCustomTool
+		SccLocalPath8 = Worm2.4\\WormCustomTool
+		SccProjectUniqueName9 = Worm2.4\\WormGenerator\\WormCodeGenerator.csproj
 		SccProjectTopLevelParentUniqueName9 = WXML.sln
-		SccProjectName9 = Repository
-		SccLocalPath9 = Repository
-		SccProjectUniqueName10 = LinqCodeGenerator\\WXML2Linq.csproj
+		SccProjectName9 = Worm2.4/WormGenerator
+		SccLocalPath9 = Worm2.4\\WormGenerator
+		SccProjectUniqueName10 = Worm2.4\\WXMLToWorm\\WXMLToWorm.csproj
 		SccProjectTopLevelParentUniqueName10 = WXML.sln
-		SccProjectName10 = LinqCodeGenerator
-		SccLocalPath10 = LinqCodeGenerator
+		SccProjectName10 = Worm2.4/WXMLToWorm
+		SccLocalPath10 = Worm2.4\\WXMLToWorm
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = WXML.vsmdi
@@ -119,36 +123,6 @@ Global
 		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
 		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug AddIn|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
-		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug AddIn|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
-		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug_Trace|Any CPU.ActiveCfg = Debug_Trace|Any CPU
-		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug_Trace|Any CPU.Build.0 = Debug_Trace|Any CPU
-		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
-		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
-		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Release|Any CPU.Build.0 = Release|Any CPU
-		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug AddIn|Any CPU.ActiveCfg = Debug|Any CPU
-		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug AddIn|Any CPU.Build.0 = Debug|Any CPU
-		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug_Trace|Any CPU.ActiveCfg = Debug|Any CPU
-		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug_Trace|Any CPU.Build.0 = Debug|Any CPU
-		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.DebugNonUserInstance|Any CPU.ActiveCfg = Debug|Any CPU
-		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.DebugNonUserInstance|Any CPU.Build.0 = Debug|Any CPU
-		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug AddIn|Any CPU.ActiveCfg = Debug AddIn|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug AddIn|Any CPU.Build.0 = Debug AddIn|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug_Trace|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug_Trace|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.Debug AddIn|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
 		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.Debug AddIn|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
 		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}.Debug_Trace|Any CPU.ActiveCfg = Debug_Trace|Any CPU
@@ -189,16 +163,6 @@ Global
 		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.DebugNonUserInstance|Any CPU.Build.0 = Debug|Any CPU
 		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug AddIn|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug AddIn|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug_Trace|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug_Trace|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.Debug AddIn|Any CPU.ActiveCfg = Debug|Any CPU
 		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.Debug AddIn|Any CPU.Build.0 = Debug|Any CPU
 		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.Debug_Trace|Any CPU.ActiveCfg = Debug|Any CPU
@@ -209,15 +173,56 @@ Global
 		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.DebugNonUserInstance|Any CPU.Build.0 = Debug|Any CPU
 		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug AddIn|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug AddIn|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug_Trace|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug_Trace|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug AddIn|Any CPU.ActiveCfg = Debug AddIn|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug AddIn|Any CPU.Build.0 = Debug AddIn|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug_Trace|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug_Trace|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug AddIn|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug AddIn|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug_Trace|Any CPU.ActiveCfg = Debug_Trace|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug_Trace|Any CPU.Build.0 = Debug_Trace|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug AddIn|Any CPU.ActiveCfg = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug AddIn|Any CPU.Build.0 = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug_Trace|Any CPU.ActiveCfg = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug_Trace|Any CPU.Build.0 = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.DebugNonUserInstance|Any CPU.ActiveCfg = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.DebugNonUserInstance|Any CPU.Build.0 = Debug|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{FD0ADB48-33C6-4399-9943-6ACAB857CF53} = {6D9187BB-6467-42E5-853C-85A048443B79}
+		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9} = {6D9187BB-6467-42E5-853C-85A048443B79}
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0} = {6D9187BB-6467-42E5-853C-85A048443B79}
-		{FD0ADB48-33C6-4399-9943-6ACAB857CF53} = {6D9187BB-6467-42E5-853C-85A048443B79}
+		{87857714-05B0-4517-AEFA-0E473FED9B11} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{38B63D82-9F09-495B-9D24-F838A3BB8BB0} = {C316B8E1-2755-4D7A-B913-6B6EECDFC643}
 		{15044052-49EE-43E0-9A77-04359C881BA4} = {C316B8E1-2755-4D7A-B913-6B6EECDFC643}
 		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}

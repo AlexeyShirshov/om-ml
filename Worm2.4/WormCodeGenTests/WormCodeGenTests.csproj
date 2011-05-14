@@ -63,9 +63,8 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LinqToCodedom, Version=1.0.0.0, Culture=neutral, PublicKeyToken=8b32a020163181f7, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Binaries\LinqToCodedom.dll</HintPath>
+    <Reference Include="LinqToCodedom">
+      <HintPath>..\..\Binaries\LinqToCodedom.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
@@ -122,7 +121,7 @@
     <EmbeddedResource Include="Examples\suppressed.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WXMLModel\WXMLModel.csproj">
+    <ProjectReference Include="..\..\WXMLModel\WXMLModel.csproj">
       <Project>{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}</Project>
       <Name>WXMLModel</Name>
     </ProjectReference>
