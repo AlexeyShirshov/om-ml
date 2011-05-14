@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
-<TestLists xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2006">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestLists xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
   <TestList name="WXMLWriter" id="0a4e066e-4966-4d08-8659-8af6cd2c4888" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6" />
   <TestList name="Linq" id="1a731542-8907-4d58-8e88-d82a4a4d30d6" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">
     <TestLinks>

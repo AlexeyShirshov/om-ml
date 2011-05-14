@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binaries", "Binaries", "{0626EF5D-2788-40A4-AC76-D9B33FE387BA}"
 	ProjectSection(SolutionItems) = preProject
 		Binaries\LinqToCodedom.dll = Binaries\LinqToCodedom.dll
@@ -12,21 +12,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binaries", "Binaries", "{06
 		Binaries\Worm.Orm.xml = Binaries\Worm.Orm.xml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLModel", "WXMLModel\WXMLModel.csproj", "{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Worm", "Worm", "{6D9187BB-6467-42E5-853C-85A048443B79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenerator", "WormGenerator\WormCodeGenerator.csproj", "{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLToWorm", "WXMLToWorm\WXMLToWorm.csproj", "{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCustomTool", "WormCustomTool\WormCustomTool.csproj", "{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLDatabase", "DatabaseConnector\WXMLDatabase.csproj", "{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LINQ to SQL", "LINQ to SQL", "{C316B8E1-2755-4D7A-B913-6B6EECDFC643}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXML2Linq", "LinqCodeGenerator\WXML2Linq.csproj", "{38B63D82-9F09-495B-9D24-F838A3BB8BB0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{45666568-9C5A-4359-A947-EDB0EB7848CA}"
 	ProjectSection(SolutionItems) = preProject
@@ -36,16 +24,28 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		WXML.vsmdi = WXML.vsmdi
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqCodeGenTests", "LinqCodeGenTests\LinqCodeGenTests.csproj", "{15044052-49EE-43E0-9A77-04359C881BA4}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WXML", "WXML", "{DB99EDB8-B342-4AE1-B78D-E106230A7E19}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLTests", "WXMLTests\WXMLTests.csproj", "{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Help", "Help", "{A7B4E429-08AB-4A24-B473-B00B695D5154}"
 	ProjectSection(SolutionItems) = preProject
 		Help\wxml.shfbproj = Help\wxml.shfbproj
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLModel", "WXMLModel\WXMLModel.csproj", "{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenerator", "WormGenerator\WormCodeGenerator.csproj", "{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLToWorm", "WXMLToWorm\WXMLToWorm.csproj", "{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCustomTool", "WormCustomTool\WormCustomTool.csproj", "{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLDatabase", "DatabaseConnector\WXMLDatabase.csproj", "{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXML2Linq", "LinqCodeGenerator\WXML2Linq.csproj", "{38B63D82-9F09-495B-9D24-F838A3BB8BB0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqCodeGenTests", "LinqCodeGenTests\LinqCodeGenTests.csproj", "{15044052-49EE-43E0-9A77-04359C881BA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLTests", "WXMLTests\WXMLTests.csproj", "{D6A966E4-4E33-4C61-872B-0C6CDC321AFD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenTests", "WormCodeGenTests\WormCodeGenTests.csproj", "{FD0ADB48-33C6-4399-9943-6ACAB857CF53}"
 EndProject
@@ -55,7 +55,7 @@ Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
 		SccNumberOfProjects = 11
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://tfs04.codeplex.com/
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs04
 		SccLocalPath0 = .
 		SccProjectUniqueName1 = DatabaseConnector\\WXMLDatabase.csproj
 		SccProjectTopLevelParentUniqueName1 = WXML.sln
@@ -214,15 +214,15 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
-		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
-		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
-		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
 		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{FD0ADB48-33C6-4399-9943-6ACAB857CF53} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{38B63D82-9F09-495B-9D24-F838A3BB8BB0} = {C316B8E1-2755-4D7A-B913-6B6EECDFC643}
 		{15044052-49EE-43E0-9A77-04359C881BA4} = {C316B8E1-2755-4D7A-B913-6B6EECDFC643}
+		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
+		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
+		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
+		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
 	EndGlobalSection
 EndGlobal
