@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<WXMLModel xmlns="http://wise-orm.com/WXMLSchema.xsd" generateMode="EntityOnly">
+	<Includes>
+    <xi:include parse="xml" href="types.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+	</Includes>
+  <Types>
+    <Type id="tInterface">
+      <UserType name="test.MyInterface" />
+    </Type>
+    <Type id="tInterface2">
+      <UserType name="test.MyInterface2" />
+    </Type>
+    <Type id="IQueryable_MyInterface">
+      <UserType name="System.Linq.IQueryable`1[test.MyInterface2]"/>
+    </Type>
+  </Types>
+  <Entities>
+    <Entity id="e1">
+      <autoInterface />
+      <Properties>
+        <Property name="ID" type="tInt32" />
+      </Properties>
+    </Entity>
+    <Entity id="e2">
+      <autoInterface />
+      <Properties>
+        <Property name="ID" type="tInt32" />
+        <EntityProperty name="prop1" referencedEntity="e1">
+          <field relatedProperty="ID" />
+        </EntityProperty>
+      </Properties>
+    </Entity>
+    <Entity id="e3">
+      <interfaces>
+        <interface>tInterface</interface>
+      </interfaces>
+      <Properties>
+        <Property name="ID" type="tInt32" interface="tInterface" />
+        <Property name="Name" type="tString" interface="tInterface" />
+        <!--<CustomProperty name="e4s" type="IQueryable_MyInterface" interface="tInterface" propertyAccessLevel="Private">
+          <Get>
+            <Property name="e4s" />
+          </Get>
+        </CustomProperty>-->
+      </Properties>      
+      <Relations>
+        <Relation entity="e4" name="e4s" />
+      </Relations>
+    </Entity>
+    <Entity id="e4">
+      <interfaces>
+        <interface>tInterface2</interface>
+      </interfaces>
+      <Properties>
+        <Property name="ID" type="tInt32" interface="tInterface2"  />
+        <EntityProperty name="prop1" referencedEntity="e3">
+          <field relatedProperty="ID" />
+        </EntityProperty>
+        <CustomProperty name="prop1" type="tInterface" propertyAccessLevel="Private" interface="tInterface2">
+          <Get>
+            <Property name="prop1" />            
+          </Get>
+          <Set>
+            <Property name="prop1" />
+          </Set>
+        </CustomProperty>
+      </Properties>
+    </Entity>
+  </Entities>
+</WXMLModel>
