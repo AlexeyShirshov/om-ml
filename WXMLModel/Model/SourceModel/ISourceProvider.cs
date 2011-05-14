@@ -10,8 +10,10 @@ namespace WXML.Model.Descriptors
         void GenerateCreateScript(RelationDefinitionBase rel, StringBuilder script, bool unicodeStrings);
         void GenerateDropConstraintScript(SourceFragmentDefinition table, string constraintName, StringBuilder script);
         void GenerateCreatePKScript(IEnumerable<PropDefinition> pks, string constraintName, StringBuilder script, bool pk, bool clustered);
+        void GenerateCreatePKScript(IEnumerable<SourceFieldDefinition> pks, string constraintName, StringBuilder script, bool pk, bool clustered);
         void GenerateCreateFKsScript(SourceFragmentDefinition table, IEnumerable<FKDefinition> fks, StringBuilder script);
         void GenerateAddColumnsScript(IEnumerable<PropDefinition> props, StringBuilder script, bool unicodeStrings);
+        void GenerateAddColumnsScript(IEnumerable<SourceFieldDefinition> props, StringBuilder script, bool unicodeStrings);
         void GenerateCreateIndexScript(SourceFragmentDefinition table, IndexDefinition indexes, StringBuilder script);
         void GenerateDropIndexScript(SourceFragmentDefinition table, string indexName, StringBuilder script);
         void GenerateDropTableScript(SourceFragmentDefinition table, StringBuilder script);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Text;
 using WXML.Model.Descriptors;
+using System.Linq;
 
 namespace WXML.Model.Database.Providers
 {
@@ -32,9 +33,10 @@ namespace WXML.Model.Database.Providers
         public abstract void GenerateCreateScript(IEnumerable<PropertyDefinition> props, StringBuilder script, bool unicodeStrings);
         public abstract void GenerateCreateScript(RelationDefinitionBase rel, StringBuilder script, bool unicodeStrings);
         public abstract void GenerateDropConstraintScript(SourceFragmentDefinition table, string constraintName, StringBuilder script);
-        public abstract void GenerateCreatePKScript(IEnumerable<PropDefinition> pks, string constraintName, StringBuilder script, bool pk, bool clustered);
+        public abstract void GenerateCreatePKScript(IEnumerable<SourceFieldDefinition> pks, string constraintName, StringBuilder script, bool pk, bool clustered);
         public abstract void GenerateCreateFKsScript(SourceFragmentDefinition table, IEnumerable<FKDefinition> fks, StringBuilder script);
         public abstract void GenerateAddColumnsScript(IEnumerable<PropDefinition> props, StringBuilder script, bool unicodeStrings);
+        public abstract void GenerateAddColumnsScript(IEnumerable<SourceFieldDefinition> props, StringBuilder script, bool unicodeStrings);
         public abstract void GenerateCreateIndexScript(SourceFragmentDefinition table, IndexDefinition indexes, StringBuilder script);
         public abstract void GenerateDropIndexScript(SourceFragmentDefinition table, string indexName, StringBuilder script);
         public abstract void GenerateDropTableScript(SourceFragmentDefinition table, StringBuilder script);
@@ -60,5 +62,15 @@ namespace WXML.Model.Database.Providers
             if (OnEndLoadDatabase != null)
                 OnEndLoadDatabase();
         }
+
+        #region ISourceProvider Members
+
+
+        public void GenerateCreatePKScript(IEnumerable<PropDefinition> pks, string constraintName, StringBuilder script, bool pk, bool clustered)
+        {
+            GenerateCreatePKScript(pks.Select((item)=>item.Field), constraintName, script, pk, clustered);
+        }
+
+        #endregion
     }
 }
