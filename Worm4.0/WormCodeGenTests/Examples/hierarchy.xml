@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<oos:WXMLModel defaultNamespace="def" schemaVersion="v1"
+  xmlns:oos="http://wise-orm.com/WXMLSchema.xsd">
+  <oos:Includes>
+    <xi:include parse="xml" href="types.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+  </oos:Includes>
+	<oos:SourceFragments>
+		<oos:SourceFragment id="tblUsers" name="users" selector="dbo" />
+    <oos:SourceFragment id="tblPowerUsers" name="powerusers" selector="dbo" />
+    <oos:SourceFragment id="tblPowerUsers2" name="powerusers2" selector="dbo" />
+	</oos:SourceFragments>
+	<oos:Entities>
+		<oos:Entity id="eUser" name="User">
+			<oos:SourceFragments>
+        <oos:SourceFragment ref="tblUsers" />
+			</oos:SourceFragments>
+			<oos:Properties>
+				<oos:Property attributes="PrimaryKey" fieldName="id" name="ID" table="tblUsers" type="tInt32" />
+        <oos:Property fieldName="name" name="Name" table="tblUsers" type="tString" />
+        <oos:Property fieldName="type" name="Type" table="tblUsers" type="tInt32" />
+			</oos:Properties>
+		</oos:Entity>
+    <oos:Entity id="eCustomer" name="Customer" baseEntity="eUser">
+      <oos:SourceFragments inheritsBase="false">
+        <oos:SourceFragment ref="tblUsers">
+          <oos:condition refColumn="type" constant="1" />
+        </oos:SourceFragment>
+      </oos:SourceFragments>
+      <oos:Properties>
+        <oos:EntityProperty name="Manager" table="tblUsers" referencedEntity="eManager">
+          <oos:field fieldName="manager_id" relatedProperty="ID" />
+        </oos:EntityProperty>
+      </oos:Properties>
+    </oos:Entity>
+    <oos:Entity id="eManager" name="Manager" baseEntity="eUser">
+      <oos:SourceFragments inheritsBase="false">
+        <oos:SourceFragment ref="tblUsers">
+          <oos:condition refColumn="type" constant="2" />
+        </oos:SourceFragment>
+      </oos:SourceFragments>
+      <oos:Properties>
+      </oos:Properties>
+      <oos:Relations>
+        <oos:Relation entity="eCustomer" />
+      </oos:Relations>
+    </oos:Entity>
+    <oos:Entity id="ePowerUser" name="PowerUser" baseEntity="eUser">
+      <oos:SourceFragments inheritsBase="false">
+        <oos:SourceFragment ref="tblPowerUsers" replaces="tblUsers"/>
+      </oos:SourceFragments>
+    </oos:Entity>
+    <oos:Entity id="ePowerUser2" name="PowerUser2" baseEntity="eManager">
+      <oos:SourceFragments inheritsBase="true">
+        <oos:SourceFragment ref="tblPowerUsers2" joinTableRef="tblUsers">
+          <oos:condition refColumn="id" joinColumn="id" />
+          <oos:condition joinColumn="t" constant="3" />
+        </oos:SourceFragment>
+      </oos:SourceFragments>
+    </oos:Entity>
+  </oos:Entities>
+</oos:WXMLModel>

@@ -40,20 +40,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLTests", "WXMLTests\WXML
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Repository", "Repository\Repository.vbproj", "{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenTests", "Worm2.4\WormCodeGenTests\WormCodeGenTests.csproj", "{FD0ADB48-33C6-4399-9943-6ACAB857CF53}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCustomTool", "Worm2.4\WormCustomTool\WormCustomTool.csproj", "{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenerator", "Worm2.4\WormGenerator\WormCodeGenerator.csproj", "{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLToWorm", "Worm2.4\WXMLToWorm\WXMLToWorm.csproj", "{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binaries", "Binaries", "{87857714-05B0-4517-AEFA-0E473FED9B11}"
 	ProjectSection(SolutionItems) = preProject
-		Worm2.4\Binaries\Worm.Orm.dll = Worm2.4\Binaries\Worm.Orm.dll
-		Worm2.4\Binaries\Worm.Orm.pdb = Worm2.4\Binaries\Worm.Orm.pdb
-		Worm2.4\Binaries\Worm.Orm.xml = Worm2.4\Binaries\Worm.Orm.xml
+		Worm4.0\Binaries\Worm.Orm.dll = Worm4.0\Binaries\Worm.Orm.dll
+		Worm4.0\Binaries\Worm.Orm.pdb = Worm4.0\Binaries\Worm.Orm.pdb
+		Worm4.0\Binaries\Worm.Orm.xml = Worm4.0\Binaries\Worm.Orm.xml
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenTests", "Worm4.0\WormCodeGenTests\WormCodeGenTests.csproj", "{FD0ADB48-33C6-4399-9943-6ACAB857CF53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCustomTool", "Worm4.0\WormCustomTool\WormCustomTool.csproj", "{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenerator", "Worm4.0\WormGenerator\WormCodeGenerator.csproj", "{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLToWorm", "Worm4.0\WXMLToWorm\WXMLToWorm.csproj", "{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}"
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
@@ -85,22 +85,22 @@ Global
 		SccProjectTopLevelParentUniqueName6 = WXML.sln
 		SccProjectName6 = LinqCodeGenerator
 		SccLocalPath6 = LinqCodeGenerator
-		SccProjectUniqueName7 = Worm2.4\\WormCodeGenTests\\WormCodeGenTests.csproj
+		SccProjectUniqueName7 = Worm4.0\\WormCodeGenTests\\WormCodeGenTests.csproj
 		SccProjectTopLevelParentUniqueName7 = WXML.sln
-		SccProjectName7 = Worm2.4/WormCodeGenTests
-		SccLocalPath7 = Worm2.4\\WormCodeGenTests
-		SccProjectUniqueName8 = Worm2.4\\WormCustomTool\\WormCustomTool.csproj
+		SccProjectName7 = Worm4.0/WormCodeGenTests
+		SccLocalPath7 = Worm4.0\\WormCodeGenTests
+		SccProjectUniqueName8 = Worm4.0\\WormCustomTool\\WormCustomTool.csproj
 		SccProjectTopLevelParentUniqueName8 = WXML.sln
-		SccProjectName8 = Worm2.4/WormCustomTool
-		SccLocalPath8 = Worm2.4\\WormCustomTool
-		SccProjectUniqueName9 = Worm2.4\\WormGenerator\\WormCodeGenerator.csproj
+		SccProjectName8 = Worm4.0/WormCustomTool
+		SccLocalPath8 = Worm4.0\\WormCustomTool
+		SccProjectUniqueName9 = Worm4.0\\WormGenerator\\WormCodeGenerator.csproj
 		SccProjectTopLevelParentUniqueName9 = WXML.sln
-		SccProjectName9 = Worm2.4/WormGenerator
-		SccLocalPath9 = Worm2.4\\WormGenerator
-		SccProjectUniqueName10 = Worm2.4\\WXMLToWorm\\WXMLToWorm.csproj
+		SccProjectName9 = Worm4.0/WormGenerator
+		SccLocalPath9 = Worm4.0\\WormGenerator
+		SccProjectUniqueName10 = Worm4.0\\WXMLToWorm\\WXMLToWorm.csproj
 		SccProjectTopLevelParentUniqueName10 = WXML.sln
-		SccProjectName10 = Worm2.4/WXMLToWorm
-		SccLocalPath10 = Worm2.4\\WXMLToWorm
+		SccProjectName10 = Worm4.0/WXMLToWorm
+		SccLocalPath10 = Worm4.0\\WXMLToWorm
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = WXML.vsmdi
@@ -218,11 +218,11 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{87857714-05B0-4517-AEFA-0E473FED9B11} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{FD0ADB48-33C6-4399-9943-6ACAB857CF53} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9} = {6D9187BB-6467-42E5-853C-85A048443B79}
-		{87857714-05B0-4517-AEFA-0E473FED9B11} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{38B63D82-9F09-495B-9D24-F838A3BB8BB0} = {C316B8E1-2755-4D7A-B913-6B6EECDFC643}
 		{15044052-49EE-43E0-9A77-04359C881BA4} = {C316B8E1-2755-4D7A-B913-6B6EECDFC643}
 		{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
