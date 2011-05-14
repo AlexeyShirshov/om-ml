@@ -763,6 +763,7 @@ namespace WXMLToWorm
                             {
                                 if (entity.BaseEntity == null)
                                 {
+                                    entityClass.Implements(typeof(IOptimizePK));
                                     OverrideIdentifierProperty(entityClass);
                                     CreateSetPKMethod(entityClass, false);
                                     CreateGetPKValuesMethod(entityClass);
@@ -777,6 +778,7 @@ namespace WXMLToWorm
                             {
                                 if (entity.BaseEntity == null)
                                 {
+                                    entityClass.Implements(typeof(IOptimizePK));
                                     CreateGetKeyMethodCompositePK(entityClass);
                                     CreateGetPKValuesMethod(entityClass);
                                     CreateSetPKMethod(entityClass, true);
@@ -788,7 +790,7 @@ namespace WXMLToWorm
                                     UpdateSetPKMethod(entityClass, true);
                                 }
 
-                                OverrideEqualsMethodCompositePK(entityClass);
+                                OverrideEqualsMethodCompositePK(entity);
                             }
                         }
                         #endregion
@@ -938,34 +940,40 @@ namespace WXMLToWorm
 
             }
 
+            if (entity.BaseEntity == null)
+                entityClass.Implements(typeof(ICopyProperties));
+
             bool isInitialImplemantation = entity == superbaseEntity;
 
             CodeMemberMethod copyMethod = new CodeMemberMethod();
             entityClass.Members.Add(copyMethod);
-            copyMethod.Name = "CopyProperties";
+            copyMethod.Name = "CopyTo";
             copyMethod.ReturnType = null;
             // модификаторы доступа
-            copyMethod.Attributes = MemberAttributes.Family | MemberAttributes.Override;
+            copyMethod.Attributes = MemberAttributes.Public;
             copyMethod.Parameters.Add(
-                new CodeParameterDeclarationExpression(typeof(_IEntity),
-                                                       "from"));
-            copyMethod.Parameters.Add(
-                new CodeParameterDeclarationExpression(typeof(_IEntity),
-                                                       "to"));
-            copyMethod.Parameters.Add(new CodeParameterDeclarationExpression(typeof(OrmManager), "mgr"));
-            copyMethod.Parameters.Add(new CodeParameterDeclarationExpression(typeof(IEntitySchema), "oschema"));
+                new CodeParameterDeclarationExpression(typeof(object), "dst"));
+
+            //copyMethod.Parameters.Add(new CodeParameterDeclarationExpression(typeof(OrmManager), "mgr"));
+            //copyMethod.Parameters.Add(new CodeParameterDeclarationExpression(typeof(IEntitySchema), "oschema"));
 
             if (!isInitialImplemantation)
+            {
+                copyMethod.Attributes |= MemberAttributes.Override;
+
                 copyMethod.Statements.Add(
                     new CodeMethodInvokeExpression(
                         new CodeBaseReferenceExpression(),
-                        "CopyProperties",
-                        new CodeArgumentReferenceExpression("from"),
-                        new CodeArgumentReferenceExpression("to"),
-                        new CodeArgumentReferenceExpression("mgr"),
-                        new CodeArgumentReferenceExpression("oschema")
+                        "CopyTo",
+                        new CodeArgumentReferenceExpression("dst")//,
+                    //new CodeArgumentReferenceExpression("to"),
+                    //new CodeArgumentReferenceExpression("mgr"),
+                    //new CodeArgumentReferenceExpression("oschema")
                         )
                     );
+            }
+            else
+                copyMethod.ImplementationTypes.Add(typeof(ICopyProperties));
 
             PropertyCreated += new ssss() { copyMethod = copyMethod, entity = entity, Settings = Settings }.jkjk;
         }
@@ -988,15 +996,15 @@ namespace WXMLToWorm
                         new WXMLCodeDomGeneratorNameHelper(Settings).GetEntityClassName(entity, true));
 
                 CodeExpression leftTargetExpression =
-                    new CodeArgumentReferenceExpression("to");
+                    new CodeArgumentReferenceExpression("dst");
 
                 CodeExpression rightTargetExpression =
-                    new CodeArgumentReferenceExpression("from");
+                    new CodeThisReferenceExpression();
 
                 leftTargetExpression = new CodeCastExpression(entityType,
                                                               leftTargetExpression);
-                rightTargetExpression = new CodeCastExpression(entityType,
-                                                               rightTargetExpression);
+                //rightTargetExpression = new CodeCastExpression(entityType,
+                //                                               rightTargetExpression);
 
                 copyMethod.Statements.Add(
                     new CodeAssignStatement(
@@ -1009,7 +1017,7 @@ namespace WXMLToWorm
             }
         }
 
-        private void OverrideEqualsMethodCompositePK(CodeEntityTypeDeclaration entityClass)
+        private void OverrideEqualsMethodCompositePK(EntityDefinition entity)
         {
             CodeMemberMethod method = new CodeMemberMethod
             {
@@ -1021,7 +1029,7 @@ namespace WXMLToWorm
 
             CodeExpression exp = null;
 
-            foreach (var pk in entityClass.Entity.GetPkProperties())
+            foreach (var pk in entity.GetPkProperties())
             {
                 var tExp = new CodeMethodInvokeExpression(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(),
                                                             new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(pk.Name)), "Equals",
@@ -1033,7 +1041,7 @@ namespace WXMLToWorm
                     exp = new CodeBinaryOperatorExpression(exp, CodeBinaryOperatorType.BooleanAnd, tExp);
 
             }
-            if (entityClass.Entity.BaseEntity != null)
+            if (entity.BaseEntity != null)
                 exp = new CodeBinaryOperatorExpression(exp, CodeBinaryOperatorType.BooleanAnd, new CodeMethodInvokeExpression(new CodeBaseReferenceExpression(), "Equals", new CodeArgumentReferenceExpression("obj")));
             method.Statements.Add(new CodeMethodReturnStatement(exp));
 
@@ -1050,7 +1058,7 @@ namespace WXMLToWorm
             {
                 Name = "SetPK",
                 // модификаторы доступа
-                Attributes = MemberAttributes.Family | MemberAttributes.Override
+                Attributes = MemberAttributes.Public | MemberAttributes.Override
             };
 
             entityClass.Members.Add(meth);
@@ -1060,10 +1068,10 @@ namespace WXMLToWorm
                     new CodeTypeReference(new CodeTypeReference(typeof(PKDesc)), 1), "pks")
             );
 
-            meth.Parameters.Add(
-                new CodeParameterDeclarationExpression(
-                    new CodeTypeReference(typeof(ObjectMappingEngine)), "mpe")
-            );
+            //meth.Parameters.Add(
+            //    new CodeParameterDeclarationExpression(
+            //        new CodeTypeReference(typeof(ObjectMappingEngine)), "mpe")
+            //);
 
             meth.Statements.Add(new CodeMethodInvokeExpression(new CodeBaseReferenceExpression(),
                 meth.Name,
@@ -1264,8 +1272,9 @@ namespace WXMLToWorm
             {
                 Name = "SetPK",
                 // модификаторы доступа
-                Attributes = MemberAttributes.Family | MemberAttributes.Override
+                Attributes = MemberAttributes.Public
             };
+            meth.ImplementationTypes.Add(new CodeTypeReference(typeof(IOptimizePK)));
 
             entityClass.Members.Add(meth);
 
@@ -1273,10 +1282,10 @@ namespace WXMLToWorm
                 new CodeParameterDeclarationExpression(
                     new CodeTypeReference(new CodeTypeReference(typeof(PKDesc)), 1), "pks")
             );
-            meth.Parameters.Add(
-                new CodeParameterDeclarationExpression(
-                    new CodeTypeReference(typeof(ObjectMappingEngine)), "mpe")
-            );
+            //meth.Parameters.Add(
+            //    new CodeParameterDeclarationExpression(
+            //        new CodeTypeReference(typeof(ObjectMappingEngine)), "mpe")
+            //);
 
             if (composite)
             {
@@ -1346,8 +1355,9 @@ namespace WXMLToWorm
                 // тип возвращаемого значения
                 ReturnType = new CodeTypeReference(tr, 1),
                 // модификаторы доступа
-                Attributes = MemberAttributes.Public | MemberAttributes.Override
+                Attributes = MemberAttributes.Public
             };
+            meth.ImplementationTypes.Add(new CodeTypeReference(typeof(IOptimizePK)));
 
             entityClass.Members.Add(meth);
 
@@ -1458,12 +1468,16 @@ namespace WXMLToWorm
                             new CodeMethodInvokeExpression(
                                 new CodeThisReferenceExpression(),
                                 "RaisePropertyChanged",
-                                WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propDesc, false),
-                                new CodeVariableReferenceExpression("oldValue")
+                                new CodeObjectCreateExpression(typeof(PropertyChangedEventArgs),
+                                    WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(Settings, propDesc, false),
+                                    new CodeVariableReferenceExpression("oldValue"),
+                                    new CodePropertySetValueReferenceExpression()
                                 )
                             )
                         )
-                    );
+                    )
+                );
+
                 usingStatement.Statements = statements.ToArray();
             }
             //else
@@ -1500,15 +1514,15 @@ namespace WXMLToWorm
         {
             if ((Settings.GenerateMode.HasValue ? Settings.GenerateMode.Value : _model.GenerateMode) != GenerateModeEnum.EntityOnly)
             {
-                e.CtorDeclaration.Statements.Add(
-                    new CodeAssignStatement(
-                        new CodeFieldReferenceExpression(
-                            new CodeThisReferenceExpression(),
-                            "_dontRaisePropertyChange"
-                            ),
-                            new CodePrimitiveExpression(true)
-                        )
-                    );
+                //e.CtorDeclaration.Statements.Add(
+                //    new CodeAssignStatement(
+                //        new CodeFieldReferenceExpression(
+                //            new CodeThisReferenceExpression(),
+                //            "_dontRaisePropertyChange"
+                //            ),
+                //            new CodePrimitiveExpression(true)
+                //        )
+                //    );
             }
         }
 

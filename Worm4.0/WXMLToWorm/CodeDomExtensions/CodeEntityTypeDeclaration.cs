@@ -68,53 +68,53 @@ namespace WXMLToWorm.CodeDomExtensions
 
             #endregion энам табличек
 
-            #region bool ChangeValueType(EntityPropertyAttribute c, object value, ref object newvalue)
+            //#region bool ChangeValueType(EntityPropertyAttribute c, object value, ref object newvalue)
 
-            CreateChangeValueTypeMethod(_entity, SchemaDef);
+            //CreateChangeValueTypeMethod(_entity, SchemaDef);
 
-            #endregion bool ChangeValueType(EntityPropertyAttribute c, object value, ref object newvalue)
+            //#endregion bool ChangeValueType(EntityPropertyAttribute c, object value, ref object newvalue)
 
-            #region string[] GetSuppressedColumns()
+            //#region string[] GetSuppressedColumns()
 
-            // первоначальная реализация или есть отличие в suppressed properties
-            if (_entity.BaseEntity == null ||
-                (_entity.BaseEntity.SuppressedProperties.Count + _entity.SuppressedProperties.Count != 0) ||
-                _entity.BaseEntity.SuppressedProperties.Count != _entity.SuppressedProperties.Count ||
-                !(_entity.SuppressedProperties.TrueForAll(p => _entity.BaseEntity.SuppressedProperties.Exists(pp => pp == p)) &&
-                _entity.BaseEntity.SuppressedProperties.TrueForAll(p => _entity.SuppressedProperties.Exists(pp => pp == p))))
-            {
+            //// первоначальная реализация или есть отличие в suppressed properties
+            //if (_entity.BaseEntity == null ||
+            //    (_entity.BaseEntity.SuppressedProperties.Count + _entity.SuppressedProperties.Count != 0) ||
+            //    _entity.BaseEntity.SuppressedProperties.Count != _entity.SuppressedProperties.Count ||
+            //    !(_entity.SuppressedProperties.TrueForAll(p => _entity.BaseEntity.SuppressedProperties.Exists(pp => pp == p)) &&
+            //    _entity.BaseEntity.SuppressedProperties.TrueForAll(p => _entity.SuppressedProperties.Exists(pp => pp == p))))
+            //{
 
-                var method = new CodeMemberMethod
-                {
-                    Name = "GetSuppressedFields",
-                    // тип возвращаемого значения
-                    ReturnType = new CodeTypeReference(typeof(string[])),
-                    // модификаторы доступа
-                    Attributes = MemberAttributes.Public
-                };
+            //    var method = new CodeMemberMethod
+            //    {
+            //        Name = "GetSuppressedFields",
+            //        // тип возвращаемого значения
+            //        ReturnType = new CodeTypeReference(typeof(string[])),
+            //        // модификаторы доступа
+            //        Attributes = MemberAttributes.Public
+            //    };
 
-                SchemaDef.Members.Add(method);
-                if (_entity.BaseEntity != null)
-                    method.Attributes |= MemberAttributes.Override;
-                else
-                    // реализует метод базового класса
-                    method.ImplementationTypes.Add(typeof(IEntitySchemaBase));
-                CodeArrayCreateExpression arrayExpression = new CodeArrayCreateExpression(
-                    new CodeTypeReference(typeof(string[]))
-                );
+            //    SchemaDef.Members.Add(method);
+            //    if (_entity.BaseEntity != null)
+            //        method.Attributes |= MemberAttributes.Override;
+            //    else
+            //        // реализует метод базового класса
+            //        method.ImplementationTypes.Add(typeof(IEntitySchemaBase));
+            //    CodeArrayCreateExpression arrayExpression = new CodeArrayCreateExpression(
+            //        new CodeTypeReference(typeof(string[]))
+            //    );
 
 
-                foreach (var suppressedProperty in _entity.SuppressedProperties)
-                {
-                    arrayExpression.Initializers.Add(
-                        new CodePrimitiveExpression(suppressedProperty)
-                    );
-                }
+            //    foreach (var suppressedProperty in _entity.SuppressedProperties)
+            //    {
+            //        arrayExpression.Initializers.Add(
+            //            new CodePrimitiveExpression(suppressedProperty)
+            //        );
+            //    }
 
-                method.Statements.Add(new CodeMethodReturnStatement(arrayExpression));
-            }
+            //    method.Statements.Add(new CodeMethodReturnStatement(arrayExpression));
+            //}
 
-            #endregion EntityPropertyAttribute[] GetSuppressedColumns()
+            //#endregion EntityPropertyAttribute[] GetSuppressedColumns()
 
             #region сущность реализует связь
 
@@ -132,68 +132,68 @@ namespace WXMLToWorm.CodeDomExtensions
 
             #endregion сущность реализует связь
 
-            #region public void GetSchema(OrmSchemaBase schema, Type t)
+            //#region public void GetSchema(OrmSchemaBase schema, Type t)
 
-            if (_entity.BaseEntity == null)
-            {
-                CodeMemberField schemaField = new CodeMemberField(
-                    new CodeTypeReference(typeof(Worm.ObjectMappingEngine)),
-                    "_schema"
-                    );
-                CodeMemberField typeField = new CodeMemberField(
-                    new CodeTypeReference(typeof(Type)),
-                    "_entityType"
-                    );
-                schemaField.Attributes = MemberAttributes.Family;
-                SchemaDef.Members.Add(schemaField);
-                typeField.Attributes = MemberAttributes.Family;
-                SchemaDef.Members.Add(typeField);
-                var method = new CodeMemberMethod
-                {
-                    Name = "GetSchema",
-                    // тип возвращаемого значения
-                    ReturnType = null,
-                    // модификаторы доступа
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final
-                };
+            //if (_entity.BaseEntity == null)
+            //{
+            //    CodeMemberField schemaField = new CodeMemberField(
+            //        new CodeTypeReference(typeof(Worm.ObjectMappingEngine)),
+            //        "_schema"
+            //        );
+            //    CodeMemberField typeField = new CodeMemberField(
+            //        new CodeTypeReference(typeof(Type)),
+            //        "_entityType"
+            //        );
+            //    schemaField.Attributes = MemberAttributes.Family;
+            //    SchemaDef.Members.Add(schemaField);
+            //    typeField.Attributes = MemberAttributes.Family;
+            //    SchemaDef.Members.Add(typeField);
+            //    var method = new CodeMemberMethod
+            //    {
+            //        Name = "GetSchema",
+            //        // тип возвращаемого значения
+            //        ReturnType = null,
+            //        // модификаторы доступа
+            //        Attributes = MemberAttributes.Public | MemberAttributes.Final
+            //    };
 
-                SchemaDef.Members.Add(method);
+            //    SchemaDef.Members.Add(method);
 
-                method.Parameters.Add(
-                    new CodeParameterDeclarationExpression(
-                        new CodeTypeReference(typeof(Worm.ObjectMappingEngine)),
-                        "schema"
-                        )
-                    );
-                method.Parameters.Add(
-                    new CodeParameterDeclarationExpression(
-                        new CodeTypeReference(typeof(Type)),
-                        "t"
-                        )
-                    );
-                // реализует метод базового класса
-                method.ImplementationTypes.Add(typeof(ISchemaInit));
-                method.Statements.Add(
-                    new CodeAssignStatement(
-                        new CodeFieldReferenceExpression(
-                            new CodeThisReferenceExpression(),
-                            "_schema"
-                            ),
-                        new CodeArgumentReferenceExpression("schema")
-                        )
-                    );
-                method.Statements.Add(
-                    new CodeAssignStatement(
-                        new CodeFieldReferenceExpression(
-                            new CodeThisReferenceExpression(),
-                            "_entityType"
-                            ),
-                        new CodeArgumentReferenceExpression("t")
-                        )
-                    );
-            }
+            //    method.Parameters.Add(
+            //        new CodeParameterDeclarationExpression(
+            //            new CodeTypeReference(typeof(Worm.ObjectMappingEngine)),
+            //            "schema"
+            //            )
+            //        );
+            //    method.Parameters.Add(
+            //        new CodeParameterDeclarationExpression(
+            //            new CodeTypeReference(typeof(Type)),
+            //            "t"
+            //            )
+            //        );
+            //    // реализует метод базового класса
+            //    method.ImplementationTypes.Add(typeof(ISchemaInit));
+            //    method.Statements.Add(
+            //        new CodeAssignStatement(
+            //            new CodeFieldReferenceExpression(
+            //                new CodeThisReferenceExpression(),
+            //                "_schema"
+            //                ),
+            //            new CodeArgumentReferenceExpression("schema")
+            //            )
+            //        );
+            //    method.Statements.Add(
+            //        new CodeAssignStatement(
+            //            new CodeFieldReferenceExpression(
+            //                new CodeThisReferenceExpression(),
+            //                "_entityType"
+            //                ),
+            //            new CodeArgumentReferenceExpression("t")
+            //            )
+            //        );
+            //}
 
-            #endregion public void GetSchema(OrmSchemaBase schema, Type t)
+            //#endregion public void GetSchema(OrmSchemaBase schema, Type t)
 
         }
 
@@ -222,115 +222,6 @@ namespace WXMLToWorm.CodeDomExtensions
                     Name = WXMLCodeDomGeneratorNameHelper.GetSafeName(tbl.Identifier)
                 }).ToArray());
                 entitySchemaDefClass.Members.Add(tablesEnum);
-            }
-        }
-
-        private static void CreateChangeValueTypeMethod(EntityDefinition entity, CodeTypeDeclaration entitySchemaDefClass)
-        {
-            if (entity.Behaviour != EntityBehaviuor.PartialObjects && entity.BaseEntity == null)
-            {
-                var method = new CodeMemberMethod
-                                 {
-                    Name = "ChangeValueType",
-                    // тип возвращаемого значения
-                    ReturnType = new CodeTypeReference(typeof(bool)),
-                    // модификаторы доступа
-                    Attributes = MemberAttributes.Public
-                };
-
-                // реализует метод базового класса
-                method.ImplementationTypes.Add(typeof(IEntitySchemaBase));
-
-                entitySchemaDefClass.Members.Add(method);
-
-                // параметры
-                method.Parameters.Add(
-                    new CodeParameterDeclarationExpression(
-                        new CodeTypeReference(typeof(EntityPropertyAttribute)),
-                        "c"
-                        )
-                    );
-                method.Parameters.Add(
-                    new CodeParameterDeclarationExpression(
-                        new CodeTypeReference(typeof(object)),
-                        "value"
-                        )
-                    );
-                CodeParameterDeclarationExpression methodParam = new CodeParameterDeclarationExpression(
-                    new CodeTypeReference(typeof(object)),
-                    "newvalue"
-                    )
-                {
-                    Direction = FieldDirection.Ref
-                };
-
-                method.Parameters.Add(methodParam);
-                method.Statements.Add(
-                    new CodeConditionStatement(
-                        new CodeBinaryOperatorExpression(
-                            new CodeBinaryOperatorExpression(
-                                new CodeBinaryOperatorExpression(
-                                    new CodePropertyReferenceExpression(
-                                        new CodeArgumentReferenceExpression("c"),
-                                        "Behavior"
-                                        ),
-                                    CodeBinaryOperatorType.BitwiseAnd,
-                                    new CodeFieldReferenceExpression(
-                                        new CodeTypeReferenceExpression(typeof(Worm.Entities.Meta.Field2DbRelations)),
-                                        "InsertDefault"
-                                        )
-                                    ),
-                                CodeBinaryOperatorType.ValueEquality,
-                                new CodeFieldReferenceExpression(
-                                    new CodeTypeReferenceExpression(typeof(Worm.Entities.Meta.Field2DbRelations)),
-                                    "InsertDefault"
-                                    )
-                                ),
-                            CodeBinaryOperatorType.BooleanAnd,
-                            new CodeBinaryOperatorExpression(
-                                new CodeBinaryOperatorExpression(
-                                new CodeArgumentReferenceExpression("value"),
-                                CodeBinaryOperatorType.IdentityEquality,
-                                new CodePrimitiveExpression(null)
-                                ),
-                                CodeBinaryOperatorType.BooleanOr,
-                                new CodeMethodInvokeExpression(
-                                    new CodeMethodInvokeExpression(
-                                        new CodeTypeReferenceExpression(typeof(Activator)),
-                                        "CreateInstance",
-                                        new CodeMethodInvokeExpression(
-                                            new CodeArgumentReferenceExpression("value"),
-                                            "GetType"
-                                        )
-                                    ),
-                                    "Equals",
-                                    new CodeArgumentReferenceExpression("value")
-                                )
-
-                            )
-                            ),
-                        new CodeAssignStatement(
-                            new CodeArgumentReferenceExpression("newvalue"),
-                            new CodeFieldReferenceExpression(
-                                new CodeTypeReferenceExpression(typeof(DBNull)),
-                                "Value"
-                            )
-                            ),
-                        new CodeMethodReturnStatement(new CodePrimitiveExpression(true))
-                        )
-                    );
-                // newvalue = value;
-                method.Statements.Add(
-                    new CodeAssignStatement(
-                        new CodeArgumentReferenceExpression("newvalue"),
-                        new CodeArgumentReferenceExpression("value")
-                        )
-                    );
-                method.Statements.Add(
-                    new CodeMethodReturnStatement(
-                        new CodePrimitiveExpression(false)
-                        )
-                    );
             }
         }
 
