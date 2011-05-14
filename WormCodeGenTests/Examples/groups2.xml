@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<WXMLModel xmlns="http://wise-orm.com/WXMLSchema.xsd" defaultNamespace="test" xmlns:xi="http://www.w3.org/2001/XInclude">
+	<Includes>
+		<!--<xi:include parse="xml" href="tables.xml" />
+		<xi:include parse="xml" href="tablessub.xml" />-->
+	</Includes>
+	<Entities>
+		<Entity id="e1" name="E1">
+			<SourceFragments>
+				<SourceFragment ref="tbl1"/>
+				<!--<SourceFragment ref="tbl2"/>-->
+				<!--<SourceFragment ref="tblS1"/>-->
+			</SourceFragments>
+			<Properties>
+				<Property fieldName="id" name="Identifier1" propertyAlias="ID" description="prop" table="tbl1" type="tInt32" attributes="PrimaryKey"/>
+				<Property fieldName="title" name="Title" description="prop title" table="tbl1" type="tString" fieldTypeName="nvarchar" fieldTypeSize="50" fieldNullable="false"/>
+        <Group name="grp">
+          <Property fieldName="prop1" name="prop1" table="tbl1" type="tString"/>
+          <Property fieldName="prop2" name="prop2" table="tbl1" type="tString"/>
+        </Group>
+        <Group name="grp1" hide="false">
+          <Property fieldName="prop3" name="prop3" table="tbl1" type="tString" obsolete="Warning" />
+          <Property fieldName="prop4" name="prop4" table="tbl1" type="tString"/>
+        </Group>
+			</Properties>
+		</Entity>
+    <Entity id="e2" name="E2" baseEntity="e1">
+      <SourceFragments>
+        <!--<SourceFragment ref="tbl1"/>-->
+        <!--<SourceFragment ref="tbl2"/>-->
+        <!--<SourceFragment ref="tblS1"/>-->
+      </SourceFragments>
+      <Properties>
+        <Group name="grp1" hide="false">
+          <Property fieldName="prop4" name="prop4" table="tbl1" type="tString"/>
+          <EntityProperty name="prop5" table="tbl1" referencedEntity="e1">
+            <field relatedProperty="ID" fieldName="e_id" />
+          </EntityProperty>
+        </Group>
+      </Properties>
+    </Entity>
+	</Entities>
+	<Types>
+    <Type id="tInt32">
+      <ClrType name="System.Int32" />
+    </Type>
+		<Type id="tString">
+			<ClrType name="System.String" />
+		</Type>
+		<Type id="tTestUT1">
+			<UserType name="TestUT1" hint="Enum"/>
+		</Type>
+		<Type id="tTestUT2">
+			<UserType name="TestUT2" hint="ValueType"/>
+		</Type>
+		<Type id="tTestUT3">
+			<UserType name="TestUT3" hint="Nullable"/>
+		</Type>
+		<Type id="tTestUT4">
+			<UserType name="TestUT4" hint="Enum Nullable"/>
+		</Type>
+		<Type id="tTestUT5">
+			<UserType name="TestUT5" hint="ValueType Nullable"/>
+		</Type>
+	</Types>
+	<SourceFragments>
+		<SourceFragment id="tbl1" name="tbl1" />
+	</SourceFragments>
+</WXMLModel>
