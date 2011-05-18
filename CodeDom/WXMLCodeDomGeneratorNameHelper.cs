@@ -86,13 +86,17 @@ namespace WXML.CodeDom
 
             if (entity.Model != null && entity.Model.OwnEntities.Any(e => e.Name == en && e.Identifier != entity.Identifier))
             {
-                if (string.IsNullOrEmpty(entity.GetSourceFragments().First().Selector))
+                string sel = entity.GetSourceFragments().First().Selector;
+                if (string.IsNullOrEmpty(sel))
                 {
                     int idx = entity.Model.OwnEntities.Count(e => e.Name == en && e.Identifier != entity.Identifier);
                     en = en + idx;
                 }
                 else
-                    en = entity.GetSourceFragments().First().Selector + en;
+                {
+                    sel = sel.Trim('[', ']');
+                    en = sel + en;
+                }
             }
 
             string className =
