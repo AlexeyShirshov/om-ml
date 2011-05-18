@@ -1516,13 +1516,13 @@ namespace WXMLToWorm
             {
                 //e.CtorDeclaration.Statements.Add(
                 //    new CodeAssignStatement(
-                //        new CodeFieldReferenceExpression(
+                //        new CodePropertyReferenceExpression(
                 //            new CodeThisReferenceExpression(),
-                //            "_dontRaisePropertyChange"
-                //            ),
-                //            new CodePrimitiveExpression(true)
-                //        )
-                //    );
+                //            "DontRaisePropertyChange"
+                //        ),
+                //        new CodePrimitiveExpression(true)
+                //    )
+                //);
             }
         }
 

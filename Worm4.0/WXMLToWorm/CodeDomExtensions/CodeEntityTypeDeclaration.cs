@@ -40,6 +40,7 @@ namespace WXMLToWorm.CodeDomExtensions
         {
             if ((_settings.GenerateMode.HasValue ? _settings.GenerateMode.Value : _entity.Model.GenerateMode) != GenerateModeEnum.SchemaOnly)
             {
+                PopulateDontRaise();
                 OnPopulatePropertiesAccessors();
                 if (_entity.GetPkProperties().Count() > 0 &&
                     (_settings.GenerateMode.HasValue ? _settings.GenerateMode.Value : _entity.Model.GenerateMode) != GenerateModeEnum.EntityOnly)
@@ -56,6 +57,27 @@ namespace WXMLToWorm.CodeDomExtensions
             }
             //else
             //    throw new NotImplementedException();
+        }
+
+        private void PopulateDontRaise()
+        {
+            if (_entity.GetPkProperties().Count() == 0)
+                return;
+
+            var prop = new CodeMemberProperty()
+            {
+                Attributes = MemberAttributes.Override | MemberAttributes.Public,
+                Name = "DontRaisePropertyChange",
+                Type = new CodeTypeReference(typeof(bool)),
+                HasSet = false,
+                HasGet = true
+            };
+
+            Members.Add(prop);
+
+            prop.GetStatements.Add(
+                Emit.@return(()=>true)
+            );
         }
 
         protected virtual void OnPopulateSchema()
