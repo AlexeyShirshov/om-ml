@@ -4,6 +4,64 @@
     <name>Worm.Orm</name>
   </assembly>
   <members>
+    <member name="T:Worm.Cache.INewObjectsStore">
+      <summary>
+ Интерфейс работы с новыми объектами
+ </summary>
+      <remarks>Так как новые объект не хранятся в кеше, система работает с ними с помощью внешнего 
+ хранилища, реализующего данный интерфейс</remarks>
+    </member>
+    <member name="M:Worm.Cache.INewObjectsStore.GetPKForNewObject(System.Type,Worm.ObjectMappingEngine)">
+      <summary>
+ Возвращает набор полей и значений первичного ключа
+ </summary>
+      <param name="t">Тип объекта</param>
+      <param name="mpe">Движок маппинга</param>
+      <returns>Набор полей и значений первичного ключа</returns>
+      <exception cref="T:System.ArgumentNullException">Если t или mpe пустая ссылка</exception>
+    </member>
+    <member name="M:Worm.Cache.INewObjectsStore.GetNew(System.Type,Worm.Entities.Meta.PKDesc[])">
+      <summary>
+ Возвращает экземпляр нового объекта данного типа по первичному ключу
+ </summary>
+      <param name="t">Тип объекта</param>
+      <param name="pk">Набор полей и значений первичного ключа</param>
+      <returns>Экземпляр нового объекта данного типа по первичному ключу или Nothing, 
+ если не найден</returns>
+      <exception cref="T:System.ArgumentNullException">Если t или pk пустая ссылка</exception>
+    </member>
+    <member name="M:Worm.Cache.INewObjectsStore.AddNew(Worm.Entities._ICachedEntity)">
+      <summary>
+ Добавляет объект в хранилище новых объектов
+ </summary>
+      <param name="obj">Объект</param>
+      <exception cref="T:System.ArgumentException">Если объект уже добавлен</exception>
+      <exception cref="T:System.ArgumentNullException">Если obj пустая ссылка</exception>
+    </member>
+    <member name="M:Worm.Cache.INewObjectsStore.RemoveNew(Worm.Entities._ICachedEntity)">
+      <summary>
+ Удаляет объект из хранилища новых объектов
+ </summary>
+      <param name="obj">Объект</param>
+      <exception cref="T:System.ArgumentNullException">Если obj пустая ссылка</exception>
+    </member>
+    <member name="M:Worm.Cache.INewObjectsStore.RemoveNew(System.Type,Worm.Entities.Meta.PKDesc[])">
+      <summary>
+ Удаляет объект из хранилища новых объектов
+ </summary>
+      <param name="t">Тип объекта</param>
+      <param name="pk">Набор полей и значений первичного ключа</param>
+      <exception cref="T:System.ArgumentNullException">Если t или pk пустая ссылка</exception>
+    </member>
+    <member name="M:Worm.Cache.NewObjectStore.GetPKForNewObject(System.Type,Worm.ObjectMappingEngine)">
+      <summary>
+ Возвращает набор полей и значений первичного ключа
+ </summary>
+      <param name="t">Тип объекта</param>
+      <param name="mpe">Движок маппинга</param>
+      <returns>Набор полей и значений первичного ключа</returns>
+      <exception cref="T:System.ArgumentNullException">Если t или mpe пустая ссылка</exception>
+    </member>
     <member name="F:Worm.Cache.OrmCache._invalidate">
       <summary>
  dictionary.key - тип
@@ -34,17 +92,33 @@
       <remarks>
       </remarks>
     </member>
-    <member name="P:Worm.Entities.CachedEntity.InternalClass.OriginalCopy">
+    <member name="M:Worm.Entities.IEntity.LockEntity">
       <summary>
- Модифицированная версия объекта
+ Объект блокировки сущности
  </summary>
+      <returns>Возвращает объект в конструкторе которого создана блокировка на сущность. Блокировка снимается в методе <see cref="M:System.IDisposable.Dispose" /></returns>
+      <remarks>Необходимо использовать блокировку при дуступе к внутреним метаданными сущности, таким как <see cref="P:Worm.Entities.IEntity.ObjectState" /></remarks>
     </member>
-    <member name="M:Worm.Entities.CachedEntity.RejectChanges">
+    <member name="M:Worm.Entities.ICachedEntity.SaveChanges(System.Boolean)">
       <summary>
- Отмена изменений
+ Возвращает массив полей и значений первичный ключей
  </summary>
+      <returns>Массив полей и значений первичный ключей</returns>
     </member>
-    <member name="T:Worm.Entities.KeyEntityBase">
+    <member name="T:Worm.Entities.PKWrapper">
+      <summary>
+ Обертка над массивом полей и значений
+ </summary>
+      <remarks>Реализует операции сравнения и получения хэш-кода для 
+ массива полей и значений <see cref="T:Worm.Entities.Meta.PKDesc" /></remarks>
+    </member>
+    <member name="M:Worm.Entities.PKWrapper.#ctor(Worm.Entities.Meta.PKDesc[])">
+      <summary>
+ Инициализация объекта
+ </summary>
+      <param name="pk">Массив полей и значений</param>
+    </member>
+    <member name="T:Worm.Entities.SinglePKEntityBase">
       <summary>
  Базовый класс для всех типов
  </summary>
@@ -54,11 +128,11 @@
  XML сериализация/десериализация. Реализована с некоторыми ограничениями. Для изменения поведения необходимо переопределить <see cref="M:Worm.Entities.CachedEntity.ReadXml(System.Xml.XmlReader)" /> и <see cref="M:Worm.Entities.CachedEntity.WriteXml(System.Xml.XmlWriter)" />.
  <code lang="vb">Это код</code><example>Это пример</example></remarks>
     </member>
-    <member name="M:Worm.Entities.KeyEntityBase.Equals(System.Object)">
+    <member name="M:Worm.Entities.SinglePKEntityBase.Equals(System.Object)">
       <param name="obj">The System.Object to compare with the current System.Object.</param>
       <returns>true if the specified System.Object is equal to the current System.Object; otherwise, false.</returns>
     </member>
-    <member name="M:Worm.Entities.KeyEntityBase.GetHashCode">
+    <member name="M:Worm.Entities.SinglePKEntityBase.GetHashCode">
       <returns>A hash code for the current System.Object.</returns>
     </member>
     <member name="F:Worm.Entities.ObjectState.None">
@@ -69,11 +143,6 @@
     <member name="F:Worm.Entities.ObjectState.NotFoundInSource">
       <summary>
  Попытка загрузить данный обьект из БД не удалась. Это может быть из-за того, что, например, он был удален.
- </summary>
-    </member>
-    <member name="F:Worm.Entities.ObjectState.Clone">
-      <summary>
- Объект является копией редактируемого объекта
  </summary>
     </member>
     <member name="F:Worm.Entities.ObjectState.NotLoaded">
@@ -87,6 +156,80 @@
  </summary>
       <remarks>Состояние измененных объектов после отмены изменений на уровне БД не меняется, так что нужно в ручную снова выполнить загрузку их из БД</remarks>
     </member>
+    <member name="M:Worm.Database.OrmReadOnlyDBManager.LoadObjectFromDataReader(System.Object,System.Data.Common.DbDataReader,System.Collections.Generic.IList{Worm.Expressions2.SelectExpression},System.Collections.IDictionary,System.Boolean,System.IDisposable@,Worm.Entities.Meta.IEntitySchema,Worm.Collections.IndexedCollection{System.String,Worm.Entities.Meta.MapField2Column},System.Int32,System.Int32)">
+      <summary>
+ Загружает объект из БД
+ </summary>
+      <param name="obj">
+      </param>
+      <param name="dr">
+      </param>
+      <param name="selectList">Свойства для загрузки</param>
+      <param name="entityDictionary">
+      </param>
+      <param name="modificationSync">
+      </param>
+      <param name="lock">
+      </param>
+      <param name="oschema">
+      </param>
+      <param name="propertyMap">
+      </param>
+      <param name="rownum">Счетчик записей, которые нужно использовать для загрузки в поля объекта</param>
+      <param name="baseIdx">Начальный индекс поля в ридере. Используется при загрузке нескольких объектов из одной записи</param>
+      <returns>
+      </returns>
+      <remarks>
+ Алгоритм примерно такой:
+ 0.1 Если это загрузка при модификации (update/insert), сохраняем первичный ключ объекта
+ 1. Грузим первичный ключ в объект
+ 2. Если первичный ключ загружен
+ 2.1. Ищем объект в кеше
+ 2.2. Если объекта в кеше нет
+ 2.2.1 Если это загрузка объекта при модификации, сохраняем копию старого объекта
+ 3. Если первчиный ключ не загружен, но это загрузка объекта при модификации, сохраняем копию старого объекта
+ </remarks>
+    </member>
+    <member name="M:Worm.OrmManager.FormPKValues``1(Worm.Cache.CacheBase,Worm.ReadOnlyEntityList{``0},System.Int32,System.Int32,System.Boolean)">
+      <summary>
+      </summary>
+      <typeparam name="T">
+      </typeparam>
+      <param name="cache">Pass null if there is no <see cref="T:Worm.Cache.INewObjectsStore" /> or you dont' want use it</param>
+      <param name="objs">
+      </param>
+      <param name="start">
+      </param>
+      <param name="length">
+      </param>
+      <param name="check_loaded">
+      </param>
+      <returns>
+      </returns>
+      <remarks>
+      </remarks>
+    </member>
+    <member name="M:Worm.OrmManager.FormPKValues``1(Worm.Cache.CacheBase,Worm.ReadOnlyEntityList{``0},System.Int32,System.Int32,System.Boolean,System.Collections.Generic.List{Worm.Expressions2.EntityExpression},Worm.ObjectMappingEngine)">
+      <summary>
+      </summary>
+      <typeparam name="T">
+      </typeparam>
+      <param name="cache">Pass null if there is no <see cref="T:Worm.Cache.INewObjectsStore" /> or you dont' want use it</param>
+      <param name="objs">
+      </param>
+      <param name="start">
+      </param>
+      <param name="length">
+      </param>
+      <param name="check_loaded">
+      </param>
+      <param name="properties">
+      </param>
+      <returns>
+      </returns>
+      <remarks>
+      </remarks>
+    </member>
     <member name="M:Worm.OrmManager.LoadObjects``1(Worm.ReadOnlyEntityList{``0},System.String[],System.Int32,System.Int32)">
       <summary>
  Load parent objects from collection of childs
@@ -99,6 +242,28 @@
       <returns>Collection of child objects</returns>
       <remarks>
       </remarks>
+    </member>
+    <member name="T:Worm.Entities.Meta.PKDesc">
+      <summary>
+ Поле и его значение 
+ </summary>
+    </member>
+    <member name="F:Worm.Entities.Meta.PKDesc.PropertyAlias">
+      <summary>
+ Имя поля
+ </summary>
+    </member>
+    <member name="F:Worm.Entities.Meta.PKDesc.Value">
+      <summary>
+ Значение поля
+ </summary>
+    </member>
+    <member name="M:Worm.Entities.Meta.PKDesc.#ctor(System.String,System.Object)">
+      <summary>
+ Инициализирует объект
+ </summary>
+      <param name="propAlias">Имя поля</param>
+      <param name="value">Значение поля</param>
     </member>
     <member name="T:Worm.IPrepareTable">
       <summary>
@@ -150,6 +315,84 @@
       <remarks>Класс управляет версиями схем объектов, предоставляет удобные обертки для методов
  <see cref="T:Worm.Entities.Meta.IEntitySchema" /> через тип объекта.</remarks>
     </member>
+    <member name="M:Worm.ObjectMappingEngine.GetPropertyValue(System.Object,System.String,Worm.Entities.Meta.IEntitySchema,System.Reflection.PropertyInfo)">
+      <summary>
+ Возвращает значение данного свойства объекта
+ </summary>
+      <param name="obj">Объект</param>
+      <param name="propertyAlias">Имя поля</param>
+      <param name="oschema">Схема объекта</param>
+      <param name="pi">
+        <see cref="T:System.Reflection.PropertyInfo" /> для поля</param>
+      <returns>Значение поля</returns>
+      <remarks>Если тип не реализует <see cref="T:Worm.Entities.IOptimizedValues" />, то используется метод получения значения через рефлекшн. 
+ Если реализует и свойство загружено или тип не реализует <see cref="T:Worm.Entities.IPropertyLazyLoad" />, вызывает <see cref="M:Worm.Entities.IOptimizedValues.GetValueOptimized(System.String,Worm.Entities.Meta.IEntitySchema)" />.
+ Если свойство не загружено и тип реализует <see cref="T:Worm.Entities.IPropertyLazyLoad" />, 
+ вызов <see cref="M:Worm.Entities.IOptimizedValues.GetValueOptimized(System.String,Worm.Entities.Meta.IEntitySchema)" /> обрамляется объектом, который возвращает метод <see cref="M:Worm.Entities.IPropertyLazyLoad.Read(System.String)" /></remarks>
+      <exception cref="T:System.ArgumentException">Если тип не реализует интерфейс <see cref="T:Worm.Entities.IOptimizedValues" /> и параметр <paramref name="pi" /> не задан.</exception>
+    </member>
+    <member name="M:Worm.ObjectMappingEngine.GetEntitySchema(System.Type)">
+      <summary>
+      </summary>
+      <param name="t">
+      </param>
+      <returns>
+      </returns>
+      <exception cref="T:System.ArgumentNullException">Если t пустая ссылка</exception>
+    </member>
+    <member name="M:Worm.ObjectMappingEngine.GetEntitySchema(System.Type,System.Boolean)">
+      <summary>
+      </summary>
+      <param name="t">
+      </param>
+      <param name="throwNotFound">
+      </param>
+      <returns>
+      </returns>
+      <exception cref="T:System.ArgumentNullException">Если t пустая ссылка</exception>
+    </member>
+    <member name="M:Worm.ObjectMappingEngine.AssignValue2Property(System.Type,Worm.ObjectMappingEngine,Worm.Cache.CacheBase,Worm.Entities.Meta.PKDesc[],System.Object,Worm.Collections.IndexedCollection{System.String,Worm.Entities.Meta.MapField2Column},System.String,Worm.Entities.IPropertyLazyLoad,Worm.Entities.Meta.MapField2Column,Worm.Entities.Meta.IEntitySchema,Worm.ObjectMappingEngine.ObjectLoadedDelegate)">
+      <summary>
+ Присваевает свойству объекта значение.
+ </summary>
+      <param name="propType">
+      </param>
+      <param name="MappingEngine">
+      </param>
+      <param name="cache">
+      </param>
+      <param name="sv">
+      </param>
+      <param name="obj">
+      </param>
+      <param name="map">
+      </param>
+      <param name="propertyAlias">
+      </param>
+      <param name="ll">
+      </param>
+      <param name="m">
+      </param>
+      <param name="oschema">
+      </param>
+      <param name="objectLoaded">
+      </param>
+      <returns>Значение, присвоенное свойству объекта</returns>
+      <remarks>
+ Тип значения и тип свойства не обязательно должны совпадать. Например, тип свойства может быть <see cref="T:System.Xml.XmlDocument" />, а тип значения <see cref="T:System.String" />. 
+ Функция пытается выполнить преобразование и возвращает преобразованное значение.
+ Поддерживаются следующие преобразования
+ <list type="table"><item><term><see cref="T:System.String" /></term><description><see cref="T:System.Xml.XmlDocument" /></description></item><item><term><see cref="T:System.String" /></term><description><see cref="T:System.Enum" /></description></item><item><term>Любой</term><description>Nullable(Of )</description></item><item><term><see cref="T:System.Decimal" /></term><description><see cref="T:System.Int64" /></description></item><item><term><see cref="T:System.DateTime" /></term><description><see cref="T:System.Byte" /></description></item></list></remarks>
+    </member>
+    <member name="M:Worm.Entities.Meta.MapField2Column.GetValue(System.Object)">
+      <summary>
+ Возвращает значение поля
+ </summary>
+      <param name="obj">Объект</param>
+      <returns>Значение поля</returns>
+      <remarks>Использует метод <see cref="M:Worm.ObjectMappingEngine.GetPropertyValue(System.Object,System.String)" /></remarks>
+      <exception cref="T:System.ArgumentException">Если тип не реализует интерфейс <see cref="T:Worm.Entities.IOptimizedValues" /> и значение поле невозможно получить по рефлекшену.</exception>
+    </member>
     <member name="T:Worm.Entities.Meta.OrmObjectIndex">
       <summary>
  Индексированая по полю <see cref="F:Worm.Entities.Meta.MapField2Column._propertyAlias" /> колекция объектов типа <see cref="T:Worm.Entities.Meta.MapField2Column" /></summary>
@@ -192,6 +435,26 @@
  </summary>
       <remarks>
       </remarks>
+    </member>
+    <member name="P:Worm.Entities.Meta.EntityAttribute.RawProperties">
+      <summary>
+ Рассматривать ли при генерации схемы свойства без атрибута <see cref="T:Worm.Entities.Meta.EntityPropertyAttribute" /></summary>
+      <value>Значение свойства</value>
+      <returns>Если True, все свойства типа, к которому относится данный атрибут будут 
+ участвовать при генерации схемы</returns>
+      <remarks>По умолчанию False</remarks>
+    </member>
+    <member name="P:Worm.Entities.Meta.JoinAttribute.PrimaryKeys">
+      <summary>
+ Список первичных ключей, разделенный через запятую
+ </summary>
+      <remarks>Порядок следования ключей должен быть таким же как и в <see cref="P:Worm.Entities.Meta.JoinAttribute.ForeignKeys" /></remarks>
+    </member>
+    <member name="P:Worm.Entities.Meta.JoinAttribute.ForeignKeys">
+      <summary>
+ Список внешних ключей, разделенных через запятую
+ </summary>
+      <remarks>Порядок следования ключей должен быть таким же как и в <see cref="P:Worm.Entities.Meta.JoinAttribute.PrimaryKeys" /></remarks>
     </member>
     <member name="T:Worm.My.Resources.Resources">
       <summary>
@@ -405,6 +668,13 @@
       <remarks>
       </remarks>
     </member>
+    <member name="F:Worm.Expressions2.BinaryOperationType.Add">
+      <summary>
+ Arithmetic additional
+ </summary>
+      <remarks>
+      </remarks>
+    </member>
     <member name="M:Worm.Database.SQLGenerator.Sort(System.Collections.Generic.IDictionary{Worm.Entities.Meta.SourceFragment,System.Collections.Generic.List{Worm.Criteria.Core.ITemplateFilter}},Worm.Entities.Meta.SourceFragment[])">
       <summary>
  Сортирует словарь в соответствии с порядком ключей в коллекции
@@ -413,51 +683,6 @@
       <param name="model">Упорядоченная коллекция ключей</param>
       <returns>Список пар ключ/значение из словаря, упорядоченный по коллекции <b>model</b></returns>
       <exception cref="T:System.InvalidOperationException">Если ключ из словаря не найден в коллекции <b>model</b></exception>
-    </member>
-    <member name="M:Worm.Database.SQLGenerator.AppendNativeTypeJoins(Worm.ObjectMappingEngine,System.Type,Worm.Entities.Meta.AliasMgr,Worm.Entities.Meta.SourceFragment[],System.Text.StringBuilder,Worm.Database.ParamMgr,Worm.Entities.Meta.SourceFragment,System.String,System.Boolean,System.Object,Worm.Entities.Meta.IEntitySchema)">
-      <summary>
- Добавление джоинов для типа, когда основная таблица может не линковаться
- </summary>
-      <param name="selectedType">
-      </param>
-      <param name="almgr">
-      </param>
-      <param name="tables">
-      </param>
-      <param name="selectcmd">
-      </param>
-      <param name="pname">
-      </param>
-      <param name="table">
-      </param>
-      <param name="id">имя внешнего ключевого поля</param>
-      <param name="appendMainTable">
-      </param>
-      <remarks>
-      </remarks>
-    </member>
-    <member name="M:Worm.Database.SQLGenerator.AppendFromM2M(Worm.ObjectMappingEngine,System.Type,Worm.Entities.Meta.AliasMgr,Worm.Entities.Meta.SourceFragment[],System.Text.StringBuilder,Worm.Database.ParamMgr,Worm.Entities.Meta.SourceFragment,System.String,System.Boolean,System.Object,Worm.Entities.Meta.IEntitySchema)">
-      <summary>
- Построение таблиц для many to many связи
- </summary>
-      <param name="selectedType">
-      </param>
-      <param name="almgr">
-      </param>
-      <param name="tables">
-      </param>
-      <param name="selectcmd">
-      </param>
-      <param name="pname">
-      </param>
-      <param name="table">
-      </param>
-      <param name="id">
-      </param>
-      <param name="appendMainTable">
-      </param>
-      <remarks>
-      </remarks>
     </member>
     <member name="M:Worm.Database.SQLGenerator.AppendFrom(Worm.ObjectMappingEngine,Worm.IPrepareTable,System.Object,Worm.Entities.Meta.SourceFragment[],System.Text.StringBuilder,Worm.Entities.Meta.ICreateParam,Worm.Entities.Meta.IMultiTableObjectSchema,System.Type)">
       <summary>
