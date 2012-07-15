@@ -1702,8 +1702,8 @@ namespace WXMLToWorm
                     //    )
                     //)
                     Emit.@return((string propertyAlias) =>
-                        CodeDom.@this.Call<ObjectMappingEngine>("GetMappingEngine")()
-                            .GetPropertyValue(CodeDom.@this.cast<_IEntity>(), propertyAlias))
+                        CodeDom.@this.Call<Type>("GetType")()
+                            .GetProperty(propertyAlias).GetValue(CodeDom.@this, null))
                 );
             }
             entityClass.Members.Add(method);

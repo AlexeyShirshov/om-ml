@@ -65,6 +65,21 @@ namespace WXMLTests
         #endregion
 
         [TestMethod]
+        [Description("Проверка заполнения сущностей")]
+        public void TestFillEntities()
+        {
+            Worm_CodeGen_Core_OrmXmlParserAccessor parser;
+            using (XmlReader rdr = XmlReader.Create(GetSampleFileStream()))
+            {
+                object privateParser = Worm_CodeGen_Core_OrmXmlParserAccessor.CreatePrivate(rdr);
+                parser = new Worm_CodeGen_Core_OrmXmlParserAccessor(privateParser);
+                parser.Read();
+            }
+
+            parser.FillModel();
+        }
+
+        [TestMethod]
         [Description("Проверка получения свойств")]
         public void TestFillProperties()
         {
@@ -91,7 +106,7 @@ namespace WXMLTests
 
             Assert.AreEqual<int>(8, entity.OwnProperties.Count());
 
-            ScalarPropertyDefinition prop = (ScalarPropertyDefinition) entity.GetProperty("ID");
+            ScalarPropertyDefinition prop = (ScalarPropertyDefinition)entity.GetProperty("ID");
             Assert.IsNotNull(prop);
             //Assert.AreEqual<int>(1, prop.Attributes.Length, "Attributes is undefined");
             Assert.AreEqual<string>("PK", prop.Attributes.ToString(), "Attributes is not correct defined");
@@ -104,7 +119,7 @@ namespace WXMLTests
             Assert.AreEqual<AccessLevel>(AccessLevel.Public, prop.PropertyAccessLevel, "PropertyAccessLevel");
             Assert.AreEqual<string>(prop.Name, prop.PropertyAlias, "PropertyAlias");
 
-            prop = (ScalarPropertyDefinition) entity.GetProperty("Title");
+            prop = (ScalarPropertyDefinition)entity.GetProperty("Title");
             Assert.IsNotNull(prop);
             //Assert.AreEqual<int>(0, prop.Attributes.Length, "Attributes is undefined");
             Assert.IsNotNull(prop.SourceFragment, "Table is undefined");
@@ -116,9 +131,9 @@ namespace WXMLTests
             Assert.AreEqual<AccessLevel>(AccessLevel.Assembly, prop.PropertyAccessLevel, "PropertyAccessLevel");
             Assert.AreEqual<string>(prop.Name, prop.PropertyAlias, "PropertyAlias");
 
-            prop = (ScalarPropertyDefinition) entity.GetProperty("DisplayTitle");
+            prop = (ScalarPropertyDefinition)entity.GetProperty("DisplayTitle");
             Assert.IsNull(prop);
-            prop = (ScalarPropertyDefinition) entity.GetProperty("DisplayName");
+            prop = (ScalarPropertyDefinition)entity.GetProperty("DisplayName");
             Assert.IsNotNull(prop);
             Assert.AreEqual<string>("DisplayTitle", prop.Name, "Name is undefined");
             //Assert.AreEqual<int>(0, prop.Attributes.Length, "Attributes is undefined");
@@ -131,22 +146,22 @@ namespace WXMLTests
             Assert.AreEqual<AccessLevel>(AccessLevel.Family, prop.PropertyAccessLevel, "PropertyAccessLevel");
             Assert.AreEqual<string>("DisplayName", prop.PropertyAlias, "PropertyAlias");
 
-            prop = (ScalarPropertyDefinition) entity.GetProperty("Fact");
+            prop = (ScalarPropertyDefinition)entity.GetProperty("Fact");
 
             //Assert.AreEqual<int>(1, prop.Attributes.Length, "Attributes.Factory absent");
             Assert.AreEqual<string>("Factory", prop.Attributes.ToString(), "Attributes.Factory invalid");
 
-            prop = (ScalarPropertyDefinition) entity.GetProperty("TestInsDef");
+            prop = (ScalarPropertyDefinition)entity.GetProperty("TestInsDef");
 
             //Assert.AreEqual<int>(1, prop.Attributes.Length, "Attributes.Factory absent");
             Assert.AreEqual<string>("InsertDefault", prop.Attributes.ToString(), "Attributes.InsertDefault invalid");
 
-            prop = (ScalarPropertyDefinition) entity.GetProperty("TestNullabe");
+            prop = (ScalarPropertyDefinition)entity.GetProperty("TestNullabe");
 
             Assert.AreEqual<Type>(typeof(int?), prop.PropertyType.ClrType);
             Assert.IsFalse(prop.Disabled, "Disabled false");
 
-            prop = (ScalarPropertyDefinition) entity.GetProperty("TestDisabled");
+            prop = (ScalarPropertyDefinition)entity.GetProperty("TestDisabled");
             Assert.IsTrue(prop.Disabled, "Disabled true");
         }
 
@@ -176,7 +191,7 @@ namespace WXMLTests
             Assert.AreEqual<int>(1, entity.SuppressedProperties.Count, "SuppressedProperties.Count");
 
             PropertyDefinition prop = entity.GetProperties()
-                .Single(item=>item.PropertyAlias==entity.SuppressedProperties[0]);
+                .Single(item => item.PropertyAlias == entity.SuppressedProperties[0]);
 
             Assert.AreEqual<string>("Prop1", prop.Name, "SuppressedPropertyName");
             Assert.IsTrue(prop.IsSuppressed, "SuppressedPropery.IsSuppressed");

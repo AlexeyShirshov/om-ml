@@ -746,5 +746,22 @@ namespace WXML.Model.Descriptors
         {
             _relations.Add(entityRelation);
         }
+
+        public IEnumerable<string> ScopeNames()
+        {
+            List<string> l = new List<string>();
+            foreach(var prop in GetProperties())
+            {
+                l.Add(prop.Name);
+            }
+
+            foreach (var entityRelation in GetActiveOne2ManyRelations())
+            {
+                l.Add(string.IsNullOrEmpty(entityRelation.AccessorName) ? WXML.CodeDom.WXMLCodeDomGeneratorNameHelper.GetMultipleForm(entityRelation.Entity.Name) : entityRelation.AccessorName);
+            }
+
+            return l;
+        }
+
     }
 }

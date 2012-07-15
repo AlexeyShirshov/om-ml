@@ -257,7 +257,6 @@ namespace WXML.Model
 
                 FillProperties(entity);
                 FillSuppresedProperties(entity);
-                FillEntityRelations(entity);
 
                 var extensionsNode =
                     entityElement.SelectNodes(string.Format("{0}:extension", WXMLModel.NS_PREFIX), _nsMgr);
@@ -269,6 +268,11 @@ namespace WXML.Model
                 {
                     FillExtension(entity.Extensions, extension);
                 }
+            }
+
+            foreach (EntityDefinition entity in _model.OwnEntities)
+            {
+                FillEntityRelations(entity);
             }
         }
 
@@ -287,6 +291,9 @@ namespace WXML.Model
                 string entityId = relationNode.GetAttribute("entity");
 
                 var relationEntity = _model.GetEntity(entityId);
+
+                if (relationEntity == null)
+                    throw new WXMLParserException(string.Format("Entity {0} has relation to entity {1} which is not found", entity.Identifier, entityId));
 
                 string propertyAlias = relationNode.GetAttribute("propertyAlias");
 
@@ -318,6 +325,9 @@ namespace WXML.Model
                     relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
 
                 entity.AddEntityRelations(relation);
+
+                if (relation.Property == null)
+                    throw new WXMLParserException(string.Format("Cannot find property {0} in entity {1} referenced in relation of entity {2}", relation.PropertyAlias, entityId, entity.Identifier));
             }
         }
 
@@ -652,6 +662,10 @@ namespace WXML.Model
             propGroup g = new propGroup(propertyElement);
 
             string entityRef = propertyElement.GetAttribute("referencedEntity");
+
+            if (string.IsNullOrEmpty(entityRef))
+                throw new WXMLParserException(string.Format("EntityProperty {0} has no referencedEntity attribute", g.name));
+
             string sAttributes = propertyElement.GetAttribute("attributes");
             string tableId = propertyElement.GetAttribute("table");
             string fieldAccessLevelName = propertyElement.GetAttribute("classfieldAccessLevel");
