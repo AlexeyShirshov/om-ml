@@ -42,6 +42,9 @@
 		<oos:Type id="tGuidnullable">
 			<oos:ClrType name="System.Nullable`1[[System.Guid, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
 		</oos:Type>
+    <oos:Type id="tCustom">
+      <oos:Entity ref="customProps"/>
+    </oos:Type>
 	</oos:Types>
 	<oos:Entities>
 		<oos:Entity id="eArtist" name="Artist" description="Artist Description">
@@ -60,6 +63,9 @@
 				<oos:Property name="TestNullabe" table="tblArtists" fieldName="nulableint" type="tInt32Nullable" description="Property Title Description" propertyAccessLevel="Assembly"/>
 				<oos:Property name="TestDisabled" table="tblArtists" fieldName="disabled" type="tInt32Nullable" description="Property Title Description" propertyAccessLevel="Assembly" disabled="true"/>
 			</oos:Properties>
+      <oos:Relations>
+        <oos:Relation entity="customProps" />
+      </oos:Relations>
 		</oos:Entity>
     <oos:Entity id="eAlbum" name="Album" description="Album Description" namespace="AlbumNS">
       <oos:SourceFragments>
@@ -114,6 +120,7 @@
             <oos:VB><![CDATA[Value = 1]]></oos:VB>
           </oos:Set>
         </oos:CustomProperty>
+        <oos:EntityProperty name="Artist" referencedEntity="eArtist" />
       </oos:Properties>
     </oos:Entity>
 	</oos:Entities>  

@@ -238,8 +238,15 @@ internal class Worm_CodeGen_Core_OrmXmlParserAccessor : BaseAccessor {
         object[] args = new object[0];
         m_privateObject.Invoke("FillRelations", new System.Type[0], args);
     }
-    
-    internal void FillSourceFragments() {
+
+    internal void FillModel()
+    {
+        object[] args = new object[0];
+        m_privateObject.Invoke("FillModel", new System.Type[0], args);
+    }
+
+    internal void FillSourceFragments()
+    {
         object[] args = new object[0];
 		m_privateObject.Invoke("FillSourceFragments", new System.Type[0], args);
     }
