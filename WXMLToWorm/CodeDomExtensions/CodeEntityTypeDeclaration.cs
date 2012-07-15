@@ -716,7 +716,7 @@ namespace WXMLToWorm.CodeDomExtensions
                      Type = relationDescType
                  };
 
-                var entityTypeExpression = Settings.UseTypeInProps ? WXMLCodeDomGeneratorHelper.GetEntityClassTypeReferenceExpression(_settings, entityRelation.Entity, entityRelation.Entity.Namespace != _entity.Namespace) : WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings, entityRelation.Entity, entityRelation.Entity.Namespace != _entity.Namespace);
+                var entityTypeExpression = Settings.UseTypeInProps ? WXMLCodeDomGeneratorHelper.GetEntityClassTypeReferenceExpression(_settings, entityRelation.Entity, entityRelation.Entity.Namespace != _entity.Namespace || _entity.ScopeNames().Any(item => item == entityRelation.Entity.Name)) : WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings, entityRelation.Entity, entityRelation.Entity.Namespace != _entity.Namespace || _entity.ScopeNames().Any(item => item == entityRelation.Entity.Name));
                 var selfEntityTypeExpression = Settings.UseTypeInProps ? WXMLCodeDomGeneratorHelper.GetEntityClassTypeReferenceExpression(_settings, _entity, false) : WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(_settings, _entity, false);
 
                 staticProperty.GetStatements.Add(
@@ -733,7 +733,7 @@ namespace WXMLToWorm.CodeDomExtensions
                                     new CodeTypeReference(typeof(EntityUnion)),
                                     entityTypeExpression
                                 ),
-                                WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(_settings, entityRelation.Property, entityRelation.Entity.Namespace != _entity.Namespace),
+                                WXMLCodeDomGeneratorHelper.GetFieldNameReferenceExpression(_settings, entityRelation.Property, entityRelation.Entity.Namespace != _entity.Namespace || _entity.ScopeNames().Any(item => item == entityRelation.Entity.Name)),
                                 new CodePrimitiveExpression(entityRelation.Name ?? "default")
                             )
                         )
@@ -742,7 +742,7 @@ namespace WXMLToWorm.CodeDomExtensions
 
                 Members.Add(staticProperty);
 
-                string cd = new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(entityRelation.Property.Entity, entityRelation.Entity.Namespace != _entity.Namespace) + ".Properties";
+                string cd = new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(entityRelation.Property.Entity, entityRelation.Entity.Namespace != _entity.Namespace || _entity.ScopeNames().Any(item => item == entityRelation.Entity.Name)) + ".Properties";
                 //string dn = new WXMLCodeDomGeneratorNameHelper(_settings).GetEntityClassName(entityRelation.Entity, true) + ".Descriptor";
 
                 //CodeDom.Field<string>(CodeDom.TypeRef(dn), "EntityName")
@@ -752,7 +752,7 @@ namespace WXMLToWorm.CodeDomExtensions
                         new EntityUnion(CodeDom.InjectExp<string>(0)),
                         CodeDom.Field<string>(CodeDom.TypeRef(cd), entityRelation.Property.PropertyAlias),
                         entityRelation.Name
-                )), selfEntityTypeExpression);
+                )), entityTypeExpression);
 
                 Members.Add(Define.Method(MemberAttributes.Public | MemberAttributes.Final | MemberAttributes.Static, 
                     typeof(RelationDescEx),

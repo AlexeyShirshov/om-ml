@@ -289,7 +289,10 @@ namespace WormCodeGenerator
                 //    }
                 //}
 
-                if (skipEntities.Contains(entity.Identifier) || processEntities.Contains(entity.Identifier))
+                if (skipEntities.Contains(entity.Identifier))
+                    continue;
+
+                if (processEntities.Count() > 0 && !processEntities.Contains(entity.Identifier))
                     continue;
 
                 string privateFolder;
