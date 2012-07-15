@@ -607,7 +607,14 @@ namespace WXML.SourceConnector
             //{
             ep = (EntityPropertyDefinition) e.OwnProperties
                 .SingleOrDefault(item=>item.Identifier == propAlias);
-            
+
+            if (ep == null)
+            {
+                ep = e.OwnProperties.OfType<EntityPropertyDefinition>().SingleOrDefault(item=>fk.SourceFields.All(sf2=>
+                    item.SourceFields.Any(sff=>sf2.SourceFieldExpression.Trim('[',']') == sff.SourceFieldExpression.Trim('[',']'))
+                    ));
+            }
+
             if (ep == null)
             {
                 int cnt = e.OwnProperties.Count(p => p.Name == propName);
@@ -732,15 +739,40 @@ l1:
             return ep;
         }
 
-        protected ScalarPropertyDefinition AppendColumn(EntityDefinition e, SourceFieldDefinition c,
+        protected PropertyDefinition AppendColumn(EntityDefinition e, SourceFieldDefinition c,
             out bool created, bool transforRawNamesToReadableForm, bool capitalizeNames)
         {
             created = false;
-            var x = e.OwnProperties.OfType<ScalarPropertyDefinition>().Where(pd =>
-                pd.SourceFieldExpression.Trim(']', '[') == c.SourceFieldExpression.Trim('[',']')
+            //var x = e.OwnProperties.OfType<ScalarPropertyDefinition>().Where(pd =>
+            //    pd.SourceFieldExpression.Trim(']', '[') == c.SourceFieldExpression.Trim('[',']')
+            //);
+            
+            var x = e.OwnProperties.Where(pd =>
+                {
+                    ScalarPropertyDefinition sp = pd as ScalarPropertyDefinition;
+                    if (sp != null)
+                        return sp.SourceFieldExpression.Trim(']', '[') == c.SourceFieldExpression.Trim('[', ']');
+                    else
+                    {
+                        EntityPropertyDefinition ep = pd as EntityPropertyDefinition;
+                        if (ep != null)
+                        {
+                            return ep.SourceFields.Any(item => item.SourceFieldExpression.Trim(']', '[') == c.SourceFieldExpression.Trim('[', ']'));
+                        }
+                    }
+                    return false;
+                }
             );
 
-            ScalarPropertyDefinition pe = x.SingleOrDefault();
+            PropertyDefinition pe = null;
+            ScalarPropertyDefinition pes = x.OfType<ScalarPropertyDefinition>().SingleOrDefault();
+
+            if (pes != null)
+                pe = pes;
+            else
+            {
+                pe = x.OfType<EntityPropertyDefinition>().SingleOrDefault();
+            }
 
             GetSourceFragment(c.SourceFragment);
 
@@ -773,10 +805,14 @@ l1:
 
                 pe.Attributes = attrs; 
 
-                if (!pe.PropertyType.IsUserType && (attrs & Field2DbRelations.PK) != Field2DbRelations.PK)
-                    pe.PropertyType = GetClrType(c.SourceType, c.IsNullable);
+                ScalarPropertyDefinition sp = pe as ScalarPropertyDefinition;
+                if (sp != null)
+                {
+                    if (!pe.PropertyType.IsUserType && (attrs & Field2DbRelations.PK) != Field2DbRelations.PK)
+                        pe.PropertyType = GetClrType(c.SourceType, c.IsNullable);
 
-                pe.SourceField = c;
+                    sp.SourceField = c;
+                }
             }
             return pe;
         }
