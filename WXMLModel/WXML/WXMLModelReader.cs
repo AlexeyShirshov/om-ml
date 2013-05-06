@@ -861,7 +861,8 @@ namespace WXML.Model
                 };
 
                 RelationDefinition relation = new RelationDefinition(leftLinkTarget, rightLinkTarget, relationTable, underlyingEntity, disabled);
-                relation.Constraint = (RelationConstraint)Enum.Parse(typeof(RelationConstraint), constraint, true);
+                if (!string.IsNullOrEmpty(constraint))
+                    relation.Constraint = (RelationConstraint)Enum.Parse(typeof(RelationConstraint), constraint, true);
                 //SourceConstraint cns = null;
                 //switch ((RelationConstraint)Enum.Parse(typeof(RelationConstraint), constraint, true))
                 //{

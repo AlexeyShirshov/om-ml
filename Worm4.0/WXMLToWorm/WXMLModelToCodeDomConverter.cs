@@ -1280,7 +1280,7 @@ namespace WXMLToWorm
 
             meth.Parameters.Add(
                 new CodeParameterDeclarationExpression(
-                    new CodeTypeReference(new CodeTypeReference(typeof(PKDesc)), 1), "pks")
+                    new CodeTypeReference(typeof(IEnumerable<PKDesc>)), "pks")
             );
             //meth.Parameters.Add(
             //    new CodeParameterDeclarationExpression(
@@ -1347,13 +1347,13 @@ namespace WXMLToWorm
         private void CreateGetPKValuesMethod(CodeEntityTypeDeclaration entityClass)
         {
             EntityDefinition entity = entityClass.Entity;
-            CodeTypeReference tr = new CodeTypeReference(typeof(PKDesc));
+            CodeTypeReference tr = new CodeTypeReference(typeof(IEnumerable<PKDesc>));
 
             CodeMemberMethod meth = new CodeMemberMethod
             {
                 Name = "GetPKValues",
                 // тип возвращаемого значения
-                ReturnType = new CodeTypeReference(tr, 1),
+                ReturnType = tr,
                 // модификаторы доступа
                 Attributes = MemberAttributes.Public
             };
@@ -1362,11 +1362,11 @@ namespace WXMLToWorm
             entityClass.Members.Add(meth);
 
             meth.Statements.Add(
-                new CodeMethodReturnStatement(new CodeArrayCreateExpression(meth.ReturnType,
+                new CodeMethodReturnStatement(new CodeArrayCreateExpression(new CodeTypeReference(new CodeTypeReference(typeof(PKDesc)),1),
                     entity.OwnProperties
                     .Where(pd_ => pd_.HasAttribute(Field2DbRelations.PK))
                     .Cast<ScalarPropertyDefinition>()
-                    .Select(pd_ => new CodeObjectCreateExpression(tr, new CodePrimitiveExpression(pd_.PropertyAlias),
+                    .Select(pd_ => new CodeObjectCreateExpression(new CodeTypeReference(typeof(PKDesc)), new CodePrimitiveExpression(pd_.PropertyAlias),
                           new CodeFieldReferenceExpression(
                               new CodeThisReferenceExpression(),
                               new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName(
