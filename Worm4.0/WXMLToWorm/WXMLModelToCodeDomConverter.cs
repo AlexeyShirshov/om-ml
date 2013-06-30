@@ -507,8 +507,11 @@ namespace WXMLToWorm
                                 propertyAliasClassCtor.BaseConstructorArgs.Add(WXMLCodeDomGeneratorHelper.GetEntityNameReferenceExpression(Settings, entity, false));
 
                             propertyAliasClass.Members.Add(propertyAliasClassCtor);
-                            propertyAliasClass.BaseTypes.Add(new CodeTypeReference(typeof(QueryAlias)));
+                           
+                            propertyAliasClass.Members.Add(Define.Ctor((string entityName)=>MemberAttributes.Family).
+                                Base(new CodeVariableReferenceExpression("entityName")));
 
+                            propertyAliasClass.BaseTypes.Add(new CodeTypeReference(typeof(QueryAlias)));
 
                             instancedPropertyAliasClass = new CodeTypeDeclaration
                             {
