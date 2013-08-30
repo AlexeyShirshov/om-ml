@@ -612,7 +612,7 @@ namespace WXMLToWorm
                         {
                             var propertyNameField = Define.Field(MemberAttributes.Public | MemberAttributes.Const,
                                 typeof(string),
-                                propertyDesc.PropertyAlias, () => propertyDesc.PropertyAlias);
+                                propertyDesc.PropertyAlias, () => propertyDesc.PropertyAliasValue);
 
                             propertiesClass.Members.Add(propertyNameField);
 
