@@ -24,6 +24,7 @@ namespace WXML.Model.Descriptors
         private TypeDefinition _type;
         private string _name;
         private string _propertyAlias;
+        private string _propertyAliasValue;
         private Field2DbRelations _attributes;
         private string _description;
         private AccessLevel _fieldAccessLevel;
@@ -76,6 +77,12 @@ namespace WXML.Model.Descriptors
         {
             get { return string.IsNullOrEmpty(_propertyAlias) ? _name : _propertyAlias; }
             set { _propertyAlias = value; }
+        }
+
+        public string PropertyAliasValue
+        {
+            get { return string.IsNullOrEmpty(_propertyAliasValue) ? PropertyAlias : _propertyAliasValue; }
+            set { _propertyAliasValue = value; }
         }
 
         public AccessLevel FieldAccessLevel
