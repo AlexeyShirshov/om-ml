@@ -670,6 +670,7 @@ namespace WXML.Model
             string tableId = propertyElement.GetAttribute("table");
             string fieldAccessLevelName = propertyElement.GetAttribute("classfieldAccessLevel");
             string propertyAlias = propertyElement.GetAttribute("propertyAlias");
+            string propertyAliasValue = propertyElement.GetAttribute("propertyAliasValue");
             string enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
             string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
 
@@ -700,6 +701,7 @@ namespace WXML.Model
                 EnablePropertyChanged = enablePropertyChanged,
                 Group = group,
                 DefferedLoadGroup = defferedLoadGroup,
+                PropertyAliasValue = propertyAliasValue
             };
 
             g.PostProcess(property, _model);
@@ -730,6 +732,7 @@ namespace WXML.Model
             string tableId = propertyElement.GetAttribute("table");
             string fieldAccessLevelName = propertyElement.GetAttribute("classfieldAccessLevel");
             string propertyAlias = propertyElement.GetAttribute("propertyAlias");
+            string propertyAliasValue = propertyElement.GetAttribute("propertyAliasValue");
             string enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
             string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
 
@@ -768,7 +771,8 @@ namespace WXML.Model
                 EnablePropertyChanged = enablePropertyChanged,
                 Group = group,
                 SourceFieldAlias = f.fieldAlias,
-                DefferedLoadGroup = defferedLoadGroup
+                DefferedLoadGroup = defferedLoadGroup,
+                PropertyAliasValue = propertyAliasValue
             };
 
             g.PostProcess(property, _model);

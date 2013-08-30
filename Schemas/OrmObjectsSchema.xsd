@@ -278,7 +278,12 @@
     <xs:attributeGroup ref="NS:propertyAttributeGroup" />
     <xs:attribute name="propertyAlias" type="Name_t" use="optional">
       <xs:annotation>
-        <xs:documentation></xs:documentation>
+        <xs:documentation>Название алиаса для свойства</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="propertyAliasValue" type="Name_t" use="optional">
+      <xs:annotation>
+        <xs:documentation>Название значения алиаса для свойства</xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="attributes" type="PropertyAttributeEnum_t" use="optional">
