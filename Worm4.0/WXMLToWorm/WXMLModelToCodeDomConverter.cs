@@ -534,6 +534,7 @@ namespace WXMLToWorm
 
                             var instancedPropertyAliasfield = new CodeMemberField(new CodeTypeReference(typeof(QueryAlias)),
                                                             nameHelper.GetPrivateMemberName("objectAlias"));
+                            instancedPropertyAliasfield.Attributes = MemberAttributes.Family;
                             instancedPropertyAliasClass.Members.Add(instancedPropertyAliasfield);
 
                             instancedPropertyAliasClass.Members.Add(
