@@ -13,7 +13,7 @@ namespace WXMLDatabase
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Worm xml schema generator. v0.1 2007");
+            Console.WriteLine("Worm xml schema generator. v0.2 2007");
             if (args.Length == 0)
             {
                 ShowUsage();
@@ -151,6 +151,13 @@ namespace WXMLDatabase
                         dp = new MSSQLProvider(server, dbName, user, psw);
 
                     break;
+                case "mysql":
+                    if (i)
+                        dp = new MySQLProvider(server, dbName);
+                    else
+                        dp = new MySQLProvider(server, dbName, user, psw);
+
+                    break;
                 default:
                     Console.WriteLine("Invalid manufacturer parameter.");
                     ShowUsage();
@@ -172,7 +179,7 @@ namespace WXMLDatabase
                     ShowUsage();
                     return;
                 }
-
+                Console.WriteLine("Loading file " + file);
                 model = WXMLModel.LoadFromXml(new System.Xml.XmlTextReader(file));
             }
             else
@@ -251,7 +258,7 @@ namespace WXMLDatabase
             Console.WriteLine("  -U=value\t-  Username\n");
             Console.WriteLine("  -P=value\t-  Password. Will requested if need.\n");
             Console.WriteLine("  -D=value\t-  Initial catalog(database). Example: -D=test\n");
-            Console.WriteLine("  -M=[msft]\t-  Manufacturer. Example: -M=msft. Default is msft.\n");
+            Console.WriteLine("  -M=[msft|mysql]\t-  Manufacturer. Example: -M=msft. Default is msft.\n");
             Console.WriteLine("  -schemas=list\t-  Database schema filter.\n\t" + 
 "Example: -schemas=dbo,one\n\tInclude all tables in schemas dbo and one\n\t" +
 "Example: -schemas=(dbo,one)\n\tInclude all tables in all schemas except dbo and one\n");

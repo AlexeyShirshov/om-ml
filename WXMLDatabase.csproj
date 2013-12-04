@@ -96,6 +96,10 @@
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MySQLProvider\MySQLProvider.csproj">
+      <Project>{0b290026-7ae0-462c-becc-7659da733d7a}</Project>
+      <Name>MySQLProvider</Name>
+    </ProjectReference>
     <ProjectReference Include="..\WXMLModel\WXMLModel.csproj">
       <Project>{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}</Project>
       <Name>WXMLModel</Name>
@@ -127,8 +131,8 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)ilmerge /log /t:exe /xmldocs /out:$(TargetDir)$(TargetName)-Full.exe $(TargetPath) $(TargetDir)WXML.Model.dll $(TargetDir)Mvp.Xml.dll $(TargetDir)LinqToCodedom.dll
-$(SolutionDir)ilmerge /log /t:exe /xmldocs /out:$(TargetPath) $(TargetDir)$(TargetName)-Full.exe
+    <PostBuildEvent>rem $(SolutionDir)ilmerge /log /t:exe /xmldocs /out:$(TargetDir)$(TargetName)-Full.exe $(TargetPath) $(TargetDir)WXML.Model.dll $(TargetDir)Mvp.Xml.dll $(TargetDir)LinqToCodedom.dll
+rem $(SolutionDir)ilmerge /log /t:exe /xmldocs /out:$(TargetPath) $(TargetDir)$(TargetName)-Full.exe
 del /Q $(TargetDir)$(TargetName)-Full*</PostBuildEvent>
   </PropertyGroup>
 </Project>
