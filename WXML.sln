@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binaries", "Binaries", "{0626EF5D-2788-40A4-AC76-D9B33FE387BA}"
 	ProjectSection(SolutionItems) = preProject
 		Binaries\LinqToCodedom.dll = Binaries\LinqToCodedom.dll
@@ -28,6 +30,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Help", "Help", "{A7B4E429-0
 		Help\wxml.shfbproj = Help\wxml.shfbproj
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binaries", "Binaries", "{87857714-05B0-4517-AEFA-0E473FED9B11}"
+	ProjectSection(SolutionItems) = preProject
+		Worm4.0\Binaries\Worm.Orm.dll = Worm4.0\Binaries\Worm.Orm.dll
+		Worm4.0\Binaries\Worm.Orm.pdb = Worm4.0\Binaries\Worm.Orm.pdb
+		Worm4.0\Binaries\Worm.Orm.xml = Worm4.0\Binaries\Worm.Orm.xml
+	EndProjectSection
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLModel", "WXMLModel\WXMLModel.csproj", "{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLDatabase", "DatabaseConnector\WXMLDatabase.csproj", "{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}"
@@ -40,13 +49,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLTests", "WXMLTests\WXML
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Repository", "Repository\Repository.vbproj", "{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binaries", "Binaries", "{87857714-05B0-4517-AEFA-0E473FED9B11}"
-	ProjectSection(SolutionItems) = preProject
-		Worm4.0\Binaries\Worm.Orm.dll = Worm4.0\Binaries\Worm.Orm.dll
-		Worm4.0\Binaries\Worm.Orm.pdb = Worm4.0\Binaries\Worm.Orm.pdb
-		Worm4.0\Binaries\Worm.Orm.xml = Worm4.0\Binaries\Worm.Orm.xml
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenTests", "Worm4.0\WormCodeGenTests\WormCodeGenTests.csproj", "{FD0ADB48-33C6-4399-9943-6ACAB857CF53}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCustomTool", "Worm4.0\WormCustomTool\WormCustomTool.csproj", "{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}"
@@ -55,9 +57,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenerator", "Worm4.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLToWorm", "Worm4.0\WXMLToWorm\WXMLToWorm.csproj", "{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MySQLProvider", "MySQLProvider\MySQLProvider.csproj", "{0B290026-7AE0-462C-BECC-7659DA733D7A}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 11
+		SccNumberOfProjects = 12
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs04
 		SccLocalPath0 = .
@@ -101,9 +105,10 @@ Global
 		SccProjectTopLevelParentUniqueName10 = WXML.sln
 		SccProjectName10 = Worm4.0/WXMLToWorm
 		SccLocalPath10 = Worm4.0\\WXMLToWorm
-	EndGlobalSection
-	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = WXML.vsmdi
+		SccProjectUniqueName11 = MySQLProvider\\MySQLProvider.csproj
+		SccProjectTopLevelParentUniqueName11 = WXML.sln
+		SccProjectName11 = MySQLProvider
+		SccLocalPath11 = MySQLProvider
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug AddIn|Any CPU = Debug AddIn|Any CPU
@@ -213,6 +218,16 @@ Global
 		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.DebugNonUserInstance|Any CPU.Build.0 = Debug|Any CPU
 		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B290026-7AE0-462C-BECC-7659DA733D7A}.Debug AddIn|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B290026-7AE0-462C-BECC-7659DA733D7A}.Debug AddIn|Any CPU.Build.0 = Debug|Any CPU
+		{0B290026-7AE0-462C-BECC-7659DA733D7A}.Debug_Trace|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B290026-7AE0-462C-BECC-7659DA733D7A}.Debug_Trace|Any CPU.Build.0 = Debug|Any CPU
+		{0B290026-7AE0-462C-BECC-7659DA733D7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B290026-7AE0-462C-BECC-7659DA733D7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B290026-7AE0-462C-BECC-7659DA733D7A}.DebugNonUserInstance|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B290026-7AE0-462C-BECC-7659DA733D7A}.DebugNonUserInstance|Any CPU.Build.0 = Debug|Any CPU
+		{0B290026-7AE0-462C-BECC-7659DA733D7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B290026-7AE0-462C-BECC-7659DA733D7A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -229,5 +244,9 @@ Global
 		{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
 		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
 		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
+		{0B290026-7AE0-462C-BECC-7659DA733D7A} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = WXML.vsmdi
 	EndGlobalSection
 EndGlobal
