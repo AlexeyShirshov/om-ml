@@ -906,10 +906,13 @@ l1:
                 case "nchar":
                 case "text":
                 case "ntext":
+                case "enum":
+                case "mediumtext":
                     id = "tString";
                     type = "System.String";
                     break;
                 case "int":
+                case "mediumint":
                     id = "tInt32";
                     type = "System.Int32";
                     break;
@@ -927,8 +930,13 @@ l1:
                     break;
                 case "datetime":
                 case "smalldatetime":
+                case "date":
                     id = "tDateTime";
                     type = "System.DateTime";
+                    break;
+                case "time":
+                    id = "tTime";
+                    type = "System.Timespan";
                     break;
                 case "money":
                 case "numeric":
@@ -938,6 +946,7 @@ l1:
                     type = "System.Decimal";
                     break;
                 case "float":
+                case "double":
                     id = "tDouble";
                     type = "System.Double";
                     break;

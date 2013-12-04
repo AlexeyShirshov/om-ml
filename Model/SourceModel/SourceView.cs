@@ -41,7 +41,13 @@ namespace WXML.Model.Descriptors
                 item.Selector == selector && item.Name == name);
 
             if (sf == null)
-                sf = new SourceFragmentDefinition(selector + "." + name, name, selector);
+            {
+                if (string.IsNullOrEmpty(selector))
+                    sf = new SourceFragmentDefinition(name, name, selector);
+                else
+                    sf = new SourceFragmentDefinition(selector + "." + name, name, selector);
+            }
+                
 
             return sf;
         }
