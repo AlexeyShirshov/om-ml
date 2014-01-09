@@ -676,7 +676,7 @@ namespace WXML.SourceConnector
                 PropertyDefinition pe = e.OwnProperties
                     .SingleOrDefault(pd =>pd.Identifier == pkPropAlias);
                 Field2DbRelations attrs = pkField.GetAttributes();
-                TypeDefinition pkType = GetClrType(pkField.SourceType, pkField.IsNullable);
+                TypeDefinition pkType = GetClrType(pkField.SourceType, pkField.IsNullable, ref attrs);
                 bool pkCreated = pe == null;
                 if (pkCreated)
                 {
@@ -790,9 +790,10 @@ l1:
                 if ((attrs & Field2DbRelations.PK) == Field2DbRelations.PK && c.IsNullable)
                     throw new WXMLException(string.Format("Column {0}.{1} cannot be nullable since it's a primary key", c.SourceFragment,c.SourceFieldExpression));
 
+                var t = GetClrType(c.SourceType, c.IsNullable, ref attrs);
+
                 pe = new ScalarPropertyDefinition(e, name,
-                     name, attrs, "Auto generated from column " + c.SourceFieldExpression, 
-                     GetClrType(c.SourceType, c.IsNullable), c, 
+                     name, attrs, "Auto generated from column " + c.SourceFieldExpression, t, c, 
                      AccessLevel.Private, AccessLevel.Public
                 );
 
@@ -802,17 +803,20 @@ l1:
             else
             {
                 Field2DbRelations attrs = c.GetAttributes();
-
-                pe.Attributes = attrs; 
+                if (attrs == Field2DbRelations.None)
+                    attrs = pe.Attributes;
 
                 ScalarPropertyDefinition sp = pe as ScalarPropertyDefinition;
                 if (sp != null)
-                {
-                    if (!pe.PropertyType.IsUserType && (attrs & Field2DbRelations.PK) != Field2DbRelations.PK)
-                        pe.PropertyType = GetClrType(c.SourceType, c.IsNullable);
+                {                    
+                    if (!pe.PropertyType.IsUserType && (attrs & Field2DbRelations.PK) != Field2DbRelations.PK &&
+                        sp.SourceType != c.SourceType)
+                        pe.PropertyType = GetClrType(c.SourceType, c.IsNullable, ref attrs);
 
                     sp.SourceField = c;
                 }
+            
+                pe.Attributes = attrs;
             }
             return pe;
         }
@@ -887,7 +891,7 @@ l1:
             return s.Substring(0, 1).ToUpper() + s.Substring(1);
         }
 
-        private TypeDefinition GetClrType(string dbType, bool nullable)
+        private TypeDefinition GetClrType(string dbType, bool nullable, ref Field2DbRelations attr)
         {
             TypeDefinition t = null;
             string id = null;
@@ -899,6 +903,7 @@ l1:
                 case "timestamp":
                     id = "tBytes";
                     type = "System.Byte[]";
+                    attr = attr | Field2DbRelations.RowVersion;
                     break;
                 case "varchar":
                 case "nvarchar":
