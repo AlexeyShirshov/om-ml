@@ -46,10 +46,10 @@ namespace WXMLDatabase
                 if (!param.TryGetParam("U", out user))
                 {
                     Console.Write("User: ");
-                    ConsoleColor c = Console.ForegroundColor;
-                    Console.ForegroundColor = Console.BackgroundColor;
+                    //ConsoleColor c = Console.ForegroundColor;
+                    //Console.ForegroundColor = Console.BackgroundColor;
                     user = Console.ReadLine();
-                    Console.ForegroundColor = c;
+                    //Console.ForegroundColor = c;
                     showUser = false;
                 }
 
