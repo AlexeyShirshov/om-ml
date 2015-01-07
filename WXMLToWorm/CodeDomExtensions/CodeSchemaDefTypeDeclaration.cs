@@ -742,9 +742,11 @@ namespace WXMLToWorm.CodeDomExtensions
                                 {
                                     if (!avaiFromDeclared)
                                     {
-                                        coll.Add(Emit.declare("availableFrom", () => 0));
+                                        coll.Add(Emit.declare("availableFrom", () => int.MinValue));
                                         avaiFromDeclared = true;
                                     }
+                                    else
+                                        coll.Add(Emit.assignVar("availableFrom", () => int.MinValue));
 
                                     coll.Add(Emit.@if(() => CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
                                         Emit.assignVar("availableFrom", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(item.Prop.AvailableFrom))
@@ -767,9 +769,12 @@ namespace WXMLToWorm.CodeDomExtensions
                                 {
                                     if (!availToDeclared)
                                     {
-                                        coll.Add(Emit.declare("availableTo", () => 0));
+                                        coll.Add(Emit.declare("availableTo", () => int.MinValue));
                                         availToDeclared = true;
                                     }
+                                    else
+                                        coll.Add(Emit.assignVar("availableTo", () => int.MinValue));
+
                                     coll.Add(Emit.@if(() => CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
                                         Emit.assignVar("availableTo", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(item.Prop.AvailableTo))
                                         ));
@@ -849,9 +854,11 @@ namespace WXMLToWorm.CodeDomExtensions
                                     {
                                         if (!avaiFromDeclared)
                                         {
-                                            coll.Add(Emit.declare("availableFrom", () => 0));
+                                            coll.Add(Emit.declare("availableFrom", () => int.MinValue));
                                             avaiFromDeclared = true;
                                         }
+                                        else
+                                            coll.Add(Emit.assignVar("availableFrom", () => int.MinValue));
 
                                         coll.Add(Emit.@if(() => CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
                                             Emit.assignVar("availableFrom", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(item.Prop.AvailableFrom))
@@ -874,9 +881,12 @@ namespace WXMLToWorm.CodeDomExtensions
                                     {
                                         if (!availToDeclared)
                                         {
-                                            coll.Add(Emit.declare("availableTo", () => 0));
+                                            coll.Add(Emit.declare("availableTo", () => int.MinValue));
                                             availToDeclared = true;
                                         }
+                                        else
+                                            coll.Add(Emit.assignVar("availableTo", () => int.MinValue));
+
                                         coll.Add(Emit.@if(() => CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
                                             Emit.assignVar("availableTo", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(item.Prop.AvailableTo))
                                             ));
