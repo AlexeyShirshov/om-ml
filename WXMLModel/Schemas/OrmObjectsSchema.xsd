@@ -315,6 +315,20 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="availableFrom" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Номер версии с которой свойство мапиться в БД
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="availableTo" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Номер версии до которой свойство мапиться в БД
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:attributeGroup>
   <xs:attributeGroup name="sourceFieldAttributeGroup">
     <xs:attribute name="fieldTypeName" type="xs:Name" use="optional">

@@ -197,6 +197,8 @@ namespace WXMLTests
                 Assert.AreEqual("Prop2", renewProp.Name);
 
                 Assert.AreEqual(oldProp.DefferedLoadGroup, renewProp.DefferedLoadGroup);
+                Assert.AreEqual(oldProp.AvailableFrom, renewProp.AvailableFrom);
+                Assert.AreEqual(oldProp.AvailableTo, renewProp.AvailableTo);
                 Assert.AreEqual(oldProp.Description, renewProp.Description);
                 Assert.AreEqual(oldProp.Disabled, renewProp.Disabled);
                 Assert.AreEqual(oldProp.EnablePropertyChanged, renewProp.EnablePropertyChanged);

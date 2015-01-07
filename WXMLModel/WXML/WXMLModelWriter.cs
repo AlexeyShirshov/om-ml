@@ -595,6 +595,12 @@ namespace WXML.Model
             if (!string.IsNullOrEmpty(rp.DefferedLoadGroup) && !(rp is CustomPropertyDefinition))
                 propertyElement.SetAttribute("defferedLoadGroup", rp.DefferedLoadGroup);
 
+            if (!string.IsNullOrEmpty(rp.AvailableFrom) && !(rp is CustomPropertyDefinition))
+                propertyElement.SetAttribute("availableFrom", rp.AvailableFrom);
+
+            if (!string.IsNullOrEmpty(rp.AvailableTo) && !(rp is CustomPropertyDefinition))
+                propertyElement.SetAttribute("availableTo", rp.AvailableTo);
+
             if (rp.Interface != null)
                 propertyElement.SetAttribute("interface", rp.Interface.Identifier);
 

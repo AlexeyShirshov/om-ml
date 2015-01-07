@@ -57,7 +57,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 ctor.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(string)), "conn"));
                 ctor.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(Worm.Cache.OrmCache)), "cache"));
                 ctor.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(ObjectMappingEngine)), "schema"));
-                ctor.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference(typeof (SQLGenerator)), "gen"));
+                ctor.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(DbGenerator)), "gen"));
                 ctor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("conn"));
                 ctor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("cache"));
                 ctor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("schema"));

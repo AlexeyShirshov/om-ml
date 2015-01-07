@@ -673,6 +673,8 @@ namespace WXML.Model
             string propertyAliasValue = propertyElement.GetAttribute("propertyAliasValue");
             string enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
             string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
+            string availableFrom = propertyElement.GetAttribute("availableFrom");
+            string availableTo = propertyElement.GetAttribute("availableTo");
 
             string[] attrString = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             Field2DbRelations attributes = Field2DbRelations.None;
@@ -701,7 +703,9 @@ namespace WXML.Model
                 EnablePropertyChanged = enablePropertyChanged,
                 Group = group,
                 DefferedLoadGroup = defferedLoadGroup,
-                PropertyAliasValue = propertyAliasValue
+                PropertyAliasValue = propertyAliasValue,
+                AvailableFrom = availableFrom,
+                AvailableTo = availableTo
             };
 
             g.PostProcess(property, _model);
@@ -735,6 +739,8 @@ namespace WXML.Model
             string propertyAliasValue = propertyElement.GetAttribute("propertyAliasValue");
             string enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
             string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
+            string availableFrom = propertyElement.GetAttribute("availableFrom");
+            string availableTo = propertyElement.GetAttribute("availableTo");
 
             string[] attrString = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             Field2DbRelations attributes = Field2DbRelations.None;
@@ -772,7 +778,9 @@ namespace WXML.Model
                 Group = group,
                 SourceFieldAlias = f.fieldAlias,
                 DefferedLoadGroup = defferedLoadGroup,
-                PropertyAliasValue = propertyAliasValue
+                PropertyAliasValue = propertyAliasValue,
+                AvailableFrom= availableFrom,
+                AvailableTo = availableTo
             };
 
             g.PostProcess(property, _model);
