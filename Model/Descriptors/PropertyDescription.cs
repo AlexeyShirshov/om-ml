@@ -127,6 +127,8 @@ namespace WXML.Model.Descriptors
         public PropertyGroup Group { get; set; }
 
         public string DefferedLoadGroup { get; set; }
+        public string AvailableFrom { get; set; }
+        public string AvailableTo { get; set; }
 
         public TypeDefinition Interface { get; set; }
 
@@ -163,6 +165,8 @@ namespace WXML.Model.Descriptors
             to.Entity = Entity;
             to.Action = Action;
             to.DefferedLoadGroup = DefferedLoadGroup;
+            to.AvailableFrom = AvailableFrom;
+            to.AvailableTo = AvailableTo;
             to.Disabled = Disabled;
             to.EnablePropertyChanged = EnablePropertyChanged;
             to.Group = Group;
