@@ -733,118 +733,8 @@ namespace WXMLToWorm.CodeDomExtensions
                         List<CodeStatement> coll = new List<CodeStatement>();
                         if (!string.IsNullOrEmpty(item.FieldName))
                         {
-                            bool needSchemaVersion = false;
-
-                            if (!string.IsNullOrEmpty(item.Prop.AvailableFrom))
+                            if (item.Prop.AvailableFrom != item.Prop.AvailableTo)
                             {
-                                int availableFrom;
-                                if (!int.TryParse(item.Prop.AvailableFrom, out availableFrom))
-                                {
-                                    if (!avaiFromDeclared)
-                                    {
-                                        coll.Add(Emit.declare("availableFrom", () => int.MinValue));
-                                        avaiFromDeclared = true;
-                                    }
-                                    else
-                                        coll.Add(Emit.assignVar("availableFrom", () => int.MinValue));
-
-                                    coll.Add(Emit.@if(() => CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
-                                        Emit.assignVar("availableFrom", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(item.Prop.AvailableFrom))
-                                        ));
-                                }
-                                else
-                                {
-                                    if (avaiFromDeclared)
-                                        coll.Add(Emit.assignVar("availableFrom", () => availableFrom));
-                                    else
-                                        coll.Add(Emit.declare("availableFrom", () => availableFrom));
-                                }
-                                needSchemaVersion = true;                                
-                            }
-
-                            if (!string.IsNullOrEmpty(item.Prop.AvailableTo))
-                            {
-                                int availableTo;
-                                if (!int.TryParse(item.Prop.AvailableTo, out availableTo))
-                                {
-                                    if (!availToDeclared)
-                                    {
-                                        coll.Add(Emit.declare("availableTo", () => int.MinValue));
-                                        availToDeclared = true;
-                                    }
-                                    else
-                                        coll.Add(Emit.assignVar("availableTo", () => int.MinValue));
-
-                                    coll.Add(Emit.@if(() => CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
-                                        Emit.assignVar("availableTo", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(item.Prop.AvailableTo))
-                                        ));
-                                }
-                                else
-                                {
-                                    if (availToDeclared)
-                                        coll.Add(Emit.assignVar("availableTo", () => availableTo));
-                                    else
-                                        coll.Add(Emit.declare("availableTo", () => availableTo));
-                                }
-                                needSchemaVersion = true;
-                            }
-
-                            if (needSchemaVersion && !schemaDeclared)
-                            {
-                                coll.Add(Emit.declare("schemaVer", () => 0));
-                                coll.Add(Emit.@if((int schemaVer) => !int.TryParse(CodeDom.Field<string>(CodeDom.@this.Field("_schema"), "Version"), out schemaVer) && CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
-                                    Emit.assignVar("schemaVer", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(CodeDom.Field(CodeDom.@this.Field("_schema"), "Version")))
-                                    ));
-
-                                schemaDeclared = true;
-                            }
-
-                            var ass = new List<CodeStatement>();
-                            ass.Add(new CodeAssignStatement(
-                                new CodeIndexerExpression(
-                                    new CodeVariableReferenceExpression("idx"),
-                                    new CodePrimitiveExpression(item.PropertyAlias)
-                                ),
-                                GetMapField2ColumObjectCreationExpression(entity, item.Prop)
-                            ));
-
-                            if (!string.IsNullOrEmpty(item.FieldAlias))
-                                ass.Add(
-                                    Emit.assignProperty(new CodeIndexerExpression(
-                                            new CodeVariableReferenceExpression("idx"),
-                                            new CodePrimitiveExpression(item.PropertyAlias)
-                                        ), "ColumnName", () => item.FieldAlias)
-                                    );
-
-                            if (!string.IsNullOrEmpty(item.Prop.AvailableFrom) && !string.IsNullOrEmpty(item.Prop.AvailableTo))
-                            {
-                                coll.Add(
-                                    Emit.@if((int schemaVer, int availableFrom, int availableTo) => schemaVer >= availableFrom && schemaVer <= availableTo, ass.ToArray())
-                                    );
-                            }
-                            else if (!string.IsNullOrEmpty(item.Prop.AvailableFrom))
-                            {
-                                coll.Add(
-                                    Emit.@if((int schemaVer, int availableFrom) => schemaVer >= availableFrom, ass.ToArray())
-                                    );
-                            }
-                            else if (!string.IsNullOrEmpty(item.Prop.AvailableTo))
-                            {
-                                coll.Add(
-                                    Emit.@if((int schemaVer, int availableTo) => schemaVer <= availableTo, ass.ToArray())
-                                    );
-                            }
-                            else
-                                coll.AddRange(ass);
-
-                            
-                        }
-                        else
-                        {
-                            var baseProp = entity.GetPropertiesFromBase().SingleOrDefault(p => !p.Disabled && p.Name == item.Prop.Name);
-                            if (baseProp != null && baseProp.PropertyAlias != item.PropertyAlias)
-                            {
-                                CodeExpression tblExp = GetPropertyTable(item.Prop);
                                 bool needSchemaVersion = false;
 
                                 if (!string.IsNullOrEmpty(item.Prop.AvailableFrom))
@@ -881,11 +771,11 @@ namespace WXMLToWorm.CodeDomExtensions
                                     {
                                         if (!availToDeclared)
                                         {
-                                            coll.Add(Emit.declare("availableTo", () => int.MinValue));
+                                            coll.Add(Emit.declare("availableTo", () => int.MaxValue));
                                             availToDeclared = true;
                                         }
                                         else
-                                            coll.Add(Emit.assignVar("availableTo", () => int.MinValue));
+                                            coll.Add(Emit.assignVar("availableTo", () => int.MaxValue));
 
                                         coll.Add(Emit.@if(() => CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
                                             Emit.assignVar("availableTo", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(item.Prop.AvailableTo))
@@ -909,6 +799,128 @@ namespace WXMLToWorm.CodeDomExtensions
                                         ));
 
                                     schemaDeclared = true;
+                                }
+                            }
+
+                            var ass = new List<CodeStatement>();
+                            ass.Add(new CodeAssignStatement(
+                                new CodeIndexerExpression(
+                                    new CodeVariableReferenceExpression("idx"),
+                                    new CodePrimitiveExpression(item.PropertyAlias)
+                                ),
+                                GetMapField2ColumObjectCreationExpression(entity, item.Prop)
+                            ));
+
+                            if (!string.IsNullOrEmpty(item.FieldAlias))
+                                ass.Add(
+                                    Emit.assignProperty(new CodeIndexerExpression(
+                                            new CodeVariableReferenceExpression("idx"),
+                                            new CodePrimitiveExpression(item.PropertyAlias)
+                                        ), "ColumnName", () => item.FieldAlias)
+                                    );
+
+                            if (!string.IsNullOrEmpty(item.Prop.AvailableFrom) && !string.IsNullOrEmpty(item.Prop.AvailableTo))
+                            {
+                                if (item.Prop.AvailableFrom == item.Prop.AvailableTo)
+                                    coll.Add(
+                                        Emit.@if(() => CodeDom.Field<string>(CodeDom.@this.Field("_schema"), "Version") == item.Prop.AvailableTo, ass.ToArray())
+                                        );
+                                else
+                                    coll.Add(
+                                        Emit.@if((int schemaVer, int availableFrom, int availableTo) => schemaVer >= availableFrom && schemaVer < availableTo, ass.ToArray())
+                                        );
+                            }
+                            else if (!string.IsNullOrEmpty(item.Prop.AvailableFrom))
+                            {
+                                coll.Add(
+                                    Emit.@if((int schemaVer, int availableFrom) => schemaVer >= availableFrom, ass.ToArray())
+                                    );
+                            }
+                            else if (!string.IsNullOrEmpty(item.Prop.AvailableTo))
+                            {
+                                coll.Add(
+                                    Emit.@if((int schemaVer, int availableTo) => schemaVer < availableTo, ass.ToArray())
+                                    );
+                            }
+                            else
+                                coll.AddRange(ass);
+
+                            
+                        }
+                        else
+                        {
+                            var baseProp = entity.GetPropertiesFromBase().SingleOrDefault(p => !p.Disabled && p.Name == item.Prop.Name);
+                            if (baseProp != null && baseProp.PropertyAlias != item.PropertyAlias)
+                            {
+                                CodeExpression tblExp = GetPropertyTable(item.Prop);
+
+                                if (item.Prop.AvailableFrom != item.Prop.AvailableTo)
+                                {
+                                    bool needSchemaVersion = false;
+
+                                    if (!string.IsNullOrEmpty(item.Prop.AvailableFrom))
+                                    {
+                                        int availableFrom;
+                                        if (!int.TryParse(item.Prop.AvailableFrom, out availableFrom))
+                                        {
+                                            if (!avaiFromDeclared)
+                                            {
+                                                coll.Add(Emit.declare("availableFrom", () => int.MinValue));
+                                                avaiFromDeclared = true;
+                                            }
+                                            else
+                                                coll.Add(Emit.assignVar("availableFrom", () => int.MinValue));
+
+                                            coll.Add(Emit.@if(() => CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
+                                                Emit.assignVar("availableFrom", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(item.Prop.AvailableFrom))
+                                                ));
+                                        }
+                                        else
+                                        {
+                                            if (avaiFromDeclared)
+                                                coll.Add(Emit.assignVar("availableFrom", () => availableFrom));
+                                            else
+                                                coll.Add(Emit.declare("availableFrom", () => availableFrom));
+                                        }
+                                        needSchemaVersion = true;
+                                    }
+
+                                    if (!string.IsNullOrEmpty(item.Prop.AvailableTo))
+                                    {
+                                        int availableTo;
+                                        if (!int.TryParse(item.Prop.AvailableTo, out availableTo))
+                                        {
+                                            if (!availToDeclared)
+                                            {
+                                                coll.Add(Emit.declare("availableTo", () => int.MaxValue));
+                                                availToDeclared = true;
+                                            }
+                                            else
+                                                coll.Add(Emit.assignVar("availableTo", () => int.MaxValue));
+
+                                            coll.Add(Emit.@if(() => CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
+                                                Emit.assignVar("availableTo", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(item.Prop.AvailableTo))
+                                                ));
+                                        }
+                                        else
+                                        {
+                                            if (availToDeclared)
+                                                coll.Add(Emit.assignVar("availableTo", () => availableTo));
+                                            else
+                                                coll.Add(Emit.declare("availableTo", () => availableTo));
+                                        }
+                                        needSchemaVersion = true;
+                                    }
+
+                                    if (needSchemaVersion && !schemaDeclared)
+                                    {
+                                        coll.Add(Emit.declare("schemaVer", () => 0));
+                                        coll.Add(Emit.@if((int schemaVer) => !int.TryParse(CodeDom.Field<string>(CodeDom.@this.Field("_schema"), "Version"), out schemaVer) && CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
+                                            Emit.assignVar("schemaVer", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(CodeDom.Field(CodeDom.@this.Field("_schema"), "Version")))
+                                            ));
+
+                                        schemaDeclared = true;
+                                    }
                                 }
 
                                 if (item.Prop is ScalarPropertyDefinition)
@@ -939,9 +951,14 @@ namespace WXMLToWorm.CodeDomExtensions
 
                                     if (!string.IsNullOrEmpty(item.Prop.AvailableFrom) && !string.IsNullOrEmpty(item.Prop.AvailableTo))
                                     {
-                                        coll.Add(
-                                            Emit.@if((int schemaVer, int availableFrom, int availableTo)=>schemaVer >= availableFrom && schemaVer <= availableTo, ass)
-                                            );
+                                        if (item.Prop.AvailableFrom == item.Prop.AvailableTo)
+                                            coll.Add(
+                                                Emit.@if(() => CodeDom.Field<string>(CodeDom.@this.Field("_schema"), "Version") == item.Prop.AvailableTo, ass)
+                                                );
+                                        else
+                                            coll.Add(
+                                                Emit.@if((int schemaVer, int availableFrom, int availableTo)=>schemaVer >= availableFrom && schemaVer < availableTo, ass)
+                                                );
                                     }
                                     else if (!string.IsNullOrEmpty(item.Prop.AvailableFrom))
                                     {
@@ -952,7 +969,7 @@ namespace WXMLToWorm.CodeDomExtensions
                                     else if (!string.IsNullOrEmpty(item.Prop.AvailableTo))
                                     {
                                         coll.Add(
-                                            Emit.@if((int schemaVer, int availableTo) => schemaVer <= availableTo, ass)
+                                            Emit.@if((int schemaVer, int availableTo) => schemaVer < availableTo, ass)
                                             );
                                     }
                                     else

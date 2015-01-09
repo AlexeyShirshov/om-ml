@@ -2162,6 +2162,26 @@ namespace WXMLToWorm
                 );
             }
 
+            if (!string.IsNullOrEmpty(propertyDesc.AvailableFrom))
+            {
+                declaration.Arguments.Add(
+                    new CodeAttributeArgument("SchemaVersion", new CodePrimitiveExpression(propertyDesc.AvailableFrom))
+                );
+                declaration.Arguments.Add(
+                    new CodeAttributeArgument("SchemaVersionOperator", new CodeFieldReferenceExpression(new CodeTypeReferenceExpression("Worm.Entities.Meta.SchemaVersionOperatorEnum"), "GreaterEqual"))
+                );
+            }
+
+            if (!string.IsNullOrEmpty(propertyDesc.AvailableTo))
+            {
+                declaration.Arguments.Add(
+                    new CodeAttributeArgument("SchemaVersion", new CodePrimitiveExpression(propertyDesc.AvailableTo))
+                );
+                declaration.Arguments.Add(
+                    new CodeAttributeArgument("SchemaVersionOperator", new CodeFieldReferenceExpression(new CodeTypeReferenceExpression("Worm.Entities.Meta.SchemaVersionOperatorEnum"), "LessThan"))
+                );
+            }
+
             property.CustomAttributes.Add(declaration);
         }
 
