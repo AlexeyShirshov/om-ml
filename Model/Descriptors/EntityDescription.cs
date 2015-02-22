@@ -178,9 +178,16 @@ namespace WXML.Model.Descriptors
 
         public IEnumerable<ScalarPropertyDefinition> GetPkProperties()
         {
-            return GetProperties()
-                .Where(p => !p.Disabled && p.HasAttribute(Field2DbRelations.PK))
-                .Cast<ScalarPropertyDefinition>();
+            try
+            {
+                return GetProperties()
+                    .Where(p => !p.Disabled && p.HasAttribute(Field2DbRelations.PK))
+                    .Cast<ScalarPropertyDefinition>().ToList();
+            }
+            catch(System.InvalidCastException ex)
+            {
+                throw new WXMLException(string.Format("Entity {0} has complex property as primary key", Name), ex);
+            }
         }
 
         public bool HasDefferedLoadableProperties
