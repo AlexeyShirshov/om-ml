@@ -131,7 +131,7 @@ namespace WXML.Model.Descriptors
         public string AvailableTo { get; set; }
 
         public TypeDefinition Interface { get; set; }
-
+        public string InterfaceProperty { get; set; }
         public bool HasAttribute(Field2DbRelations attribute)
         {
             return (_attributes & attribute) == attribute;

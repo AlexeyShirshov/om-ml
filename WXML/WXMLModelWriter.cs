@@ -602,7 +602,12 @@ namespace WXML.Model
                 propertyElement.SetAttribute("availableTo", rp.AvailableTo);
 
             if (rp.Interface != null)
+            {
                 propertyElement.SetAttribute("interface", rp.Interface.Identifier);
+
+                if (!string.IsNullOrEmpty(rp.InterfaceProperty))
+                    propertyElement.SetAttribute("interfaceProperty", rp.InterfaceProperty);
+            }
 
             if (rp is ScalarPropertyDefinition)
             {

@@ -591,6 +591,7 @@ namespace WXML.Model
             public string propertyObsoleteDescription;
             public string mergeAction;
             public string interf;
+            public string interfProp;
 
             public propGroup(XmlElement propertyElement)
             {
@@ -602,6 +603,7 @@ namespace WXML.Model
                 propertyObsoleteDescription = propertyElement.GetAttribute("obsoleteDescription");
                 mergeAction = propertyElement.GetAttribute("action");
                 interf = propertyElement.GetAttribute("interface");
+                interfProp = propertyElement.GetAttribute("interfaceProperty");
 
                 if (!string.IsNullOrEmpty(propertyAccessLevelName))
                     propertyAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), propertyAccessLevelName);
@@ -621,6 +623,9 @@ namespace WXML.Model
             {
                 if (!string.IsNullOrEmpty(interf))
                     property.Interface = model.GetType(interf, true);
+
+                if (!string.IsNullOrEmpty(interfProp))
+                    property.InterfaceProperty = interfProp;
 
                 if (!string.IsNullOrEmpty(mergeAction))
                     property.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);

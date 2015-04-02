@@ -273,6 +273,7 @@
     </xs:attribute>
     <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />
     <xs:attribute name="interface" type="Name_t" use="optional" />
+    <xs:attribute name="interfaceProperty" type="Name_t" use="optional" />
   </xs:attributeGroup>
   <xs:attributeGroup name="mappedPropertyAttributeGroup">
     <xs:attributeGroup ref="NS:propertyAttributeGroup" />
