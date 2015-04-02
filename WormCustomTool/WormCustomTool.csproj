@@ -33,7 +33,7 @@
     <AssemblyOriginatorKeyFile>wxml.snk</AssemblyOriginatorKeyFile>
     <FileUpgradeFlags>40</FileUpgradeFlags>
     <OldToolsVersion>4.0</OldToolsVersion>
-    <UpgradeBackupLocation>C:\Users\alex\Documents\wxml\Backup3\</UpgradeBackupLocation>
+    <UpgradeBackupLocation>C:\Users\alex\Documents\wxml\Backup5\Worm4.0\WormCustomTool\</UpgradeBackupLocation>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
