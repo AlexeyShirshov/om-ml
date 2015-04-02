@@ -573,7 +573,17 @@ namespace WXML2Linq
                         prop.AddAttribute(attr);
 
                         if (p_.Interface != null)
-                            prop.Implements(p_.Interface.ToCodeType(Settings));
+                        {
+                            if (!string.IsNullOrEmpty(p.InterfaceProperty))
+                            {
+                                var newProp = new LinqToCodedom.CodeDomPatterns.CodePropertyImplementsInterface(prop);
+                                newProp.Implements(p_.Interface.ToCodeType(Settings), p.InterfaceProperty);
+                                cls.Members.Remove(prop);
+                                cls.Members.Add(newProp);
+                            }
+                            else
+                                prop.Implements(p_.Interface.ToCodeType(Settings));
+                        }
                     }
                 }
                 else if(p_ is EntityPropertyDefinition)
@@ -800,7 +810,20 @@ namespace WXML2Linq
             eprop.AddAttribute(AddPropertyAttribute(p, efieldName));
 
             if (p.Interface != null)
-                eprop.Implements(p.Interface.ToCodeType(Settings));
+            {
+                if (!string.IsNullOrEmpty(p.InterfaceProperty))
+                {
+                    var newProp = new LinqToCodedom.CodeDomPatterns.CodePropertyImplementsInterface(eprop);
+                    newProp.Implements(p.Interface.ToCodeType(Settings), p.InterfaceProperty);
+                    cls.Members.Remove(eprop);
+                    cls.Members.Add(newProp);
+                }
+                else
+                {
+                    eprop.Implements(p.Interface.ToCodeType(Settings));
+                }
+
+            }
         }
 
         private CodeAttributeDeclaration CreateRelPropAttr(EntityDefinition e, string fldName, string ename, 

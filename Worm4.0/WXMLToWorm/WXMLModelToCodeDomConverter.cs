@@ -1900,6 +1900,7 @@ namespace WXMLToWorm
         {
             CodeTypeReference fieldType = propertyDesc.PropertyType.ToCodeType(Settings);
             CodeMemberProperty property = null;
+            CodeTypeMember prop2add = null;
 
             bool emptyField = propertyDesc is ScalarPropertyDefinition ?
                 string.IsNullOrEmpty((propertyDesc as ScalarPropertyDefinition).SourceFieldExpression) :
@@ -2066,6 +2067,7 @@ namespace WXMLToWorm
                 }
             }
 
+            prop2add = property;
             if (propertyDesc.Interface != null)
             {
                 property.Implements(propertyDesc.Interface.ToCodeType(Settings));
@@ -2075,9 +2077,16 @@ namespace WXMLToWorm
                     if (ss.Length > 1)
                         property.Name = ss[1];
                 }
+
+                if (!string.IsNullOrEmpty(propertyDesc.InterfaceProperty))
+                {
+                    var propertyInt = new CodePropertyImplementsInterface(property);
+                    propertyInt.Implements(propertyDesc.Interface.ToCodeType(Settings), propertyDesc.InterfaceProperty);
+                    prop2add = propertyInt;
+                }
             }
 
-            entityClass.Members.Add(property);
+            entityClass.Members.Add(prop2add);
             return property;
         }
 
