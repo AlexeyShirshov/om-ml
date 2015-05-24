@@ -678,8 +678,13 @@ namespace WXML.Model
             string propertyAliasValue = propertyElement.GetAttribute("propertyAliasValue");
             string enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
             string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
+            string generateAttr = propertyElement.GetAttribute("generateAttribute");
             string availableFrom = propertyElement.GetAttribute("availableFrom");
             string availableTo = propertyElement.GetAttribute("availableTo");
+
+
+            bool generateAttribute = true;
+            bool.TryParse(generateAttr, out generateAttribute);
 
             string[] attrString = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             Field2DbRelations attributes = Field2DbRelations.None;
@@ -710,7 +715,8 @@ namespace WXML.Model
                 DefferedLoadGroup = defferedLoadGroup,
                 PropertyAliasValue = propertyAliasValue,
                 AvailableFrom = availableFrom,
-                AvailableTo = availableTo
+                AvailableTo = availableTo,
+                GenerateAttribute = generateAttribute
             };
 
             g.PostProcess(property, _model);
@@ -744,8 +750,12 @@ namespace WXML.Model
             string propertyAliasValue = propertyElement.GetAttribute("propertyAliasValue");
             string enablePropertyChangedAttribute = propertyElement.GetAttribute("enablePropertyChanged");
             string defferedLoadGroup = propertyElement.GetAttribute("defferedLoadGroup");
+            string generateAttr = propertyElement.GetAttribute("generateAttribute");
             string availableFrom = propertyElement.GetAttribute("availableFrom");
             string availableTo = propertyElement.GetAttribute("availableTo");
+
+            bool generateAttribute = true;
+            bool.TryParse(generateAttr, out generateAttribute);
 
             string[] attrString = sAttributes.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             Field2DbRelations attributes = Field2DbRelations.None;
@@ -785,7 +795,8 @@ namespace WXML.Model
                 DefferedLoadGroup = defferedLoadGroup,
                 PropertyAliasValue = propertyAliasValue,
                 AvailableFrom= availableFrom,
-                AvailableTo = availableTo
+                AvailableTo = availableTo,
+                GenerateAttribute=generateAttribute
             };
 
             g.PostProcess(property, _model);

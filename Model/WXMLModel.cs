@@ -541,6 +541,7 @@ namespace WXML.Model
                                 rp.Name = MergeString(rp, newProperty, item => item.Name);
                                 rp.ObsoleteDescripton = MergeString(rp, newProperty, item => item.ObsoleteDescripton);
                                 rp.DefferedLoadGroup = MergeString(rp, newProperty, item => item.DefferedLoadGroup);
+                                rp.GenerateAttribute = newProperty.GenerateAttribute;
                                 rp.AvailableFrom = MergeString(rp, newProperty, item => item.AvailableFrom);
                                 rp.AvailableTo = MergeString(rp, newProperty, item => item.AvailableTo);
                                 rp.Description = MergeString(rp, newProperty, item => item.Description);
