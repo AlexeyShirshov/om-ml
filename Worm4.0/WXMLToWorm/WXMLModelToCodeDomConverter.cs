@@ -2158,6 +2158,9 @@ namespace WXMLToWorm
         }
         private static void CreatePropertyColumnAttribute(CodeMemberProperty property, PropertyDefinition propertyDesc)
         {
+            if (!propertyDesc.GenerateAttribute)
+                return;
+
             CodeAttributeDeclaration declaration = new CodeAttributeDeclaration(
                 new CodeTypeReference(typeof(EntityPropertyAttribute))
             );

@@ -127,6 +127,7 @@ namespace WXML.Model.Descriptors
         public PropertyGroup Group { get; set; }
 
         public string DefferedLoadGroup { get; set; }
+        public bool GenerateAttribute { get; set; }
         public string AvailableFrom { get; set; }
         public string AvailableTo { get; set; }
 
@@ -165,6 +166,7 @@ namespace WXML.Model.Descriptors
             to.Entity = Entity;
             to.Action = Action;
             to.DefferedLoadGroup = DefferedLoadGroup;
+            to.GenerateAttribute = GenerateAttribute;
             to.AvailableFrom = AvailableFrom;
             to.AvailableTo = AvailableTo;
             to.Disabled = Disabled;

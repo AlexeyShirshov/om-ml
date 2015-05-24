@@ -330,6 +330,13 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="generateAttribute" type="xs:boolean" use="optional" default="true">
+      <xs:annotation>
+        <xs:documentation>
+          Генерировать атрибут EntityProperty для свойства
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:attributeGroup>
   <xs:attributeGroup name="sourceFieldAttributeGroup">
     <xs:attribute name="fieldTypeName" type="xs:Name" use="optional">
