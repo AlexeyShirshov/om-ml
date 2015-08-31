@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace WXML.Model.Descriptors
 {
@@ -19,7 +21,7 @@ namespace WXML.Model.Descriptors
         }
     }
 
-    public abstract class PropertyDefinition : ICloneable
+    public abstract class PropertyDefinition : ICloneable, IExtensible
     {
         private TypeDefinition _type;
         private string _name;
@@ -30,6 +32,7 @@ namespace WXML.Model.Descriptors
         private AccessLevel _fieldAccessLevel;
         private AccessLevel _propertyAccessLevel;
         private readonly Dictionary<string, object> _items = new Dictionary<string, object>();
+        private readonly Dictionary<Extension, XElement> _extensions = new Dictionary<Extension, XElement>();
 
         protected PropertyDefinition() {}
 
@@ -210,6 +213,23 @@ namespace WXML.Model.Descriptors
         }
 
         public abstract bool HasMapping { get;}
+
+        public Dictionary<Extension, XElement> Extensions
+        {
+            get
+            {
+                return _extensions;
+            }
+        }
+
+        public XElement GetExtension(string name)
+        {
+            XElement x;
+            if (!_extensions.TryGetValue(new Extension(name), out x))
+                x = null;
+
+            return x;
+        }
     }
 
     public class ScalarPropertyDefinition : PropertyDefinition

@@ -374,6 +374,9 @@
     <xs:annotation>
       <xs:documentation>Свойство сущности</xs:documentation>
     </xs:annotation>
+    <xs:sequence>
+      <xs:element name="extension" type="extension_t" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
     <!--<xs:attribute name="id" type="xs:Name" use="required">
 			<xs:annotation>
 				<xs:documentation>Идентификатор свойства</xs:documentation>
@@ -402,6 +405,7 @@
           <xs:attributeGroup ref="NS:sourceFieldAttributeGroup" />
         </xs:complexType>
       </xs:element>
+      <xs:element name="extension" type="extension_t" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
     <xs:attribute name="referencedEntity" type="xs:Name" use="optional">
       <xs:annotation>
@@ -414,9 +418,12 @@
     <xs:annotation>
       <xs:documentation>Кастомное свойство сущности. Тело задается пользователем</xs:documentation>
     </xs:annotation>
-    <xs:sequence minOccurs="1" maxOccurs="1">
-      <xs:element name="Get" minOccurs="1" maxOccurs="1" type="CustomPropertyBody_t" />
-      <xs:element name="Set" minOccurs="0" maxOccurs="1" type="CustomPropertyBody_t" />
+    <xs:sequence>
+      <xs:sequence minOccurs="1" maxOccurs="1">
+        <xs:element name="Get" minOccurs="1" maxOccurs="1" type="CustomPropertyBody_t" />
+        <xs:element name="Set" minOccurs="0" maxOccurs="1" type="CustomPropertyBody_t" />
+      </xs:sequence>
+      <xs:element name="extension" type="extension_t" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
     <xs:attribute name="type" type="xs:Name" use="optional">
       <xs:annotation>
@@ -476,6 +483,9 @@
     <xs:annotation>
       <xs:documentation>Сурс фрагмент</xs:documentation>
     </xs:annotation>
+    <xs:sequence>
+      <xs:element name="extension" type="extension_t" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
     <xs:attribute name="id" type="xs:string" use="required" />
     <xs:attribute name="name" type="xs:string" use="required" />
     <xs:attribute name="selector" type="xs:string" use="optional" />
@@ -1035,7 +1045,7 @@
     <xs:attribute name="addVersionToSchemaName" default="false" use="optional" type="xs:boolean"></xs:attribute>
     <xs:attribute name="singleFile" default="false" use="optional" type="xs:boolean"/>
   </xs:complexType>
-  <xs:complexType name="extension_t">
+  <xs:complexType name="extension_t" mixed="true">
     <xs:sequence>
       <xs:any minOccurs="0" maxOccurs="unbounded" processContents="skip" />
     </xs:sequence>

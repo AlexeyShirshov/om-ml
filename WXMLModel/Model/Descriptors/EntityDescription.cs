@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace WXML.Model.Descriptors
 {
-    public class EntityDefinition
+    public class EntityDefinition : IExtensible
     {
         #region Private Fields
         private readonly string _id;
@@ -17,7 +18,7 @@ namespace WXML.Model.Descriptors
         internal WXMLModel _model;
         private EntityDefinition _baseEntity;
         private readonly Dictionary<string, object> _items = new Dictionary<string, object>();
-        private readonly Dictionary<Extension, XmlDocument> _extensions = new Dictionary<Extension, XmlDocument>();
+        private readonly Dictionary<Extension, XElement> _extensions = new Dictionary<Extension, XElement>();
 
         #endregion Private Fields
 
@@ -63,12 +64,21 @@ namespace WXML.Model.Descriptors
         #region Properties
         public MergeAction Action { get; set; }
 
-        public Dictionary<Extension, XmlDocument> Extensions
+        public Dictionary<Extension, XElement> Extensions
         {
             get
             {
                 return _extensions;
             }
+        }
+
+        public XElement GetExtension(string name)
+        {
+            XElement x;
+            if (!_extensions.TryGetValue(new Extension(name), out x))
+                x = null;
+
+            return x;
         }
 
         public string Identifier

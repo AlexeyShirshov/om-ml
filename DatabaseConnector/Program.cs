@@ -31,9 +31,12 @@ namespace WXMLDatabase
             string dbName = null;
             if (!param.TryGetParam("D", out dbName))
             {
-                Console.WriteLine("Database is not specified");
-                ShowUsage();
-                return;
+                if (!File.Exists(server))
+                {
+                    Console.WriteLine("Database is not specified or file {0} not found", server);
+                    ShowUsage();
+                    return;
+                }
             }
 
             string e;
@@ -135,6 +138,11 @@ namespace WXMLDatabase
                 cn = "false";
             bool capitalize = bool.Parse(cn);
 
+            string ss = "false";
+            if (!param.TryGetParam("SS", out ss))
+                ss = "false";
+            bool showStatement = bool.Parse(ss);
+
             DatabaseProvider dp = null;
             string m = null;
             if (!param.TryGetParam("M", out m))
@@ -145,10 +153,15 @@ namespace WXMLDatabase
             switch (m)
             {
                 case "msft":
+                case "mssql":
                     if (i)
                         dp = new MSSQLProvider(server, dbName);
                     else
                         dp = new MSSQLProvider(server, dbName, user, psw);
+
+                    break;
+                case "sqlce":
+                    dp = new SQLCEProvider(server, psw);
 
                     break;
                 case "mysql":
@@ -165,7 +178,7 @@ namespace WXMLDatabase
             }
 
             dp.OnDatabaseConnecting += (sender, conn) => Console.WriteLine("Connecting to \"{0}\"...", FilterPsw(conn));
-            dp.OnStartLoadDatabase += () => Console.WriteLine("Retriving tables...");
+            dp.OnStartLoadDatabase += (sender, cmd) => Console.WriteLine("Retriving tables via {0}...", showStatement ? cmd : string.Empty);
 
             SourceView db = dp.GetSourceView(schemas, namelike, escapeTables, escapeColumns);
 
@@ -218,7 +231,8 @@ namespace WXMLDatabase
             g.ApplySourceViewToModel(dr, 
                 hie ? relation1to1.Hierarchy : unify ? relation1to1.Unify : relation1to1.Default, 
                 transform,
-                capitalize);
+                capitalize,
+                dp.CaseSensitive);
 
             using (System.Xml.XmlTextWriter writer = new System.Xml.XmlTextWriter(file, Encoding.UTF8))
             {
@@ -273,10 +287,11 @@ namespace WXMLDatabase
             Console.WriteLine("  -H\t\t-  Make hierarchy from 1-1 relations. Example: -H.\n");
             Console.WriteLine("  -T\t\t-  Transform property names. Example: -T. "+
 "Removes id, _id, _dt postfix and other cleanup processing\n");
-            Console.WriteLine("  -ES\t\t-  Escape table names. Example: -ES.\n");
-            Console.WriteLine("  -EC\t\t-  Escape column names. Example: -EC.\n");
-            Console.WriteLine("  -CN\t\t-  Capitalize names. Example: -CN. "+
+            Console.WriteLine("  -ES\t\t-  Escape table names. Example: -ES. Default is true.\n");
+            Console.WriteLine("  -EC\t\t-  Escape column names. Example: -EC. Default is true.\n");
+            Console.WriteLine("  -CN\t\t-  Capitalize names. Example: -CN. Default is true. "+
 "Linq never capitalize names so this option for linq compatibility. Column [name] will be a property called Name (in linq - name).");
+            Console.WriteLine("  -SS\t\t-  Show query schema statement. Example: -SS. Default is false\n");
         }
     }
 }

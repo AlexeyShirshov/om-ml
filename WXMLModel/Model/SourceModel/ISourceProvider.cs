@@ -17,6 +17,7 @@ namespace WXML.Model.Descriptors
         void GenerateCreateIndexScript(SourceFragmentDefinition table, IndexDefinition indexes, StringBuilder script);
         void GenerateDropIndexScript(SourceFragmentDefinition table, string indexName, StringBuilder script);
         void GenerateDropTableScript(SourceFragmentDefinition table, StringBuilder script);
+        bool CaseSensitive { get; }
     }
 
     public class IndexDefinition

@@ -128,12 +128,20 @@ namespace WXML.CodeDom
             else if (propertyDesc.PropertyType.IsValueType && (!propertyDesc.PropertyType.IsNullableType || !(propertyDesc.PropertyType.IsClrType && propertyDesc.PropertyType.ClrType.GetGenericArguments()[0].Equals(typeof(Guid)))))
             {
                 //old: simple cast
-                setValueStatement.TrueStatements.Add(new CodeAssignStatement(
-                                         new CodeFieldReferenceExpression(
-                                             new CodeThisReferenceExpression(), fieldName),
-                                         new CodeCastExpression(propertyDesc.PropertyType.ToCodeType(Settings),
-                                             new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(new CodeTypeReference(typeof(Convert))), "ChangeType",
-                                                                new CodeArgumentReferenceExpression("value"), new CodeTypeOfExpression(propertyDesc.PropertyType.ToCodeType(Settings))))));
+                //setValueStatement.TrueStatements.Add(new CodeAssignStatement(
+                //                         new CodeFieldReferenceExpression(
+                //                             new CodeThisReferenceExpression(), fieldName),
+                //                         new CodeCastExpression(propertyDesc.PropertyType.ToCodeType(Settings),
+                //                             new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(new CodeTypeReference(typeof(Convert))), "ChangeType",
+                //                                                new CodeArgumentReferenceExpression("value"), new CodeTypeOfExpression(propertyDesc.PropertyType.ToCodeType(Settings))))));
+                setValueStatement.TrueStatements.Add(
+                    Emit.@ifelse((object value)=>LinqToCodedom.Generator.CodeDom.Is(value, null),
+                        /* true statements */   new [] {Emit.assignField(fieldName, (object value) => LinqToCodedom.Generator.CodeDom.cast(propertyDesc.PropertyType.ToCodeType(Settings), null))},
+                        /* false statements */  Emit.assignField(fieldName, (object value) => LinqToCodedom.Generator.CodeDom.cast(propertyDesc.PropertyType.ToCodeType(Settings),
+                            Convert.ChangeType(value, LinqToCodedom.Generator.CodeDom.TypeOf(propertyDesc.PropertyType.ClrType))
+                            ))
+                        )
+                    );
             }
             else
             {

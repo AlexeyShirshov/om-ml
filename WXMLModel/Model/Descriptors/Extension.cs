@@ -1,5 +1,12 @@
-﻿namespace WXML.Model.Descriptors
+﻿using System.Collections.Generic;
+using System.Xml.Linq;
+namespace WXML.Model.Descriptors
 {
+    public interface IExtensible
+    {
+        Dictionary<Extension, XElement> Extensions { get;}
+        XElement GetExtension(string name);
+    }
     public class Extension
     {
         public MergeAction Action { get; set; }

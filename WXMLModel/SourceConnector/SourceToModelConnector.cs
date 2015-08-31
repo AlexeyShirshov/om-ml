@@ -106,11 +106,11 @@ namespace WXML.SourceConnector
 
         public void ApplySourceViewToModel()
         {
-            ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true);
+            ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true, false);
         }
 
         public void ApplySourceViewToModel(bool dropProperties, relation1to1 rb, 
-            bool transforRawNamesToReadableForm, bool capitalizeNames)
+            bool transforRawNamesToReadableForm, bool capitalizeNames, bool caseSensitive)
         {
             _tables2skip = new List<SourceFragmentDefinition>();
             _entities2skip = new Dictionary<string, EntityDefinition>();
@@ -124,7 +124,7 @@ namespace WXML.SourceConnector
                     SourceView.GetSourceFields(sf).All(clm => clm.IsFK))
                     continue;
 
-                GetEntity(sf, rb, transforRawNamesToReadableForm, capitalizeNames);
+                GetEntity(sf, rb, transforRawNamesToReadableForm, capitalizeNames, caseSensitive);
             }
 
             //Dictionary<string, EntityDefinition> dic = Process1to1Relations(columns, defferedCols, odef, escape, notFound, rb);
@@ -148,7 +148,14 @@ namespace WXML.SourceConnector
                         {
                             ScalarPropertyDefinition p = pd as ScalarPropertyDefinition;
                             if (!sourceFields
-                                .Any(item => Trim(capitalizeNames ? Capitalize(item.SourceFieldExpression) : item.SourceFieldExpression, transforRawNamesToReadableForm) == p.SourceFieldExpression))
+                                .Any(item => (
+                                        caseSensitive?Trim(
+                                            (capitalizeNames ? Capitalize(item.SourceFieldExpression) : item.SourceFieldExpression), 
+                                            transforRawNamesToReadableForm
+                                        ):item.SourceFieldExpression.ToLower()
+                                    ) == (
+                                        caseSensitive?p.SourceFieldExpression:p.SourceFieldExpression.ToLower()
+                                    )))
                             {
                                 ed.RemoveProperty(pd);
                                 RaiseOnPropertyRemoved(pd);
@@ -160,8 +167,8 @@ namespace WXML.SourceConnector
                             foreach (EntityPropertyDefinition.SourceField field in p.SourceFields.ToArray())
                             {
                                 if (!sourceFields.Any(item => 
-                                    Trim(capitalizeNames ? Capitalize(item.SourceFieldExpression) 
-                                        : item.SourceFieldExpression, transforRawNamesToReadableForm) == field.SourceFieldExpression))
+                                    (caseSensitive?Trim(capitalizeNames ? Capitalize(item.SourceFieldExpression) 
+                                        : item.SourceFieldExpression, transforRawNamesToReadableForm):item.SourceFieldExpression.ToLower()) == (caseSensitive?field.SourceFieldExpression:field.SourceFieldExpression.ToLower())))
                                 {
                                     p.RemoveSourceField(field);
                                 }
@@ -226,8 +233,8 @@ namespace WXML.SourceConnector
             }
         }
 
-        private EntityDefinition GetEntity(SourceFragmentDefinition sf, relation1to1 rb, 
-            bool transforRawNamesToReadableForm, bool capitalizeNames)
+        private EntityDefinition GetEntity(SourceFragmentDefinition sf, relation1to1 rb,
+            bool transforRawNamesToReadableForm, bool capitalizeNames, bool caseSensitive)
         {
             var entityIdentifier = GetEntityIdentifier(sf.Selector, sf.Name);
             EntityDefinition e;
@@ -250,7 +257,7 @@ namespace WXML.SourceConnector
                         case relation1to1.Unify:
                         case relation1to1.Hierarchy:
                             masterTable = GetMasterTable(sf, out conds);
-                            masterEntity = GetEntity(masterTable, rb, transforRawNamesToReadableForm, capitalizeNames);
+                            masterEntity = GetEntity(masterTable, rb, transforRawNamesToReadableForm, capitalizeNames, caseSensitive);
                             break;
                         default:
                             throw new NotSupportedException(rb.ToString());
@@ -272,14 +279,14 @@ namespace WXML.SourceConnector
                     .Where(item => !item.IsFK))
                 {
                     bool propCreated;
-                    PropertyDefinition prop = AppendColumn(e, field, out propCreated, transforRawNamesToReadableForm, capitalizeNames);
+                    PropertyDefinition prop = AppendColumn(e, field, out propCreated, transforRawNamesToReadableForm, capitalizeNames, caseSensitive);
                     RaiseOnPropertyCreated(prop, propCreated);
                 }
 
                 foreach (SourceConstraint fk in sf.Constraints.Where(item => item.ConstraintType == SourceConstraint.ForeignKeyConstraintTypeName))
                 {
                     bool propCreated;
-                    PropertyDefinition prop = AppendFK(e, sf, fk, rb, out propCreated, transforRawNamesToReadableForm, capitalizeNames);
+                    PropertyDefinition prop = AppendFK(e, sf, fk, rb, out propCreated, transforRawNamesToReadableForm, capitalizeNames, caseSensitive);
                     RaiseOnPropertyCreated(prop, propCreated);
                 }
 
@@ -575,14 +582,14 @@ namespace WXML.SourceConnector
 
         protected EntityPropertyDefinition AppendFK(EntityDefinition e, SourceFragmentDefinition sf, 
             SourceConstraint fk, relation1to1 rb, out bool created, 
-            bool transforRawNamesToReadableForm, bool capitalizeNames)
+            bool transforRawNamesToReadableForm, bool capitalizeNames, bool caseSensitive)
         {
             created = false;
             var rels = SourceView.GetFKRelations(fk);
             SourceFragmentDefinition m = rels.First().PKField.SourceFragment;
             EntityDefinition re = e;
             if (sf != m)
-                re = GetEntity(m, rb, transforRawNamesToReadableForm, capitalizeNames);
+                re = GetEntity(m, rb, transforRawNamesToReadableForm, capitalizeNames, caseSensitive);
             string rid = "t" + re.Name;
             TypeDefinition td = Model.GetType(rid, false);
             if (td == null)
@@ -740,24 +747,39 @@ l1:
         }
 
         protected PropertyDefinition AppendColumn(EntityDefinition e, SourceFieldDefinition c,
-            out bool created, bool transforRawNamesToReadableForm, bool capitalizeNames)
+            out bool created, bool transforRawNamesToReadableForm, bool capitalizeNames, bool caseSensitive)
         {
             created = false;
             //var x = e.OwnProperties.OfType<ScalarPropertyDefinition>().Where(pd =>
             //    pd.SourceFieldExpression.Trim(']', '[') == c.SourceFieldExpression.Trim('[',']')
             //);
             
+            var nsfn = c.SourceFieldExpression.Trim('[', ']');
+            if (!caseSensitive)
+                nsfn = nsfn.ToLower();
+
             var x = e.OwnProperties.Where(pd =>
                 {
                     ScalarPropertyDefinition sp = pd as ScalarPropertyDefinition;
                     if (sp != null)
-                        return sp.SourceFieldExpression.Trim(']', '[') == c.SourceFieldExpression.Trim('[', ']');
+                    {
+                        var spsf = sp.SourceFieldExpression.Trim(']', '[');
+                        if (!caseSensitive)
+                            spsf = spsf.ToLower();
+
+                        return spsf == nsfn;
+                    }
                     else
                     {
                         EntityPropertyDefinition ep = pd as EntityPropertyDefinition;
                         if (ep != null)
                         {
-                            return ep.SourceFields.Any(item => item.SourceFieldExpression.Trim(']', '[') == c.SourceFieldExpression.Trim('[', ']'));
+                            return ep.SourceFields.Any(item => {
+                                var spsf = item.SourceFieldExpression.Trim(']', '[');
+                                if (!caseSensitive)
+                                    spsf = spsf.ToLower();
+                                return spsf == nsfn;
+                            });
                         }
                     }
                     return false;

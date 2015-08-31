@@ -52,7 +52,7 @@ namespace WXML.Model.Database.Providers
 
                     conn.Open();
 
-                    RaiseOnStartLoadDatabase();
+                    RaiseOnStartLoadDatabase(cmd.CommandText);
                     using (DbDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())

@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestsCodeGenLib;
 using WXML.Model;
 using WXML.Model.Descriptors;
+using System.Xml.Linq;
 
 namespace WXMLTests
 {
@@ -290,8 +291,7 @@ namespace WXMLTests
 
             Assert.AreEqual(1, newModel.Extensions.Count);
 
-            XmlDocument xdoc = new XmlDocument();
-            xdoc.LoadXml("<root/>");
+            XElement xdoc = XElement.Parse("<root/>");
 
             newModel.Extensions.Add(new Extension("dfdf"), xdoc);
             WXMLModel model = GetModel("extensions");

@@ -18,7 +18,10 @@ namespace WXML.Model.Database.Providers
 
         public delegate void DatabaseConnectingDelegate(DatabaseProvider sender, string conn);
         public event DatabaseConnectingDelegate OnDatabaseConnecting;
-        public event Action OnStartLoadDatabase;
+
+        public delegate void StartLoadDatabaseDelegate(DatabaseProvider sender, string cmd);
+        public event StartLoadDatabaseDelegate OnStartLoadDatabase;
+
         public event Action OnEndLoadDatabase;
 
         protected DatabaseProvider(string server, string db, bool integratedSecurity, string user, string psw)
@@ -42,6 +45,21 @@ namespace WXML.Model.Database.Providers
         public abstract void GenerateDropIndexScript(SourceFragmentDefinition table, string indexName, StringBuilder script);
         public abstract void GenerateDropTableScript(SourceFragmentDefinition table, StringBuilder script);
 
+        public virtual bool CaseSensitive
+        {
+            get
+            {
+                using (var conn = GetDBConn())
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT 1 WHERE 'SQL' = 'sql'";
+                    cmd.CommandType = CommandType.Text;
+                    conn.Open();
+                    object r = cmd.ExecuteScalar();
+                    return r == DBNull.Value;
+                }
+            }
+        }
         public abstract DbConnection GetDBConn();
 
         protected abstract string AppendIdentity();
@@ -52,10 +70,10 @@ namespace WXML.Model.Database.Providers
                 OnDatabaseConnecting(this, conn);
         }
 
-        protected void RaiseOnStartLoadDatabase()
+        protected void RaiseOnStartLoadDatabase(string cmd)
         {
             if (OnStartLoadDatabase != null)
-                OnStartLoadDatabase();
+                OnStartLoadDatabase(this, cmd);
         }
 
         protected void RaiseOnEndLoadDatabase()
@@ -146,7 +164,7 @@ namespace WXML.Model.Database.Providers
 
             string table = reader.GetString(reader.GetOrdinal("table_name"));
             string schema = null;
-            if (!skipSchema)
+            if (!skipSchema && !reader.IsDBNull(reader.GetOrdinal("table_schema")))
             {
                 schema = reader.GetString(reader.GetOrdinal("table_schema"));
 
