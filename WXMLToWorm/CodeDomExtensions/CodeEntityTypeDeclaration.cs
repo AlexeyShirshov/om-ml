@@ -680,7 +680,7 @@ namespace WXMLToWorm.CodeDomExtensions
                     (EntityUnion hostEntity) => "Get" + propName,
                     Emit.@return((EntityUnion hostEntity) =>
                         new RelationDescEx(hostEntity, new M2MRelationDesc(
-                            new EntityUnion(CodeDom.Field<string>(CodeDom.TypeRef(dn), "EntityName")),
+                            new EntityUnion(CodeDom.Field<string>(CodeDom.TypeRef_str(dn), "EntityName")),
                             relationIdentifier
                         ))
                     )
@@ -750,7 +750,7 @@ namespace WXMLToWorm.CodeDomExtensions
                 CodeExpression exp = CodeDom.GetExpression((EntityUnion hostEntity) =>
                     new RelationDescEx(hostEntity, new RelationDesc(
                         new EntityUnion(CodeDom.InjectExp<string>(0)),
-                        CodeDom.Field<string>(CodeDom.TypeRef(cd), entityRelation.Property.PropertyAlias),
+                        CodeDom.Field<string>(CodeDom.TypeRef_str(cd), entityRelation.Property.PropertyAlias),
                         entityRelation.Name
                 )), entityTypeExpression);
 
@@ -766,7 +766,7 @@ namespace WXMLToWorm.CodeDomExtensions
                     Emit.@return((EntityUnion hostEntity, EntityUnion joinEntity) =>
                         new RelationDescEx(hostEntity, new RelationDesc(
                             joinEntity,
-                            CodeDom.Field<string>(CodeDom.TypeRef(cd), entityRelation.Property.PropertyAlias),
+                            CodeDom.Field<string>(CodeDom.TypeRef_str(cd), entityRelation.Property.PropertyAlias),
                             entityRelation.Name
                         ))
                     )
