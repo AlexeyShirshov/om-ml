@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml;
 using WXML.Model.Descriptors;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace WXML.Model
 {
@@ -81,7 +82,7 @@ namespace WXML.Model
             }
         }
 
-        private void FillExtension(XmlElement extensionsContainer, KeyValuePair<Extension, XmlDocument> extension)
+        private void FillExtension(XmlElement extensionsContainer, KeyValuePair<Extension, XElement> extension)
         {
             var extensionElement = CreateElement("extension");
             extensionsContainer.AppendChild(extensionElement);
@@ -90,7 +91,22 @@ namespace WXML.Model
             if (extension.Key.Action != MergeAction.Merge)
                 extensionElement.SetAttribute("action", extension.Key.Action.ToString());
 
-            extensionElement.InnerXml = extension.Value.InnerXml;
+            var el = extension.Value;
+            //if (el.Name != XName.Get("extension", WXMLModel.NS_PREFIX))
+            //{
+            //    var e = _ormXmlDocumentMain.CreateElement(el.Name.LocalName, el.Name.NamespaceName);
+            //    extensionElement.AppendChild(e);
+            //    foreach (var attr in el.Attributes())
+            //    {
+            //        e.SetAttribute(attr.)
+            //    }
+            //    extensionElement = e;
+            //}
+            using (var reader = el.CreateReader())
+            {
+                reader.MoveToContent();
+                extensionElement.InnerXml = reader.ReadInnerXml();
+            }
         }
 
         private void FillLinqSettings()
@@ -686,6 +702,14 @@ namespace WXML.Model
                 throw new NotSupportedException(rp.GetType().ToString());
             }
 
+            if (rp.Extensions.Count > 0)
+            {
+                foreach (var extension in rp.Extensions)
+                {
+                    FillExtension(propertyElement, extension);
+                }
+            }
+
             propertiesNode.AppendChild(propertyElement);
         }
 
@@ -763,6 +787,15 @@ namespace WXML.Model
                 tableElement.SetAttribute("name", table.Name);
                 if (!string.IsNullOrEmpty(table.Selector))
                     tableElement.SetAttribute("selector", table.Selector);
+
+                if (table.Extensions.Count > 0)
+                {
+                    foreach (var extension in table.Extensions)
+                    {
+                        FillExtension(tableElement, extension);
+                    }
+                }
+
                 tablesNode.AppendChild(tableElement);
             }
         }

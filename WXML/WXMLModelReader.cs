@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Schema;
 using WXML.Model.Descriptors;
 
@@ -119,10 +120,18 @@ namespace WXML.Model
             }
         }
 
-        private static void FillExtension(IDictionary<Extension, XmlDocument> dictionary, XmlElement extension)
+        private static void FillExtension(IDictionary<Extension, XElement> dictionary, XmlElement extension)
         {
-            XmlDocument xdoc = new XmlDocument();
-            xdoc.LoadXml(extension.InnerXml);
+
+            XElement xdoc = XElement.Parse(extension.OuterXml);
+            //if (extension.ChildNodes.Count != 1)
+            //{
+            //    xdoc = XElement.Parse(extension.OuterXml);
+            //}
+            //else
+            //{
+            //    xdoc = XElement.Parse(extension.InnerXml);
+            //}
             Extension ext = new Extension()
             {
                 Name = extension.Attributes["name"].Value
@@ -261,12 +270,13 @@ namespace WXML.Model
                 var extensionsNode =
                     entityElement.SelectNodes(string.Format("{0}:extension", WXMLModel.NS_PREFIX), _nsMgr);
 
-                if (extensionsNode == null)
-                    return;
-
-                foreach (XmlElement extension in extensionsNode)
+                if (extensionsNode != null)
                 {
-                    FillExtension(entity.Extensions, extension);
+
+                    foreach (XmlElement extension in extensionsNode)
+                    {
+                        FillExtension(entity.Extensions, extension);
+                    }
                 }
             }
 
@@ -570,6 +580,17 @@ namespace WXML.Model
                 PropertyAccessLevel = g.propertyAccessLevel
             };
 
+            var extensionsNode =
+                propertyElement.SelectNodes(string.Format("{0}:extension", WXMLModel.NS_PREFIX), _nsMgr);
+
+            if (extensionsNode != null)
+            {
+                foreach (XmlElement extension in extensionsNode)
+                {
+                    FillExtension(property.Extensions, extension);
+                }
+            }
+
             g.PostProcess(property, _model);
 
             if (property.PropertyAccessLevel == AccessLevel.Private &&
@@ -719,10 +740,6 @@ namespace WXML.Model
                 GenerateAttribute = generateAttribute
             };
 
-            g.PostProcess(property, _model);
-
-            entity.AddProperty(property);
-
             foreach (XmlElement fieldMap in propertyElement.SelectNodes(string.Format("{0}:field", WXMLModel.NS_PREFIX), _nsMgr))
             {
                 string propAlias = fieldMap.GetAttribute("relatedProperty");
@@ -732,6 +749,21 @@ namespace WXML.Model
                 property.AddSourceFieldUnckeck(propAlias, f.fieldname, f.fieldAlias, f.dbTypeNameAttribute,
                     f.sz, f.isNullable, f.dbTypeDefault);
             }
+
+            var extensionsNode =
+                propertyElement.SelectNodes(string.Format("{0}:extension", WXMLModel.NS_PREFIX), _nsMgr);
+
+            if (extensionsNode != null)
+            {
+                foreach (XmlElement extension in extensionsNode)
+                {
+                    FillExtension(property.Extensions, extension);
+                }
+            }
+
+            g.PostProcess(property, _model);
+
+            entity.AddProperty(property);
         }
 
         private void FillEntityProperty(EntityDefinition entity, XmlElement propertyElement, PropertyGroup group)
@@ -798,6 +830,17 @@ namespace WXML.Model
                 AvailableTo = availableTo,
                 GenerateAttribute=generateAttribute
             };
+
+            var extensionsNode =
+                propertyElement.SelectNodes(string.Format("{0}:extension", WXMLModel.NS_PREFIX), _nsMgr);
+
+            if (extensionsNode != null)
+            {
+                foreach (XmlElement extension in extensionsNode)
+                {
+                    FillExtension(property.Extensions, extension);
+                }
+            }
 
             g.PostProcess(property, _model);
 
@@ -1016,7 +1059,20 @@ namespace WXML.Model
                 string name = tableElement.GetAttribute("name");
                 string selector = tableElement.GetAttribute("selector");
 
-                _model.AddSourceFragment(new SourceFragmentDefinition(id, name, selector));
+                var sf = new SourceFragmentDefinition(id, name, selector);
+
+                var extensionsNode =
+                    tableElement.SelectNodes(string.Format("{0}:extension", WXMLModel.NS_PREFIX), _nsMgr);
+
+                if (extensionsNode != null)
+                {
+                    foreach (XmlElement extension in extensionsNode)
+                    {
+                        FillExtension(sf.Extensions, extension);
+                    }
+                }
+
+                _model.AddSourceFragment(sf);
             }
         }
 

@@ -5,11 +5,12 @@ using System.Reflection;
 using System.Xml;
 using WXML.Model.Descriptors;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace WXML.Model
 {
     [Serializable]
-    public class WXMLModel
+    public class WXMLModel : IExtensible
     {
         public const string NS_PREFIX = "oos";
         public const string NS_URI = "http://wise-orm.com/WXMLSchema.xsd";
@@ -31,7 +32,7 @@ namespace WXML.Model
         private string _entityBaseTypeName;
         private TypeDefinition _entityBaseType;
 
-        private Dictionary<Extension, XmlDocument> _extensions = new Dictionary<Extension, XmlDocument>();
+        private Dictionary<Extension, XElement> _extensions = new Dictionary<Extension, XElement>();
         #endregion Private Fields
 
         public WXMLModel()
@@ -53,7 +54,7 @@ namespace WXML.Model
         }
 
         #region Properties
-        public Dictionary<Extension, XmlDocument> Extensions
+        public Dictionary<Extension, XElement> Extensions
         {
             get
             {
@@ -61,6 +62,14 @@ namespace WXML.Model
             }
         }
 
+        public XElement GetExtension(string name)
+        {
+            XElement x;
+            if (!_extensions.TryGetValue(new Extension(name), out x))
+                x = null;
+
+            return x;
+        }
         public GenerateModeEnum GenerateMode { get; set; }
 
         public bool GenerateSingleFile { get; set; }
@@ -381,9 +390,9 @@ namespace WXML.Model
             MergeExtensions(Extensions, mergeWith.Extensions);
         }
 
-        private static void MergeExtensions(IDictionary<Extension, XmlDocument> extensions, Dictionary<Extension, XmlDocument> newExtensions)
+        private static void MergeExtensions(IDictionary<Extension, XElement> extensions, Dictionary<Extension, XElement> newExtensions)
         {
-            foreach (KeyValuePair<Extension, XmlDocument> extension in newExtensions)
+            foreach (KeyValuePair<Extension, XElement> extension in newExtensions)
             {
                 if (extension.Key.Action == MergeAction.Delete)
                     extensions.Remove(extension.Key);

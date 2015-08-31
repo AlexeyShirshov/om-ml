@@ -48,10 +48,10 @@ namespace WXML.Model.Database.Providers
                 {
                     cmd.CommandType = CommandType.Text;
                     cmd.CommandText = @"select t.table_schema,t.table_name,c.column_name,c.is_nullable,c.data_type,cc.constraint_type,cc.constraint_name, " + AppendIdentity() + @",c.column_default,c.character_maximum_length from INFORMATION_SCHEMA.TABLES t
-						join INFORMATION_SCHEMA.COLUMNS c on t.table_name = c.table_name and t.table_schema = c.table_schema
+						join INFORMATION_SCHEMA.COLUMNS c on t.table_name = c.table_name and coalesce(t.table_schema,'') = coalesce(c.table_schema,'')
                         left join (
-	                        select cc.table_name,cc.table_schema,cc.column_name,tc.constraint_type,cc.constraint_name from INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc 
-	                        join INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc on tc.table_name = cc.table_name and tc.table_schema = cc.table_schema and cc.constraint_name = tc.constraint_name --and tc.constraint_type is not null
+	                        select cc.table_name,cc.table_schema,cc.column_name,tc.constraint_type,cc.constraint_name from INFORMATION_SCHEMA.KEY_COLUMN_USAGE cc 
+	                        join INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc on tc.table_name = cc.table_name and coalesce(tc.table_schema,'') = coalesce(cc.table_schema,'') and cc.constraint_name = tc.constraint_name --and tc.constraint_type is not null
                             where tc.constraint_type != 'FOREIGN KEY' or exists(
                                 select * from INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc 
                                 join INFORMATION_SCHEMA.TABLE_CONSTRAINTS rtc on rtc.constraint_name = rc.unique_constraint_name
@@ -59,8 +59,8 @@ namespace WXML.Model.Database.Providers
                                     ZZZZZ
                                     WWWWW
                             )
-                        ) cc on t.table_name = cc.table_name and t.table_schema = cc.table_schema and c.column_name = cc.column_name
-						where t.TABLE_TYPE = 'BASE TABLE'
+                        ) cc on t.table_name = cc.table_name and coalesce(t.table_schema,'') = coalesce(cc.table_schema,'') and c.column_name = cc.column_name
+						where t.TABLE_TYPE IN ('BASE TABLE', 'TABLE')
 						YYYYY
 						XXXXX
 						order by t.table_schema,t.table_name,c.ordinal_position";
@@ -72,7 +72,7 @@ namespace WXML.Model.Database.Providers
 
                     conn.Open();
 
-                    RaiseOnStartLoadDatabase();
+                    RaiseOnStartLoadDatabase(cmd.CommandText);
                     using (DbDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
@@ -145,12 +145,10 @@ namespace WXML.Model.Database.Providers
                     @"select cc.TABLE_SCHEMA, cc.TABLE_NAME, cc.COLUMN_NAME, 
                     tc.TABLE_SCHEMA AS fkSchema, tc.TABLE_NAME AS fkTable, cc2.COLUMN_NAME AS fkColumn, 
                     rc.DELETE_RULE, cc.CONSTRAINT_NAME, cc2.CONSTRAINT_NAME AS fkConstraint
-					from INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc
+					from INFORMATION_SCHEMA.KEY_COLUMN_USAGE cc
 					join INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc on rc.unique_constraint_name = cc.constraint_name
 					join INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc on tc.constraint_name = rc.constraint_name
-					join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cc2 on cc2.constraint_name = tc.constraint_name and cc2.table_schema = tc.table_schema and cc2.table_name = tc.table_name
-                    join INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS pkOrd ON pkOrd.constraint_name = cc.constraint_name and pkOrd.column_name = cc.column_name
-                    join INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS fkOrd ON fkOrd.constraint_name = cc2.constraint_name and fkOrd.column_name = cc2.column_name and fkOrd.ordinal_position = pkOrd.ordinal_position
+					join INFORMATION_SCHEMA.KEY_COLUMN_USAGE cc2 on cc2.constraint_name = tc.constraint_name and coalesce(cc2.table_schema,'') = coalesce(tc.table_schema,'') and cc2.table_name = tc.table_name
 					where tc.constraint_type = 'FOREIGN KEY'
                     YYYYY
                     XXXXX
@@ -162,7 +160,10 @@ namespace WXML.Model.Database.Providers
                 {
                     while (reader.Read())
                     {
-                        string pkSchema = reader.GetString(reader.GetOrdinal("TABLE_SCHEMA"));
+                        string pkSchema = null;
+                        if (!reader.IsDBNull(reader.GetOrdinal("TABLE_SCHEMA")))
+                            pkSchema = reader.GetString(reader.GetOrdinal("TABLE_SCHEMA"));
+
                         string pkName = reader.GetString(reader.GetOrdinal("TABLE_NAME"));
 
                         if (escapeTableNames)
@@ -170,8 +171,9 @@ namespace WXML.Model.Database.Providers
                             if (!(pkName.StartsWith("[") || pkName.EndsWith("]")))
                                 pkName = "[" + pkName + "]";
 
-                            if (!(pkSchema.StartsWith("[") || pkSchema.EndsWith("]")))
-                                pkSchema = "[" + pkSchema + "]";
+                            if (pkSchema != null)
+                                if (!(pkSchema.StartsWith("[") || pkSchema.EndsWith("]")))
+                                    pkSchema = "[" + pkSchema + "]";
                         }
 
                         SourceFragmentDefinition pkTable = sv.GetSourceFragments()

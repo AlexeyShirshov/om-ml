@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace WXML.Model.Descriptors
 {
     [Serializable]
-	public class SourceFragmentDefinition //: ICloneable
+    public class SourceFragmentDefinition : IExtensible
 	{
-		public string Identifier { get; private set; }
+        private readonly Dictionary<Extension, XElement> _extensions = new Dictionary<Extension, XElement>();
+        
+        public string Identifier { get; private set; }
 		public string Name { get; set; }
 		public string Selector { get; set; }
         private readonly List<SourceConstraint> _constraints = new List<SourceConstraint>();
@@ -50,5 +54,22 @@ namespace WXML.Model.Descriptors
         //{
         //    return Clone();
         //}
+
+        public Dictionary<Extension, XElement> Extensions
+        {
+            get
+            {
+                return _extensions;
+            }
+        }
+
+        public XElement GetExtension(string name)
+        {
+            XElement x;
+            if (!_extensions.TryGetValue(new Extension(name), out x))
+                x = null;
+
+            return x;
+        }
 	}
 }
