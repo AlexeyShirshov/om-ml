@@ -4,6 +4,29 @@
     <name>Worm.Orm</name>
   </assembly>
   <members>
+    <member name="T:Worm.Cache.EntityProxy">
+      <remarks>
+        <h3>Потокобезопасность</h3>
+ Класс потокобезопасен
+ </remarks>
+      <threadsafety static="true" instance="true" />
+    </member>
+    <member name="T:Worm.Cache.WeakEntityReference">
+      <remarks>
+        <h3>Потокобезопасность</h3>
+ Класс потокобезопасен
+ </remarks>
+      <threadsafety static="true" instance="true" />
+    </member>
+    <member name="T:Worm.Cache.WeakEntityList">
+      <summary>
+      </summary>
+      <remarks>
+        <h3>Потокобезопасность</h3>
+ Класс не потокобезопасен
+ </remarks>
+      <threadsafety static="true" instance="false" />
+    </member>
     <member name="T:Worm.Cache.INewObjectsStore">
       <summary>
  Интерфейс работы с новыми объектами
@@ -164,7 +187,7 @@
       </param>
       <returns>
       </returns>
-      <remarks>If need opens connetion, but does not close it! Connection closes in dispose method of OrmManager.</remarks>
+      <remarks>If needed opens connetion, but does not close it! Connection closes in dispose method of OrmManager.</remarks>
     </member>
     <member name="M:Worm.Database.OrmReadOnlyDBManager.LoadObjectFromDataReader(System.Object,Worm.Database.IDataReaderAbstraction,System.Collections.Generic.IList{Worm.Expressions2.SelectExpression},System.Boolean,System.Collections.IDictionary,System.Boolean,System.IDisposable@,Worm.Entities.Meta.IEntitySchema,Worm.Collections.IndexedCollection{System.String,Worm.Entities.Meta.MapField2Column},System.Int32,System.Int32)">
       <summary>
@@ -219,7 +242,7 @@
       <remarks>
       </remarks>
     </member>
-    <member name="M:Worm.OrmManager.FormPKValues``1(Worm.Cache.CacheBase,Worm.ReadOnlyEntityList{``0},System.Int32,System.Int32,System.Boolean,System.Collections.Generic.List{Worm.Expressions2.EntityExpression},Worm.ObjectMappingEngine)">
+    <member name="M:Worm.OrmManager.FormPKValues``1(Worm.Cache.CacheBase,Worm.ReadOnlyEntityList{``0},System.Int32,System.Int32,System.Boolean,System.Collections.Generic.List{Worm.Expressions2.EntityExpression})">
       <summary>
       </summary>
       <typeparam name="T">
@@ -685,6 +708,42 @@
       <remarks>
       </remarks>
     </member>
+    <member name="T:Worm.Expressions2.OrderByClause">
+      <remarks>
+        <h3>Потокобезопасность</h3>
+ Класс не потокобезопасен
+ </remarks>
+      <threadsafety static="true" instance="false" />
+    </member>
+    <member name="T:Worm.ReadOnlyEntityList`1">
+      <remarks>
+        <h3>Потокобезопасность</h3>
+ Класс потокобезопасен
+ </remarks>
+      <threadsafety static="true" instance="true" />
+    </member>
+    <member name="T:Worm.ReadOnlyObjectList`1">
+      <summary>
+      </summary>
+      <typeparam name="T">
+      </typeparam>
+      <remarks>
+        <h3>Потокобезопасность</h3>
+ Класс потокобезопасен
+ </remarks>
+      <threadsafety static="true" instance="true" />
+    </member>
+    <member name="P:Worm.ReadOnlyObjectList`1.List">
+      <summary>
+ Необходимо использовать только для вновь созданных <see cref="T:Worm.ReadOnlyObjectList`1" />
+ Возвращает не потокобезопасный <see cref="P:Worm.ReadOnlyObjectList`1.List" /></summary>
+      <value>
+      </value>
+      <returns>
+      </returns>
+      <remarks>
+      </remarks>
+    </member>
     <member name="M:Worm.Query.IExecutor.SubscribeToErrorHandling(Worm.OrmManager,Worm.Query.QueryCmd)">
       <summary>
  Subscribe <paramref name="mgr" /> to <paramref name="query" /> error handling
@@ -695,6 +754,15 @@
       </param>
       <returns>Should return IDisposable which will be used for unsubscribe action</returns>
       <remarks>Return <see cref="T:Worm.EmptyDisposable" /> if do nothing</remarks>
+    </member>
+    <member name="M:Worm.Query.QueryCmd.GetDynamicKey(System.Text.StringBuilder,Worm.ObjectMappingEngine)">
+      <summary>
+ Динамические строк (включающие значения) всех запчастей QueryCmd
+ </summary>
+      <param name="sb">
+      </param>
+      <remarks>
+      </remarks>
     </member>
     <member name="M:Worm.Database.DbGenerator.AppendFrom(Worm.ObjectMappingEngine,Worm.IPrepareTable,System.Collections.IDictionary,Worm.Entities.Meta.SourceFragment[],System.Text.StringBuilder,Worm.Entities.Meta.ICreateParam,Worm.Entities.Meta.IMultiTableObjectSchema,System.Type)">
       <summary>

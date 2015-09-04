@@ -750,7 +750,7 @@ namespace WXMLToWorm.CodeDomExtensions
                                         else
                                             coll.Add(Emit.assignVar("availableFrom", () => int.MinValue));
 
-                                        coll.Add(Emit.@if(() => CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
+                                        coll.Add(Emit.@if((Worm.ObjectMappingEngine _schema) => CodeDom.IsNot(_schema, null) && CodeDom.IsNot(_schema.ConvertVersionToInt, null),
                                             Emit.assignVar("availableFrom", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(item.Prop.AvailableFrom))
                                             ));
                                     }
@@ -777,7 +777,7 @@ namespace WXMLToWorm.CodeDomExtensions
                                         else
                                             coll.Add(Emit.assignVar("availableTo", () => int.MaxValue));
 
-                                        coll.Add(Emit.@if(() => CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
+                                        coll.Add(Emit.@if((Worm.ObjectMappingEngine _schema) => CodeDom.IsNot(_schema, null) && CodeDom.IsNot(_schema.ConvertVersionToInt, null),
                                             Emit.assignVar("availableTo", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(item.Prop.AvailableTo))
                                             ));
                                     }
@@ -794,7 +794,7 @@ namespace WXMLToWorm.CodeDomExtensions
                                 if (needSchemaVersion && !schemaDeclared)
                                 {
                                     coll.Add(Emit.declare("schemaVer", () => 0));
-                                    coll.Add(Emit.@if((int schemaVer) => !int.TryParse(CodeDom.Field<string>(CodeDom.@this.Field("_schema"), "Version"), out schemaVer) && CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
+                                    coll.Add(Emit.@if((int schemaVer, Worm.ObjectMappingEngine _schema) => CodeDom.IsNot(_schema, null) && !int.TryParse(_schema.Version, out schemaVer) && CodeDom.IsNot(_schema.ConvertVersionToInt, null),
                                         Emit.assignVar("schemaVer", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(CodeDom.Field(CodeDom.@this.Field("_schema"), "Version")))
                                         ));
 
@@ -816,36 +816,69 @@ namespace WXMLToWorm.CodeDomExtensions
                                     Emit.assignProperty(new CodeIndexerExpression(
                                             new CodeVariableReferenceExpression("idx"),
                                             new CodePrimitiveExpression(item.PropertyAlias)
-                                        ), "ColumnName", () => item.FieldAlias)
+                                        ), "SourceFieldAlias", () => item.FieldAlias)
                                     );
+
+                            if (!string.IsNullOrEmpty(item.Prop.Feature))
+                                ass.Add(
+                                    Emit.assignProperty(new CodeIndexerExpression(
+                                            new CodeVariableReferenceExpression("idx"),
+                                            new CodePrimitiveExpression(item.PropertyAlias)
+                                        ), "Feature", () => item.Prop.Feature)
+                                    );
+
+                            if (!string.IsNullOrEmpty(item.Prop.AvailableFrom))
+                                ass.Add(
+                                    Emit.assignProperty(new CodeIndexerExpression(
+                                            new CodeVariableReferenceExpression("idx"),
+                                            new CodePrimitiveExpression(item.PropertyAlias)
+                                        ), "AvailFrom", () => item.Prop.AvailableFrom)
+                                    );
+
+                            if (!string.IsNullOrEmpty(item.Prop.AvailableTo))
+                                ass.Add(
+                                    Emit.assignProperty(new CodeIndexerExpression(
+                                            new CodeVariableReferenceExpression("idx"),
+                                            new CodePrimitiveExpression(item.PropertyAlias)
+                                        ), "AvailTo", () => item.Prop.AvailableTo)
+                                    );
+
+                            List<CodeStatement> intCol = new List<CodeStatement>();
 
                             if (!string.IsNullOrEmpty(item.Prop.AvailableFrom) && !string.IsNullOrEmpty(item.Prop.AvailableTo))
                             {
                                 if (item.Prop.AvailableFrom == item.Prop.AvailableTo)
-                                    coll.Add(
+                                    intCol.Add(
                                         Emit.@if(() => CodeDom.Field<string>(CodeDom.@this.Field("_schema"), "Version") == item.Prop.AvailableTo, ass.ToArray())
                                         );
                                 else
-                                    coll.Add(
+                                    intCol.Add(
                                         Emit.@if((int schemaVer, int availableFrom, int availableTo) => schemaVer >= availableFrom && schemaVer < availableTo, ass.ToArray())
                                         );
                             }
                             else if (!string.IsNullOrEmpty(item.Prop.AvailableFrom))
                             {
-                                coll.Add(
+                                intCol.Add(
                                     Emit.@if((int schemaVer, int availableFrom) => schemaVer >= availableFrom, ass.ToArray())
                                     );
                             }
                             else if (!string.IsNullOrEmpty(item.Prop.AvailableTo))
                             {
-                                coll.Add(
+                                intCol.Add(
                                     Emit.@if((int schemaVer, int availableTo) => schemaVer < availableTo, ass.ToArray())
                                     );
                             }
                             else
-                                coll.AddRange(ass);
+                                intCol.AddRange(ass);
 
-                            
+                            if (!string.IsNullOrEmpty(item.Prop.Feature))
+                            {
+                                coll.Add(
+                                    Emit.@if((Worm.ObjectMappingEngine _schema) => CodeDom.Is(_schema, null) || _schema.Features.Contains(item.Prop.Feature), intCol.ToArray())
+                                    );
+                            }
+                            else
+                                coll.AddRange(intCol);
                         }
                         else
                         {
@@ -871,7 +904,7 @@ namespace WXMLToWorm.CodeDomExtensions
                                             else
                                                 coll.Add(Emit.assignVar("availableFrom", () => int.MinValue));
 
-                                            coll.Add(Emit.@if(() => CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
+                                            coll.Add(Emit.@if((Worm.ObjectMappingEngine _schema) => CodeDom.IsNot(_schema, null) && CodeDom.IsNot(_schema.ConvertVersionToInt, null),
                                                 Emit.assignVar("availableFrom", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(item.Prop.AvailableFrom))
                                                 ));
                                         }
@@ -898,7 +931,7 @@ namespace WXMLToWorm.CodeDomExtensions
                                             else
                                                 coll.Add(Emit.assignVar("availableTo", () => int.MaxValue));
 
-                                            coll.Add(Emit.@if(() => CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
+                                            coll.Add(Emit.@if((Worm.ObjectMappingEngine _schema) => CodeDom.IsNot(_schema, null) && CodeDom.IsNot(_schema.ConvertVersionToInt, null),
                                                 Emit.assignVar("availableTo", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(item.Prop.AvailableTo))
                                                 ));
                                         }
@@ -915,7 +948,7 @@ namespace WXMLToWorm.CodeDomExtensions
                                     if (needSchemaVersion && !schemaDeclared)
                                     {
                                         coll.Add(Emit.declare("schemaVer", () => 0));
-                                        coll.Add(Emit.@if((int schemaVer) => !int.TryParse(CodeDom.Field<string>(CodeDom.@this.Field("_schema"), "Version"), out schemaVer) && CodeDom.Field(CodeDom.@this.Field("_schema"), "ConvertVersionToInt") != null,
+                                        coll.Add(Emit.@if((int schemaVer, Worm.ObjectMappingEngine _schema) => CodeDom.IsNot(_schema, null) && !int.TryParse(_schema.Version, out schemaVer) && CodeDom.IsNot(_schema.ConvertVersionToInt, null),
                                             Emit.assignVar("schemaVer", () => CodeDom.Call<int>(CodeDom.@this.Field("_schema"), "ConvertVersionToInt")(CodeDom.Field(CodeDom.@this.Field("_schema"), "Version")))
                                             ));
 
@@ -949,32 +982,41 @@ namespace WXMLToWorm.CodeDomExtensions
                                             , tblExp))
                                         ;
 
+                                    var intCol = new List<CodeStatement>();
                                     if (!string.IsNullOrEmpty(item.Prop.AvailableFrom) && !string.IsNullOrEmpty(item.Prop.AvailableTo))
                                     {
                                         if (item.Prop.AvailableFrom == item.Prop.AvailableTo)
-                                            coll.Add(
+                                            intCol.Add(
                                                 Emit.@if(() => CodeDom.Field<string>(CodeDom.@this.Field("_schema"), "Version") == item.Prop.AvailableTo, ass)
                                                 );
                                         else
-                                            coll.Add(
+                                            intCol.Add(
                                                 Emit.@if((int schemaVer, int availableFrom, int availableTo)=>schemaVer >= availableFrom && schemaVer < availableTo, ass)
                                                 );
                                     }
                                     else if (!string.IsNullOrEmpty(item.Prop.AvailableFrom))
                                     {
-                                        coll.Add(
+                                        intCol.Add(
                                             Emit.@if((int schemaVer, int availableFrom) => schemaVer >= availableFrom, ass)
                                             );
                                     }
                                     else if (!string.IsNullOrEmpty(item.Prop.AvailableTo))
                                     {
-                                        coll.Add(
+                                        intCol.Add(
                                             Emit.@if((int schemaVer, int availableTo) => schemaVer < availableTo, ass)
                                             );
                                     }
                                     else
-                                        coll.Add(ass);
+                                        intCol.Add(ass);
 
+                                    if (!string.IsNullOrEmpty(item.Prop.Feature))
+                                    {
+                                        coll.Add(
+                                            Emit.@if((Worm.ObjectMappingEngine _schema) => CodeDom.Is(_schema, null) || _schema.Features.Contains(item.Prop.Feature), intCol.ToArray())
+                                            );
+                                    }
+                                    else
+                                        coll.AddRange(intCol);
                                 }
                                 else
                                     throw new NotImplementedException();

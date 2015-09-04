@@ -620,6 +620,9 @@ namespace WXML.Model
             if (!string.IsNullOrEmpty(rp.AvailableTo) && !(rp is CustomPropertyDefinition))
                 propertyElement.SetAttribute("availableTo", rp.AvailableTo);
 
+            if (!string.IsNullOrEmpty(rp.Feature))
+                propertyElement.SetAttribute("feature", rp.Feature);
+
             if (rp.Interface != null)
             {
                 propertyElement.SetAttribute("interface", rp.Interface.Identifier);
