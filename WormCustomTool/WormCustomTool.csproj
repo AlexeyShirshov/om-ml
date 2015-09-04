@@ -33,7 +33,7 @@
     <AssemblyOriginatorKeyFile>wxml.snk</AssemblyOriginatorKeyFile>
     <FileUpgradeFlags>40</FileUpgradeFlags>
     <OldToolsVersion>4.0</OldToolsVersion>
-    <UpgradeBackupLocation>C:\Users\alex\Documents\wxml\Backup10\</UpgradeBackupLocation>
+    <UpgradeBackupLocation>C:\Users\alex\Documents\wxml\Backup11\</UpgradeBackupLocation>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
