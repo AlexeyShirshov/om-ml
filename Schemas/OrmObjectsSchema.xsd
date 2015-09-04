@@ -337,6 +337,13 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="feature" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Название фичи свойства. Если этой фичи нет в Маппере, свойство не мапится
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:attributeGroup>
   <xs:attributeGroup name="sourceFieldAttributeGroup">
     <xs:attribute name="fieldTypeName" type="xs:Name" use="optional">

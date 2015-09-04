@@ -33,6 +33,7 @@ namespace WXML.Model.Descriptors
         private AccessLevel _propertyAccessLevel;
         private readonly Dictionary<string, object> _items = new Dictionary<string, object>();
         private readonly Dictionary<Extension, XElement> _extensions = new Dictionary<Extension, XElement>();
+        private string _feature;
 
         protected PropertyDefinition() {}
 
@@ -184,6 +185,7 @@ namespace WXML.Model.Descriptors
             to._propertyAlias = _propertyAlias;
             to._type = _type;
             to._name = _name;
+            to.Feature = Feature;
         }
 
         protected abstract PropertyDefinition _Clone();
@@ -229,6 +231,18 @@ namespace WXML.Model.Descriptors
                 x = null;
 
             return x;
+        }
+
+        public string Feature
+        {
+            get
+            {
+                return _feature;
+            }
+            set
+            {
+                _feature = value;
+            }
         }
     }
 

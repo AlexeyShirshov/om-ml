@@ -702,7 +702,7 @@ namespace WXML.Model
             string generateAttr = propertyElement.GetAttribute("generateAttribute");
             string availableFrom = propertyElement.GetAttribute("availableFrom");
             string availableTo = propertyElement.GetAttribute("availableTo");
-
+            string feature = propertyElement.GetAttribute("feature");
 
             bool generateAttribute = true;
             bool.TryParse(generateAttr, out generateAttribute);
@@ -737,7 +737,8 @@ namespace WXML.Model
                 PropertyAliasValue = propertyAliasValue,
                 AvailableFrom = availableFrom,
                 AvailableTo = availableTo,
-                GenerateAttribute = generateAttribute
+                GenerateAttribute = generateAttribute,
+                Feature=feature
             };
 
             foreach (XmlElement fieldMap in propertyElement.SelectNodes(string.Format("{0}:field", WXMLModel.NS_PREFIX), _nsMgr))
@@ -785,6 +786,7 @@ namespace WXML.Model
             string generateAttr = propertyElement.GetAttribute("generateAttribute");
             string availableFrom = propertyElement.GetAttribute("availableFrom");
             string availableTo = propertyElement.GetAttribute("availableTo");
+            string feature = propertyElement.GetAttribute("feature");
 
             bool generateAttribute = true;
             bool.TryParse(generateAttr, out generateAttribute);
@@ -828,7 +830,8 @@ namespace WXML.Model
                 PropertyAliasValue = propertyAliasValue,
                 AvailableFrom= availableFrom,
                 AvailableTo = availableTo,
-                GenerateAttribute=generateAttribute
+                GenerateAttribute=generateAttribute,
+                Feature=feature
             };
 
             var extensionsNode =

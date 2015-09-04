@@ -558,6 +558,7 @@ namespace WXML.Model
                                 {
                                     rp.Attributes = newProperty.Attributes;
                                 }
+                                rp.Feature = MergeString(rp, newProperty, item => item.Feature);
                                 rp.Group = newProperty.Group ?? rp.Group;
                                 rp.PropertyType = newProperty.PropertyType ?? rp.PropertyType;
                                 rp.Disabled = newProperty.Disabled;
