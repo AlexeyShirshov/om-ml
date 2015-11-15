@@ -8,6 +8,7 @@ using System.Xml;
 using WXML.Model.Descriptors;
 using TestsCodeGenLib;
 using System.IO;
+using System.Xml.Linq;
 
 namespace WXMLTests
 {
@@ -301,7 +302,7 @@ namespace WXMLTests
             parser.FillTypes();
 
             WXMLModel ormObjectDef = parser.Model;
-            Assert.AreEqual<int>(11, ormObjectDef.GetTypes().Count());
+            Assert.AreEqual<int>(12, ormObjectDef.GetTypes().Count());
         }
 
         [TestMethod]
@@ -408,12 +409,15 @@ namespace WXMLTests
 
                 Assert.IsNotNull(model.Extensions[new Extension("x")]);
 
-                XmlDocument xdoc = model.Extensions[new Extension("x")];
+                var xdoc = model.Extensions[new Extension("x")];
 
                 Assert.IsNotNull(xdoc);
 
-                Assert.AreEqual("greeting", xdoc.DocumentElement.Name);
-                Assert.AreEqual("hi!", xdoc.DocumentElement.InnerText);
+                Assert.AreEqual("extension", xdoc.Name.LocalName);
+                var greet = xdoc.Element(XName.Get("greeting", xdoc.GetDefaultNamespace().NamespaceName));
+                Assert.IsNotNull(greet);
+                Assert.AreEqual("greeting", greet.Name.LocalName);
+                Assert.AreEqual("hi!", greet.Value);
 
                 EntityDefinition e11 = model.GetEntities().Single(e => e.Identifier == "e11");
 
@@ -421,8 +425,10 @@ namespace WXMLTests
 
                 xdoc = e11.Extensions[new Extension("x")];
 
-                Assert.AreEqual("greeting", xdoc.DocumentElement.Name);
-                Assert.AreEqual("hi!", xdoc.DocumentElement.InnerText);
+                greet = xdoc.Element(XName.Get("greeting", xdoc.GetDefaultNamespace().NamespaceName));
+                Assert.IsNotNull(greet);
+                Assert.AreEqual("greeting", greet.Name.LocalName);
+                Assert.AreEqual("hi!", greet.Value);
 
             }
         }
@@ -456,8 +462,8 @@ namespace WXMLTests
 
                 Assert.IsNotNull(model);
 
-                XmlDocument xdoc = new XmlDocument();
-                xdoc.LoadXml("<greeting>hi!</greeting>");
+                var xdoc = new XElement("greeting", "hi!");
+                //xdoc.LoadXml("<greeting>hi!</greeting>");
 
                 model.Extensions[new Extension("f")] = xdoc;
 

@@ -11,8 +11,7 @@
   </extensions>
   
   <Entities>
-		<Entity id="e1" name="E1" namespace="NS1">
-      <autoInterface />
+		<Entity id="e1" name="E1" namespace="NS1" autoInterface="true">
       <SourceFragments>
 				<SourceFragment ref="tbl1"/>
 			</SourceFragments>

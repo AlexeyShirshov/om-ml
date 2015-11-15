@@ -47,8 +47,7 @@
     </oos:Type>
 	</oos:Types>
 	<oos:Entities>
-		<oos:Entity id="eArtist" name="Artist" description="Artist Description">
-      <oos:autoInterface />
+		<oos:Entity id="eArtist" name="Artist" description="Artist Description" autoInterface="true">
       <oos:SourceFragments>
 				<oos:SourceFragment ref="tblArtists"/>
 				<oos:SourceFragment ref="tblSiteAccess"/>
@@ -77,8 +76,7 @@
 				<oos:Property name="Title" table="tblAlbums" fieldName="title" type="tString" description="Property Title Description" propertyAccessLevel="Assembly"/>
 			</oos:Properties>
 		</oos:Entity>
-		<oos:Entity id="Album2ArtistRelation" description="Album2ArtistRelation Description" namespace="xRelations">
-      <oos:autoInterface />
+		<oos:Entity id="Album2ArtistRelation" description="Album2ArtistRelation Description" namespace="xRelations" autoInterface="true">
       <oos:SourceFragments>
 				<oos:SourceFragment ref="tblAl2Ar"/>
 			</oos:SourceFragments>

@@ -42,10 +42,12 @@
     <oos:Type id="tGuidnullable">
       <oos:ClrType name="System.Nullable`1[[System.Guid, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" />
     </oos:Type>
+    <oos:Type id="tCustom">
+      <oos:Entity ref="customProps" />
+    </oos:Type>
   </oos:Types>
   <oos:Entities>
-    <oos:Entity id="eArtist" name="Artist" description="Artist Description">
-      <oos:autoInterface />
+    <oos:Entity id="eArtist" name="Artist" description="Artist Description" autoInterface="true">
       <oos:SourceFragments>
         <oos:SourceFragment ref="tblArtists"/>
         <oos:SourceFragment ref="tblSiteAccess"/>
@@ -60,6 +62,9 @@
         <oos:Property name="TestNullabe" table="tblArtists" type="tInt32Nullable" description="Property Title Description" propertyAccessLevel="Assembly" fieldName="nulableint" />
         <oos:Property name="TestDisabled" table="tblArtists" type="tInt32Nullable" description="Property Title Description" propertyAccessLevel="Assembly" disabled="true" fieldName="disabled" />
       </oos:Properties>
+      <oos:Relations>
+        <oos:Relation entity="customProps" disabled="false" />
+      </oos:Relations>
     </oos:Entity>
     <oos:Entity id="eAlbum" name="Album" description="Album Description" namespace="AlbumNS">
       <oos:SourceFragments>
@@ -71,8 +76,7 @@
         <oos:Property name="Title" table="tblAlbums" type="tString" description="Property Title Description" propertyAccessLevel="Assembly" fieldName="title" />
       </oos:Properties>
     </oos:Entity>
-    <oos:Entity id="Album2ArtistRelation" description="Album2ArtistRelation Description" namespace="xRelations">
-      <oos:autoInterface />
+    <oos:Entity id="Album2ArtistRelation" description="Album2ArtistRelation Description" namespace="xRelations" autoInterface="true">
       <oos:SourceFragments>
         <oos:SourceFragment ref="tblAl2Ar"/>
       </oos:SourceFragments>
@@ -124,6 +128,7 @@
             <oos:VB><![CDATA[Value = 1]]></oos:VB>
           </oos:Set>
         </oos:CustomProperty>
+        <oos:EntityProperty name="Artist" referencedEntity="eArtist" />
       </oos:Properties>
     </oos:Entity>
   </oos:Entities>

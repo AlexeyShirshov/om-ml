@@ -74,7 +74,7 @@ namespace WXMLTests.MSSQLSourceProvider
             var model = new WXMLModel();
 
             var smc = new SourceToModelConnector(sv, model);
-            smc.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true);
+            smc.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true, false);
 
             Assert.AreEqual(28, model.GetActiveEntities().Count());
             Assert.AreEqual(32, model.GetSourceFragments().Count());
