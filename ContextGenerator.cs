@@ -338,9 +338,9 @@ namespace WXML2Linq
                 .Implements(typeof(System.ComponentModel.INotifyPropertyChanging))
                 .Implements(typeof(System.ComponentModel.INotifyPropertyChanged));
 
-            foreach (var item in e.Interfaces)
+            foreach (var @interface in e.Interfaces)
             {
-                cls.Implements(item.ToCodeType(Settings));
+                cls.Implements(@interface.Value.ToCodeType(Settings));
             }
 
             SourceFragmentDefinition tbl = e.GetSourceFragments().Single();
@@ -374,14 +374,15 @@ namespace WXML2Linq
                     : relation.AccessorName;
 
                 string clsName = nameHelper.GetEntityClassName(relation.Entity, true);
-                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsName);
+                var clsRef = new CodeTypeReference(clsName);
+                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsRef);
                 string fldName = nameHelper.GetPrivateMemberName(name);
                 ctor.Statements.Add(Emit.assignField(fldName,
                     () => CodeDom.@new(ft, 
                         new CodeDelegateCreateExpression(
-                            new CodeTypeReference("System.Action", new CodeTypeReference(clsName)), new CodeThisReferenceExpression(), "attach"+fldName),
+                            new CodeTypeReference("System.Action", clsRef), new CodeThisReferenceExpression(), "attach" + fldName),
                         new CodeDelegateCreateExpression(
-                            new CodeTypeReference("System.Action", new CodeTypeReference(clsName)), new CodeThisReferenceExpression(), "detach" + fldName)
+                            new CodeTypeReference("System.Action", clsRef), new CodeThisReferenceExpression(), "detach" + fldName)
                     )
                 ));
             }
@@ -443,15 +444,15 @@ namespace WXML2Linq
                 GetName(rel.SourceFragment.Name), ns.Name);
 
             string clsName = nameHelper.GetEntityClassName(re, true);
-
-            CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsName);
+            var clsRef = new CodeTypeReference(clsName);
+            CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsRef);
 
             ctor.Statements.Add(Emit.assignField(fldName,
                  () => CodeDom.@new(ft,
                     new CodeDelegateCreateExpression(
-                        new CodeTypeReference("System.Action", new CodeTypeReference(clsName)), new CodeThisReferenceExpression(), "attach" + fldName),
+                        new CodeTypeReference("System.Action", clsRef), new CodeThisReferenceExpression(), "attach" + fldName),
                     new CodeDelegateCreateExpression(
-                        new CodeTypeReference("System.Action", new CodeTypeReference(clsName)), new CodeThisReferenceExpression(), "detach" + fldName)
+                        new CodeTypeReference("System.Action", clsRef), new CodeThisReferenceExpression(), "detach" + fldName)
                )
             ));
         }
@@ -572,17 +573,21 @@ namespace WXML2Linq
 
                         prop.AddAttribute(attr);
 
-                        if (p_.Interface != null)
+                        if (p_.Interfaces.Any())
                         {
-                            if (!string.IsNullOrEmpty(p.InterfaceProperty))
+                            foreach (var interfaceProp in p_.Interfaces)
                             {
-                                var newProp = new LinqToCodedom.CodeDomPatterns.CodePropertyImplementsInterface(prop);
-                                newProp.Implements(p_.Interface.ToCodeType(Settings), p.InterfaceProperty);
-                                cls.Members.Remove(prop);
-                                cls.Members.Add(newProp);
+                                var intType = e.Interfaces[interfaceProp.Ref];
+                                if (!string.IsNullOrEmpty(interfaceProp.Prop))
+                                {
+                                    var newProp = new LinqToCodedom.CodeDomPatterns.CodePropertyImplementsInterface(prop);
+                                    newProp.Implements(intType.ToCodeType(Settings), interfaceProp.Prop);
+                                    cls.Members.Remove(prop);
+                                    cls.Members.Add(newProp);
+                                }
+                                else
+                                    prop.Implements(intType.ToCodeType(Settings));
                             }
-                            else
-                                prop.Implements(p_.Interface.ToCodeType(Settings));
                         }
                     }
                 }
@@ -692,8 +697,8 @@ namespace WXML2Linq
                     : relation.AccessorName;
 
                 string clsName = nameHelper.GetEntityClassName(relation.Entity, true);
-
-                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsName);
+                var clsRef = new CodeTypeReference(clsName);
+                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsRef);
 
                 string fldName = nameHelper.GetPrivateMemberName(name);
 
@@ -809,20 +814,24 @@ namespace WXML2Linq
 
             eprop.AddAttribute(AddPropertyAttribute(p, efieldName));
 
-            if (p.Interface != null)
+            if (p.Interfaces.Any())
             {
-                if (!string.IsNullOrEmpty(p.InterfaceProperty))
+                foreach (var interfaceProp in p.Interfaces)
                 {
-                    var newProp = new LinqToCodedom.CodeDomPatterns.CodePropertyImplementsInterface(eprop);
-                    newProp.Implements(p.Interface.ToCodeType(Settings), p.InterfaceProperty);
-                    cls.Members.Remove(eprop);
-                    cls.Members.Add(newProp);
-                }
-                else
-                {
-                    eprop.Implements(p.Interface.ToCodeType(Settings));
-                }
+                    var intRef = p.Entity.Interfaces[interfaceProp.Ref];
 
+                    if (!string.IsNullOrEmpty(interfaceProp.Prop))
+                    {
+                        var newProp = new LinqToCodedom.CodeDomPatterns.CodePropertyImplementsInterface(eprop);
+                        newProp.Implements(intRef.ToCodeType(Settings), interfaceProp.Prop);
+                        cls.Members.Remove(eprop);
+                        cls.Members.Add(newProp);
+                    }
+                    else
+                    {
+                        eprop.Implements(intRef.ToCodeType(Settings));
+                    }
+                }
             }
         }
 
@@ -851,8 +860,8 @@ namespace WXML2Linq
                     GetName(rel.SourceFragment.Name), null/*Model.Namespace*/);
 
             string clsName = nameHelper.GetEntityClassName(re, true);
-
-            CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsName);
+            var clsRef = new CodeTypeReference(clsName);
+            CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsRef);
                 
             //fldName = NormalizeName(cls.Members.OfType<CodeMemberField>(),
             //    (fld) => fld.Name, nameHelper.GetPrivateMemberName(WXMLCodeDomGeneratorNameHelper.GetMultipleForm(ename)), 0);
@@ -919,8 +928,8 @@ namespace WXML2Linq
                     : relation.AccessorName;
 
                 string clsName = nameHelper.GetEntityClassName(relation.Entity, true);
-
-                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsName);
+                var clsRef = new CodeTypeReference(clsName);
+                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsRef);
 
                 cls.AddField(ft,
                      WXMLCodeDomGenerator.GetMemberAttribute(AccessLevel.Private),
@@ -940,8 +949,8 @@ namespace WXML2Linq
                     GetName(rel.SourceFragment.Name), null/*Model.Namespace*/);
 
                 string clsName = nameHelper.GetEntityClassName(re, true);
-
-                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsName);
+                var clsRef = new CodeTypeReference(clsName);
+                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsRef);
 
                 rel.Items[LinqRelationField] = CreateRelField(cls, nameHelper, ename, ft, null);
 
@@ -962,8 +971,8 @@ namespace WXML2Linq
                     GetName(rel.SourceFragment.Name), null/*Model.Namespace*/);
 
                 string clsName = nameHelper.GetEntityClassName(re, true);
-
-                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsName);
+                var clsRef = new CodeTypeReference(clsName);
+                CodeTypeReference ft = CodeDom.TypeRef(typeof(System.Data.Linq.EntitySet<>), clsRef);
 
                 rel.Items[LinqRelationFieldDirect] = CreateRelField(cls, nameHelper, ename, ft, null);
 
