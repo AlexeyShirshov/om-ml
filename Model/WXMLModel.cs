@@ -458,7 +458,11 @@ namespace WXML.Model
                     entity.AutoInterface = newEntity.AutoInterface;
                     entity.UseGenerics = newEntity.UseGenerics;
                     entity.FamilyName = newEntity.FamilyName;
-                    entity.Interfaces.AddRange(newEntity.Interfaces);
+                    foreach (var @interface in newEntity.Interfaces)
+                    {
+                        if (!entity.Interfaces.ContainsKey(@interface.Key))
+                            entity.Interfaces.Add(@interface.Key, @interface.Value);
+                    }
 
                     entity.ClearSourceFragments();
                     foreach (SourceFragmentRefDefinition newsf in newEntity.OwnSourceFragments)

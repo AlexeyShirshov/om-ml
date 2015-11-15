@@ -102,11 +102,12 @@ namespace WXML.Model
             //    }
             //    extensionElement = e;
             //}
-            using (var reader = el.CreateReader())
-            {
-                reader.MoveToContent();
-                extensionElement.InnerXml = reader.ReadInnerXml();
-            }
+            //using (var reader = el.CreateReader())
+            //{
+            //    reader.MoveToContent();
+            //    extensionElement.InnerXml = reader.ReadInnerXml();
+            //}
+            extensionElement.InnerXml = el.ToString();
         }
 
         private void FillLinqSettings()
@@ -382,23 +383,20 @@ namespace WXML.Model
                 if (entity.CacheCheckRequired)
                     entityElement.SetAttribute("cacheCheckRequired", XmlConvert.ToString(entity.CacheCheckRequired));
 
-                if (entity.Interfaces.Count > 0 || entity.AutoInterface)
+                if (entity.AutoInterface)
+                    entityElement.SetAttribute("autoInterface", XmlConvert.ToString(entity.AutoInterface));
+
+                if (entity.Interfaces.Any())
                 {
-                    XmlElement e = null;
-                    if (entity.AutoInterface)
+                    XmlElement e = CreateElement("interfaces");
+                    foreach (var tp in entity.Interfaces)
                     {
-                        e = CreateElement("autoInterface");
+                        var t = CreateElement("interface");
+                        t.SetAttribute("id", tp.Key);
+                        t.SetAttribute("typeref", tp.Value.Identifier);
+                        e.AppendChild(t);
                     }
-                    else
-                    {
-                        e = CreateElement("interfaces");
-                        foreach (TypeDefinition tp in entity.Interfaces)
-                        {
-                            var t = CreateElement("interface");
-                            t.InnerText = tp.Identifier;
-                            e.AppendChild(t);
-                        }
-                    }
+
                     entityElement.AppendChild(e);
                 }
 
@@ -551,7 +549,7 @@ namespace WXML.Model
                 throw new NotSupportedException(rp.GetType().ToString());
 
             if (rp.PropertyAccessLevel == AccessLevel.Private &&
-                rp.Interface != null)
+                rp.Interfaces.Any())
             {
                 string[] ss = rp.Name.Split(':');
                 if (ss.Length > 1)
@@ -623,12 +621,18 @@ namespace WXML.Model
             if (!string.IsNullOrEmpty(rp.Feature))
                 propertyElement.SetAttribute("feature", rp.Feature);
 
-            if (rp.Interface != null)
-            {
-                propertyElement.SetAttribute("interface", rp.Interface.Identifier);
+            if (rp.Interfaces.Any())
+            {                
+                var implElement = CreateElement("implement");
+                propertyElement.AppendChild(implElement);
 
-                if (!string.IsNullOrEmpty(rp.InterfaceProperty))
-                    propertyElement.SetAttribute("interfaceProperty", rp.InterfaceProperty);
+                foreach (var interfaceId in rp.Interfaces)
+                {
+                    var intElement = CreateElement("interface");
+                    implElement.AppendChild(intElement);
+                    intElement.SetAttribute("ref", interfaceId.Ref);
+                    intElement.SetAttribute("property", interfaceId.Prop);
+                }
             }
 
             if (rp is ScalarPropertyDefinition)
