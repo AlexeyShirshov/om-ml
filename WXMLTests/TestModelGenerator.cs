@@ -217,7 +217,7 @@ namespace TestsSourceModel
 
             SourceToModelConnector c = new SourceToModelConnector(sv, model);
 
-            c.ApplySourceViewToModel(false, relation1to1.Unify, true, true);
+            c.ApplySourceViewToModel(false, relation1to1.Unify, true, true, false);
 
             Assert.AreEqual(2, model.GetSourceFragments().Count());
 
@@ -335,7 +335,7 @@ namespace TestsSourceModel
 
             Assert.AreEqual(3, sv.SourceFields.Count);
 
-            c.ApplySourceViewToModel(true, relation1to1.Default, true, true);
+            c.ApplySourceViewToModel(true, relation1to1.Default, true, true, false);
 
             Assert.AreEqual(3, model.GetActiveEntities().First().GetActiveProperties().Count());
 
@@ -343,7 +343,7 @@ namespace TestsSourceModel
 
             Assert.AreEqual(4, sv.SourceFields.Count);
 
-            c.ApplySourceViewToModel(true, relation1to1.Default, true, true);
+            c.ApplySourceViewToModel(true, relation1to1.Default, true, true, false);
 
             Assert.AreEqual(4, model.GetActiveEntities().First().GetActiveProperties().Count());
         }
@@ -369,7 +369,7 @@ namespace TestsSourceModel
 
             Assert.AreEqual(7, sv.SourceFields.Count);
 
-            c.ApplySourceViewToModel(true, relation1to1.Default, true, true);
+            c.ApplySourceViewToModel(true, relation1to1.Default, true, true, false);
 
             Assert.AreEqual(3, model.GetEntity("e_dbo_aspnet_Paths").GetActiveProperties().Count());
         }
@@ -587,7 +587,7 @@ namespace TestsSourceModel
 
             SourceToModelConnector c = new SourceToModelConnector(view, model);
 
-            c.ApplySourceViewToModel(false, relation1to1.Default, true, true);
+            c.ApplySourceViewToModel(false, relation1to1.Default, true, true, false);
 
             Assert.AreEqual(70, model.GetActiveEntities().Count());
 
@@ -595,7 +595,7 @@ namespace TestsSourceModel
 
             model = new WXMLModel();
             c = new SourceToModelConnector(view, model);
-            c.ApplySourceViewToModel(false, relation1to1.Unify, true, true);
+            c.ApplySourceViewToModel(false, relation1to1.Unify, true, true, false);
 
             Assert.AreEqual(67, model.GetActiveEntities().Count());
 
@@ -603,7 +603,7 @@ namespace TestsSourceModel
 
             model = new WXMLModel();
             c = new SourceToModelConnector(view, model);
-            c.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true);
+            c.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true, false);
 
             Assert.AreEqual(70, model.GetActiveEntities().Count());
 

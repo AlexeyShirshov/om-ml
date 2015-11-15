@@ -51,8 +51,6 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Repository", "Repository\Re
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenTests", "Worm4.0\WormCodeGenTests\WormCodeGenTests.csproj", "{FD0ADB48-33C6-4399-9943-6ACAB857CF53}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCustomTool", "Worm4.0\WormCustomTool\WormCustomTool.csproj", "{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WormCodeGenerator", "Worm4.0\WormGenerator\WormCodeGenerator.csproj", "{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLToWorm", "Worm4.0\WXMLToWorm\WXMLToWorm.csproj", "{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9}"
@@ -61,7 +59,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MySQLProvider", "MySQLProvi
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 12
+		SccNumberOfProjects = 11
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs04
 		SccLocalPath0 = .
@@ -93,22 +91,18 @@ Global
 		SccProjectTopLevelParentUniqueName7 = WXML.sln
 		SccProjectName7 = Worm4.0/WormCodeGenTests
 		SccLocalPath7 = Worm4.0\\WormCodeGenTests
-		SccProjectUniqueName8 = Worm4.0\\WormCustomTool\\WormCustomTool.csproj
+		SccProjectUniqueName8 = Worm4.0\\WormGenerator\\WormCodeGenerator.csproj
 		SccProjectTopLevelParentUniqueName8 = WXML.sln
-		SccProjectName8 = Worm4.0/WormCustomTool
-		SccLocalPath8 = Worm4.0\\WormCustomTool
-		SccProjectUniqueName9 = Worm4.0\\WormGenerator\\WormCodeGenerator.csproj
+		SccProjectName8 = Worm4.0/WormGenerator
+		SccLocalPath8 = Worm4.0\\WormGenerator
+		SccProjectUniqueName9 = Worm4.0\\WXMLToWorm\\WXMLToWorm.csproj
 		SccProjectTopLevelParentUniqueName9 = WXML.sln
-		SccProjectName9 = Worm4.0/WormGenerator
-		SccLocalPath9 = Worm4.0\\WormGenerator
-		SccProjectUniqueName10 = Worm4.0\\WXMLToWorm\\WXMLToWorm.csproj
+		SccProjectName9 = Worm4.0/WXMLToWorm
+		SccLocalPath9 = Worm4.0\\WXMLToWorm
+		SccProjectUniqueName10 = MySQLProvider\\MySQLProvider.csproj
 		SccProjectTopLevelParentUniqueName10 = WXML.sln
-		SccProjectName10 = Worm4.0/WXMLToWorm
-		SccLocalPath10 = Worm4.0\\WXMLToWorm
-		SccProjectUniqueName11 = MySQLProvider\\MySQLProvider.csproj
-		SccProjectTopLevelParentUniqueName11 = WXML.sln
-		SccProjectName11 = MySQLProvider
-		SccLocalPath11 = MySQLProvider
+		SccProjectName10 = MySQLProvider
+		SccLocalPath10 = MySQLProvider
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug AddIn|Any CPU = Debug AddIn|Any CPU
@@ -188,16 +182,6 @@ Global
 		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
 		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD0ADB48-33C6-4399-9943-6ACAB857CF53}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug AddIn|Any CPU.ActiveCfg = Debug AddIn|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug AddIn|Any CPU.Build.0 = Debug AddIn|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug_Trace|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug_Trace|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.DebugNonUserInstance|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.DebugNonUserInstance|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug AddIn|Any CPU.ActiveCfg = DebugNonUserInstance|Any CPU
 		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug AddIn|Any CPU.Build.0 = DebugNonUserInstance|Any CPU
 		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001}.Debug_Trace|Any CPU.ActiveCfg = Debug_Trace|Any CPU
@@ -241,7 +225,6 @@ Global
 		{D6A966E4-4E33-4C61-872B-0C6CDC321AFD} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
 		{CD2D4A37-6DD4-4E5B-B306-F6660858E07F} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
 		{FD0ADB48-33C6-4399-9943-6ACAB857CF53} = {6D9187BB-6467-42E5-853C-85A048443B79}
-		{0B3CE332-EE5D-4F0A-9DEB-8B2C0D8F6EC0} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{0B290026-7AE0-462C-BECC-7659DA733D7A} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}

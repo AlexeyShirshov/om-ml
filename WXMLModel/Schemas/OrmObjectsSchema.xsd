@@ -14,24 +14,11 @@
     </xs:annotation>
     <xs:sequence>
       <xs:sequence>
-        <xs:choice minOccurs="0" maxOccurs="1">
-          <xs:element name="autoInterface">
-            <xs:annotation>
-              <xs:documentation>Определяет генерировать интерфейс для сущности</xs:documentation>
-            </xs:annotation>
-          </xs:element>
-          <xs:element name="interfaces">
-            <xs:complexType>
-              <xs:sequence minOccurs="1" maxOccurs="unbounded">
-                <xs:element name="interface" type="xs:Name" />
-              </xs:sequence>
-            </xs:complexType>
-            <xs:keyref name="interfaceType" refer="TypeId">
-              <xs:selector xpath="NS:interface" />
-              <xs:field xpath="." />
-            </xs:keyref>
-          </xs:element>
-        </xs:choice>
+        <xs:element name="interfaces" type="Interfaces_t" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>Список ннтерфейс для реализации</xs:documentation>
+          </xs:annotation>
+        </xs:element>
         <xs:element name="SourceFragments" type="SourceFragmentRefCollection_t" minOccurs="0" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>Список используемых таблиц</xs:documentation>
@@ -155,6 +142,7 @@
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />
+    <xs:attribute name="autoInterface" type="xs:boolean" use="optional" default="false" />
   </xs:complexType>
   <xs:complexType name="SupperessedPropertiesCollection_t">
     <xs:annotation>
@@ -237,6 +225,10 @@
           <xs:selector xpath="NS:extension" />
           <xs:field xpath="@name" />
         </xs:key>
+        <xs:key name="EntityInterfaces">
+          <xs:selector xpath="NS:interfaces/NS:interface" />
+          <xs:field xpath="@id" />
+        </xs:key>
       </xs:element>
     </xs:sequence>
   </xs:complexType>
@@ -272,8 +264,8 @@
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />
-    <xs:attribute name="interface" type="Name_t" use="optional" />
-    <xs:attribute name="interfaceProperty" type="Name_t" use="optional" />
+    <!--<xs:attribute name="interface" type="Name_t" use="optional" />
+    <xs:attribute name="interfaceProperty" type="Name_t" use="optional" />-->
   </xs:attributeGroup>
   <xs:attributeGroup name="mappedPropertyAttributeGroup">
     <xs:attributeGroup ref="NS:propertyAttributeGroup" />
@@ -382,6 +374,12 @@
       <xs:documentation>Свойство сущности</xs:documentation>
     </xs:annotation>
     <xs:sequence>
+      <xs:element name="implement" type="Implements_t" minOccurs="0" maxOccurs="unbounded">
+        <xs:unique name="property_implements_uniq">
+          <xs:selector xpath="."/>
+          <xs:field xpath="@ref" />
+        </xs:unique>
+      </xs:element>
       <xs:element name="extension" type="extension_t" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
     <!--<xs:attribute name="id" type="xs:Name" use="required">
@@ -412,14 +410,20 @@
           <xs:attributeGroup ref="NS:sourceFieldAttributeGroup" />
         </xs:complexType>
       </xs:element>
-      <xs:element name="extension" type="extension_t" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="implement" type="Implements_t" minOccurs="0" maxOccurs="unbounded">
+        <xs:unique name="entityprop_implements_uniq">
+          <xs:selector xpath="."/>
+          <xs:field xpath="@ref" />
+        </xs:unique>
+      </xs:element>
+      <xs:element name="extension" type="extension_t" minOccurs="0" maxOccurs="unbounded" />      
     </xs:sequence>
     <xs:attribute name="referencedEntity" type="xs:Name" use="optional">
       <xs:annotation>
         <xs:documentation>Имя сущности</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attributeGroup ref ="NS:mappedPropertyAttributeGroup" />
+    <xs:attributeGroup ref ="NS:mappedPropertyAttributeGroup" />    
   </xs:complexType>
   <xs:complexType name="CustomProperty_t">
     <xs:annotation>
@@ -430,6 +434,12 @@
         <xs:element name="Get" minOccurs="1" maxOccurs="1" type="CustomPropertyBody_t" />
         <xs:element name="Set" minOccurs="0" maxOccurs="1" type="CustomPropertyBody_t" />
       </xs:sequence>
+      <xs:element name="implement" type="Implements_t" minOccurs="0" maxOccurs="unbounded">
+        <xs:unique name="customprop_implements_uniq">
+          <xs:selector xpath="."/>
+          <xs:field xpath="@ref" />
+        </xs:unique>
+      </xs:element>
       <xs:element name="extension" type="extension_t" minOccurs="0" maxOccurs="unbounded" />
     </xs:sequence>
     <xs:attribute name="type" type="xs:Name" use="optional">
@@ -1073,4 +1083,54 @@
       </xs:simpleType>
     </xs:list>
   </xs:simpleType>
+  
+  <xs:complexType name="Interface_t" mixed="false">
+    <xs:annotation>
+      <xs:documentation>Интерфейс для реализации</xs:documentation>
+    </xs:annotation>
+    <!--<xs:sequence>
+      <xs:element name="typeref" minOccurs="0" maxOccurs="unbounded" type="Name_t">
+        <xs:keyref name="genericType" refer="TypeId">
+          <xs:selector xpath="." />
+          <xs:field xpath="." />
+        </xs:keyref>
+      </xs:element>
+    </xs:sequence>-->
+    <xs:attribute name="typeref" use="required" type="Name_t" />
+    <xs:attribute name="id" use="required" type="Name_t" />
+  </xs:complexType>
+
+  <xs:complexType name="Interfaces_t">
+    <xs:sequence minOccurs="1" maxOccurs="unbounded">
+      <xs:element name="interface" type="Interface_t">
+        <xs:keyref name="interfaceType" refer="TypeId">
+          <xs:selector xpath="."/>
+          <xs:field xpath="@typeref" />
+        </xs:keyref>
+        <xs:unique name="interface_uniq">
+          <xs:selector xpath="."/>
+          <xs:field xpath="@id" />
+        </xs:unique>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Implements_t">
+    <xs:sequence minOccurs="1" maxOccurs="unbounded">
+      <xs:element name="interface">
+        <xs:complexType>
+          <xs:attribute name="ref" use="required" type="Name_t" />
+          <xs:attribute name="property" use="optional" type="Name_t">
+            <xs:annotation>
+              <xs:documentation>Свойство интерфейса для реализации</xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+        </xs:complexType>
+        <xs:keyref name="implements" refer="EntityInterfaces">
+          <xs:selector xpath="."/>
+          <xs:field xpath="@ref" />
+        </xs:keyref>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
 </xs:schema>

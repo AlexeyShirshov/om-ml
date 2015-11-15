@@ -45,8 +45,7 @@
 		</oos:Type>
 	</oos:Types>
 	<oos:Entities>
-		<oos:Entity id="eArtist" name="Artist" description="Artist Description">
-      <oos:autoInterface />
+		<oos:Entity id="eArtist" name="Artist" description="Artist Description" autoInterface="true">
       <oos:SourceFragments>
 				<oos:SourceFragment ref="tblArtists"/>
 				<oos:SourceFragment ref="tblSiteAccess"/>

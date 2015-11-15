@@ -21,6 +21,11 @@ namespace WXML.Model.Descriptors
         }
     }
 
+    public class PropertyInterface
+    {
+        public string Ref { get; set; }
+        public string Prop { get; set; }
+    }
     public abstract class PropertyDefinition : ICloneable, IExtensible
     {
         private TypeDefinition _type;
@@ -35,7 +40,11 @@ namespace WXML.Model.Descriptors
         private readonly Dictionary<Extension, XElement> _extensions = new Dictionary<Extension, XElement>();
         private string _feature;
 
-        protected PropertyDefinition() {}
+        protected PropertyDefinition() 
+        {
+            GenerateAttribute = true;
+            Interfaces = new List<PropertyInterface>();
+        }
 
         protected PropertyDefinition(string propertyName, string propertyAlias, TypeDefinition type, Field2DbRelations attributes, 
             string description, AccessLevel fieldAccessLevel, AccessLevel propertyAccessLevel, 
@@ -49,6 +58,8 @@ namespace WXML.Model.Descriptors
             _fieldAccessLevel = fieldAccessLevel;
             _propertyAccessLevel = propertyAccessLevel;
             Entity = entity;
+            GenerateAttribute = true;
+            Interfaces = new List<PropertyInterface>();
         }
 
         public string Identifier
@@ -135,8 +146,7 @@ namespace WXML.Model.Descriptors
         public string AvailableFrom { get; set; }
         public string AvailableTo { get; set; }
 
-        public TypeDefinition Interface { get; set; }
-        public string InterfaceProperty { get; set; }
+        public List<PropertyInterface> Interfaces { get; set; }
         public bool HasAttribute(Field2DbRelations attribute)
         {
             return (_attributes & attribute) == attribute;

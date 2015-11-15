@@ -58,7 +58,7 @@ namespace WXML.Model.Descriptors
             if (model != null && !model.GetEntities().Any(item=>item.Identifier == id))
                 model.AddEntity(this);
 
-            Interfaces = new List<TypeDefinition>();
+            Interfaces = new Dictionary<string, TypeDefinition>();
         }
 
         #region Properties
@@ -567,7 +567,7 @@ namespace WXML.Model.Descriptors
         public bool UseGenerics { get; set; }
 
         public bool AutoInterface { get; set; }
-        public List<TypeDefinition> Interfaces { get; set; }
+        public Dictionary<string, TypeDefinition> Interfaces { get; set; }
 
         public bool Disabled { get; set; }
 

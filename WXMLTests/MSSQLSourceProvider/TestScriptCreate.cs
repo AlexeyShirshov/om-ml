@@ -119,7 +119,7 @@ namespace WXMLTests
             var model = new WXMLModel();
 
             var smc = new SourceToModelConnector(sv, model);
-            smc.ApplySourceViewToModel(false, relation1to1.Unify, true, true);
+            smc.ApplySourceViewToModel(false, relation1to1.Unify, true, true, false);
 
             Assert.AreEqual(25, model.GetActiveEntities().Count());
             Assert.AreEqual(32, model.GetSourceFragments().Count());
@@ -145,7 +145,7 @@ namespace WXMLTests
             var model = new WXMLModel();
 
             var smc = new SourceToModelConnector(sv, model);
-            smc.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true);
+            smc.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true, false);
 
             Assert.AreEqual(28, model.GetActiveEntities().Count());
             Assert.AreEqual(32, model.GetSourceFragments().Count());
@@ -190,7 +190,7 @@ namespace WXMLTests
             var model = new WXMLModel();
 
             var smc = new SourceToModelConnector(sv, model);
-            smc.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true);
+            smc.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true, false);
 
             Assert.AreEqual(28, model.GetActiveEntities().Count());
             Assert.AreEqual(32, model.GetSourceFragments().Count());
@@ -230,7 +230,7 @@ namespace WXMLTests
             var model = new WXMLModel();
 
             var smc = new SourceToModelConnector(sv, model);
-            smc.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true);
+            smc.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true, false);
 
             Assert.AreEqual(28, model.GetActiveEntities().Count());
             Assert.AreEqual(32, model.GetSourceFragments().Count());
@@ -261,7 +261,7 @@ namespace WXMLTests
             var model = new WXMLModel();
 
             var smc = new SourceToModelConnector(sv, model);
-            smc.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true);
+            smc.ApplySourceViewToModel(false, relation1to1.Hierarchy, true, true, false);
 
             Assert.AreEqual(2, model.GetActiveEntities().Count());
             Assert.AreEqual(2, model.GetSourceFragments().Count());

@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <WXMLModel xmlns="http://wise-orm.com/WXMLSchema.xsd" defaultNamespace="test" xmlns:xi="http://www.w3.org/2001/XInclude">
 	<Entities>
-		<Entity id="e1" name="E1" namespace="NS1">
-      <autoInterface />
+		<Entity id="e1" name="E1" namespace="NS1" autoInterface="true">
 			<SourceFragments>
 				<SourceFragment ref="tbl1"/>
 			</SourceFragments>

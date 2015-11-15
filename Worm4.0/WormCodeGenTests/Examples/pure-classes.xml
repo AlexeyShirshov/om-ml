@@ -15,14 +15,12 @@
     </Type>
   </Types>
   <Entities>
-    <Entity id="e1">
-      <autoInterface />
+    <Entity id="e1" autoInterface="true">
       <Properties>
         <Property name="ID" type="tInt32" />
       </Properties>
     </Entity>
-    <Entity id="e2">
-      <autoInterface />
+    <Entity id="e2" autoInterface="true">
       <Properties>
         <Property name="ID" type="tInt32" />
         <EntityProperty name="prop1" referencedEntity="e1">

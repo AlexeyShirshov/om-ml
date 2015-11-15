@@ -226,7 +226,22 @@ namespace WXML.Model
                 _model.AddType(type);
             }
         }
-
+        protected void FillInterfaces(XmlElement entityElement, EntityDefinition entity)
+        {
+            XmlNode interfaces = entityElement.SelectSingleNode(string.Format("{0}:interfaces", WXMLModel.NS_PREFIX), _nsMgr);
+            if (interfaces != null)
+            {
+                foreach (XmlElement @interface in interfaces.SelectNodes(string.Format("{0}:interface", WXMLModel.NS_PREFIX), _nsMgr))
+                {
+                    var name = @interface.GetAttribute("typeref");
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        TypeDefinition type = _model.GetType(name, true);
+                        entity.Interfaces.Add(@interface.GetAttribute("id"), type);
+                    }
+                }
+            }
+        }
         internal protected void FillEntities()
         {
             foreach (EntityDefinition entity in _model.OwnEntities)
@@ -235,22 +250,7 @@ namespace WXML.Model
                         string.Format("{0}:Entities/{0}:Entity[@id='{1}']", WXMLModel.NS_PREFIX,
                                       entity.Identifier), _nsMgr);
 
-                XmlNode interfaces = entityElement.SelectSingleNode(string.Format("{0}:autoInterface", WXMLModel.NS_PREFIX), _nsMgr);
-
-                if (interfaces != null)
-                    entity.AutoInterface = true;
-                else
-                {
-                    interfaces = entityElement.SelectSingleNode(string.Format("{0}:interfaces", WXMLModel.NS_PREFIX), _nsMgr);
-                    if (interfaces != null)
-                    {
-                        foreach (XmlElement @interface in interfaces.SelectNodes(string.Format("{0}:interface", WXMLModel.NS_PREFIX), _nsMgr))
-                        {
-                            TypeDefinition type = _model.GetType(@interface.InnerText, true);
-                            entity.Interfaces.Add(type);
-                        }
-                    }
-                }
+                FillInterfaces(entityElement, entity);
 
                 string baseEntityId = entityElement.GetAttribute("baseEntity");
 
@@ -264,6 +264,11 @@ namespace WXML.Model
                     entity.BaseEntity = baseEntity;
                 }
 
+                string autoInterfaces = entityElement.GetAttribute("autoInterface");
+                bool autoI;
+                if (bool.TryParse(autoInterfaces, out autoI))
+                    entity.AutoInterface = autoI;
+
                 FillProperties(entity);
                 FillSuppresedProperties(entity);
 
@@ -272,7 +277,6 @@ namespace WXML.Model
 
                 if (extensionsNode != null)
                 {
-
                     foreach (XmlElement extension in extensionsNode)
                     {
                         FillExtension(entity.Extensions, extension);
@@ -580,21 +584,10 @@ namespace WXML.Model
                 PropertyAccessLevel = g.propertyAccessLevel
             };
 
-            var extensionsNode =
-                propertyElement.SelectNodes(string.Format("{0}:extension", WXMLModel.NS_PREFIX), _nsMgr);
-
-            if (extensionsNode != null)
-            {
-                foreach (XmlElement extension in extensionsNode)
-                {
-                    FillExtension(property.Extensions, extension);
-                }
-            }
-
-            g.PostProcess(property, _model);
+            g.PostProcess(property, _model, propertyElement, _nsMgr);
 
             if (property.PropertyAccessLevel == AccessLevel.Private &&
-                property.Interface != null)
+                property.Interfaces.Any())
                 property.Name = "private:" + property.Name;
 
             entity.AddProperty(property);
@@ -611,8 +604,8 @@ namespace WXML.Model
             public ObsoleteType obsolete = ObsoleteType.None;
             public string propertyObsoleteDescription;
             public string mergeAction;
-            public string interf;
-            public string interfProp;
+            //public string interf;
+            //public string interfProp;
 
             public propGroup(XmlElement propertyElement)
             {
@@ -623,8 +616,8 @@ namespace WXML.Model
                 string propertyObsolete = propertyElement.GetAttribute("obsolete");
                 propertyObsoleteDescription = propertyElement.GetAttribute("obsoleteDescription");
                 mergeAction = propertyElement.GetAttribute("action");
-                interf = propertyElement.GetAttribute("interface");
-                interfProp = propertyElement.GetAttribute("interfaceProperty");
+                //interf = propertyElement.GetAttribute("interface");
+                //interfProp = propertyElement.GetAttribute("interfaceProperty");
 
                 if (!string.IsNullOrEmpty(propertyAccessLevelName))
                     propertyAccessLevel = (AccessLevel)Enum.Parse(typeof(AccessLevel), propertyAccessLevelName);
@@ -640,17 +633,46 @@ namespace WXML.Model
                 }
             }
 
-            public void PostProcess(PropertyDefinition property, WXMLModel model)
+            public void PostProcess(PropertyDefinition property, WXMLModel model, XmlElement propertyElement, XmlNamespaceManager nsMgr)
             {
-                if (!string.IsNullOrEmpty(interf))
-                    property.Interface = model.GetType(interf, true);
+                //if (!string.IsNullOrEmpty(interf))
+                //    property.Interface = model.GetType(interf, true);
 
-                if (!string.IsNullOrEmpty(interfProp))
-                    property.InterfaceProperty = interfProp;
+                //if (!string.IsNullOrEmpty(interfProp))
+                //    property.InterfaceProperty = interfProp;
 
                 if (!string.IsNullOrEmpty(mergeAction))
                     property.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
 
+                var extensionsNode =
+                    propertyElement.SelectNodes(string.Format("{0}:extension", WXMLModel.NS_PREFIX), nsMgr);
+
+                if (extensionsNode != null)
+                {
+                    foreach (XmlElement extension in extensionsNode)
+                    {
+                        FillExtension(property.Extensions, extension);
+                    }
+                }
+
+                var implementNode =
+                    propertyElement.SelectSingleNode(string.Format("{0}:implement", WXMLModel.NS_PREFIX), nsMgr);
+
+                if (implementNode != null)
+                {
+                    foreach (XmlElement @interface in implementNode.SelectNodes(string.Format("{0}:interface", WXMLModel.NS_PREFIX), nsMgr))
+                    {
+                        var @ref = @interface.GetAttribute("ref");
+                        if (property.Entity.Interfaces.ContainsKey(@ref))
+                        {
+                            property.Interfaces.Add(new PropertyInterface { Ref = @ref, Prop = @interface.GetAttribute("property") });
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                }
             }
         }
 
@@ -751,18 +773,7 @@ namespace WXML.Model
                     f.sz, f.isNullable, f.dbTypeDefault);
             }
 
-            var extensionsNode =
-                propertyElement.SelectNodes(string.Format("{0}:extension", WXMLModel.NS_PREFIX), _nsMgr);
-
-            if (extensionsNode != null)
-            {
-                foreach (XmlElement extension in extensionsNode)
-                {
-                    FillExtension(property.Extensions, extension);
-                }
-            }
-
-            g.PostProcess(property, _model);
+            g.PostProcess(property, _model, propertyElement, _nsMgr);
 
             entity.AddProperty(property);
         }
@@ -834,18 +845,7 @@ namespace WXML.Model
                 Feature=feature
             };
 
-            var extensionsNode =
-                propertyElement.SelectNodes(string.Format("{0}:extension", WXMLModel.NS_PREFIX), _nsMgr);
-
-            if (extensionsNode != null)
-            {
-                foreach (XmlElement extension in extensionsNode)
-                {
-                    FillExtension(property.Extensions, extension);
-                }
-            }
-
-            g.PostProcess(property, _model);
+            g.PostProcess(property, _model, propertyElement, _nsMgr);
 
             if (typeDesc.IsEntityType)
             {
