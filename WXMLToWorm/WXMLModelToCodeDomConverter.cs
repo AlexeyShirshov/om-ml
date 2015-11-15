@@ -1617,11 +1617,11 @@ namespace WXMLToWorm
 			EntityDefinition entity = entityClass.Entity;
 			if (entity.AutoInterface)
 				CreateEntityInterfaces(entityNamespace, entityClass);
-			else if (entity.Interfaces.Count > 0)
+			else if (entity.Interfaces.Any())
 			{
 				foreach (var @interface in entity.Interfaces)
 				{
-					entityClass.Implements(@interface.ToCodeType(Settings));
+					entityClass.Implements(@interface.Value.ToCodeType(Settings));
 				}
 			}
 
@@ -1900,7 +1900,6 @@ namespace WXMLToWorm
 		{
 			CodeTypeReference fieldType = propertyDesc.PropertyType.ToCodeType(Settings);
 			CodeMemberProperty property = null;
-			CodeTypeMember prop2add = null;
 
 			bool emptyField = propertyDesc is ScalarPropertyDefinition ?
 				string.IsNullOrEmpty((propertyDesc as ScalarPropertyDefinition).SourceFieldExpression) :
@@ -2067,26 +2066,36 @@ namespace WXMLToWorm
 				}
 			}
 
-			prop2add = property;
-			if (propertyDesc.Interface != null)
+            var propertyInt = new CodePropertyImplementsInterface(property);
+            if (propertyDesc.Interfaces.Any())
 			{
-				property.Implements(propertyDesc.Interface.ToCodeType(Settings));
-				if (propertyDesc.PropertyAccessLevel == AccessLevel.Private)
-				{
-					string[] ss = propertyDesc.Name.Split(':');
-					if (ss.Length > 1)
-						property.Name = ss[1];
-				}
+                CodeTypeMember prop2add = null;
+                foreach (var interfaceProp in propertyDesc.Interfaces)
+                {
+                    var intType = entity.Interfaces[interfaceProp.Ref];
+                    property.Implements(intType.ToCodeType(Settings));
+                    if (propertyDesc.PropertyAccessLevel == AccessLevel.Private)
+                    {
+                        string[] ss = propertyDesc.Name.Split(':');
+                        if (ss.Length > 1)
+                            property.Name = ss[1];
+                    }
 
-				if (!string.IsNullOrEmpty(propertyDesc.InterfaceProperty))
-				{
-					var propertyInt = new CodePropertyImplementsInterface(property);
-					propertyInt.Implements(propertyDesc.Interface.ToCodeType(Settings), propertyDesc.InterfaceProperty);
-					prop2add = propertyInt;
-				}
-			}
+                    if (!string.IsNullOrEmpty(interfaceProp.Prop))
+                    {
+                        propertyInt.Implements(intType.ToCodeType(Settings), interfaceProp.Prop);
+                        prop2add = propertyInt;
+                    }
+                }
 
-			entityClass.Members.Add(prop2add);
+                if (prop2add != null)
+                    entityClass.Members.Add(prop2add);
+                else
+                    entityClass.Members.Add(property);
+            }
+            else
+                entityClass.Members.Add(property);
+
 			return property;
 		}
 

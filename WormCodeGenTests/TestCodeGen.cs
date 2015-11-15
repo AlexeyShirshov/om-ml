@@ -213,8 +213,9 @@ namespace WormCodeGenTests
         public static Assembly TestCSCodeInternal(WXMLModel model, WXMLCodeDomGeneratorSettings settings,
             params CodeCompileUnit[] units)
         {
-            var providerOptions = new Dictionary<string, string> { { "CompilerVersion", "v3.5" } };
-            CodeDomProvider prov = new Microsoft.CSharp.CSharpCodeProvider(providerOptions);
+            //var providerOptions = new Dictionary<string, string> { { "CompilerVersion", "v3.5" } };
+            //var providerOptions = new Dictionary<string, string> { { "CompilerVersion", "v4.0" } };
+            CodeDomProvider prov = new Microsoft.CSharp.CSharpCodeProvider();
             settings.LanguageSpecificHacks = LanguageSpecificHacks.CSharp;
             //settings.RemoveOldM2M = true;
             //settings.Split = false;
@@ -242,7 +243,7 @@ namespace WormCodeGenTests
         private static void CompileCode(CodeDomProvider prov, WXMLCodeDomGeneratorSettings settings,
             XmlReader reader)
         {
-            CompileCode(prov, false, settings, WXMLModel.LoadFromXml(reader, new TestXmlUrlResolver()));
+            CompileCode(prov, true, settings, WXMLModel.LoadFromXml(reader, new TestXmlUrlResolver()));
         }
 
 
@@ -278,6 +279,12 @@ namespace WormCodeGenTests
             if (settings.SingleFile.HasValue ? settings.SingleFile.Value : model.GenerateSingleFile)
             {
                 singleUnit = gen.GetFullSingleUnit(typeof(Microsoft.VisualBasic.VBCodeProvider).IsAssignableFrom(prov.GetType()) ? LinqToCodedom.CodeDomGenerator.Language.VB : LinqToCodedom.CodeDomGenerator.Language.CSharp);
+                singleUnit.Namespaces.Add(new CodeNamespace("System"));
+                singleUnit.Namespaces.Add(new CodeNamespace("System.Data"));
+                singleUnit.Namespaces.Add(new CodeNamespace("System.Data.Linq"));
+                singleUnit.Namespaces.Add(new CodeNamespace("System.Linq"));
+                singleUnit.Namespaces.Add(new CodeNamespace("System.Linq.Expressions"));
+                singleUnit.Namespaces.Add(new CodeNamespace("System.Collections.Generic"));
                 var l = new List<CodeCompileUnit>();
                 l.Add(singleUnit);
                 if (units != null)
@@ -308,6 +315,14 @@ namespace WormCodeGenTests
                         singleUnit.Namespaces.AddRange(item.Namespaces);
                     }
                 }
+
+                singleUnit.Namespaces.Add(new CodeNamespace("System"));
+                singleUnit.Namespaces.Add(new CodeNamespace("System.Data"));
+                singleUnit.Namespaces.Add(new CodeNamespace("System.Data.Linq"));
+                singleUnit.Namespaces.Add(new CodeNamespace("System.Linq"));
+                singleUnit.Namespaces.Add(new CodeNamespace("System.Linq.Expressions"));
+                singleUnit.Namespaces.Add(new CodeNamespace("System.Collections.Generic"));
+
                 result = prov.CompileAssemblyFromDom(prms, l.ToArray());
             }
 
@@ -531,7 +546,7 @@ namespace WormCodeGenTests
                     )
                     .AddInterface(Define.Interface("MyInterface2")
                         .AddProperty(typeof(int), MemberAttributes.Public, "ID")
-                        .AddProperty(CodeDom.TypeRef("MyInterface"), MemberAttributes.Public, "prop1")
+                        .AddProperty(CodeDom.TypeRef(new CodeTypeReference("MyInterface")), MemberAttributes.Public, "prop1")
                     )
                 ;
 
@@ -583,8 +598,9 @@ namespace WormCodeGenTests
         public Assembly TestVBCodeInternal(WXMLModel model, WXMLCodeDomGeneratorSettings settings,
             params CodeCompileUnit[] units)
         {
-            var providerOptions = new Dictionary<string, string> { { "CompilerVersion", "v3.5" } };
-            CodeDomProvider prov = new Microsoft.VisualBasic.VBCodeProvider(providerOptions);
+            //var providerOptions = new Dictionary<string, string> { { "CompilerVersion", "v3.5" } };
+            //var providerOptions = new Dictionary<string, string> { { "CompilerVersion", "v4.0" } };
+            CodeDomProvider prov = new Microsoft.VisualBasic.VBCodeProvider();
 
             settings.LanguageSpecificHacks = LanguageSpecificHacks.VisualBasic;
             //settings.RemoveOldM2M = true;
