@@ -133,7 +133,7 @@ namespace LinqCodeGenTests
 
             SourceToModelConnector c = new SourceToModelConnector(sv, model);
 
-            c.ApplySourceViewToModel(false, relation1to1.Default, true, false);
+            c.ApplySourceViewToModel(false, relation1to1.Default, true, false, false);
 
             Assert.AreEqual(3, model.GetSourceFragments().Count());
 
@@ -202,7 +202,7 @@ namespace LinqCodeGenTests
 
             SourceToModelConnector c = new SourceToModelConnector(sv, model);
 
-            c.ApplySourceViewToModel(false, relation1to1.Default, false, false);
+            c.ApplySourceViewToModel(false, relation1to1.Default, false, false, false);
 
             Assert.AreEqual(10, model.GetSourceFragments().Count());
 
@@ -296,7 +296,7 @@ namespace LinqCodeGenTests
 
             SourceToModelConnector c = new SourceToModelConnector(view, model);
 
-            c.ApplySourceViewToModel(false, relation1to1.Default, false, false);
+            c.ApplySourceViewToModel(false, relation1to1.Default, false, false, false);
 
             LinqContextGenerator gen = new LinqContextGenerator(model);
             
