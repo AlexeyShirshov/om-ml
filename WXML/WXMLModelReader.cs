@@ -1038,10 +1038,12 @@ namespace WXML.Model
                 };
 
                 SelfRelationDefinition relation = new SelfRelationDefinition(entity, entityProperties.Split(' '),
-                    directTarget, reverseTarget, relationTable, underlyingEntity, disabled)
+                    directTarget, reverseTarget, relationTable, underlyingEntity, disabled);
+
+                if (!string.IsNullOrEmpty(constraint))
                 {
-                    Constraint = (RelationConstraint)Enum.Parse(typeof(RelationConstraint), constraint, true)
-                };
+                    relation.Constraint = (RelationConstraint)Enum.Parse(typeof(RelationConstraint), constraint, true);
+                }
 
                 if (!string.IsNullOrEmpty(mergeAction))
                     relation.Action = (MergeAction)Enum.Parse(typeof(MergeAction), mergeAction);
