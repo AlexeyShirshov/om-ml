@@ -399,8 +399,8 @@
     <xs:annotation>
       <xs:documentation>Свойство сущности</xs:documentation>
     </xs:annotation>
-    <xs:sequence>
-      <xs:element name="field" minOccurs="0" maxOccurs="unbounded">
+    <xs:choice minOccurs="1" maxOccurs="unbounded">
+      <xs:element name="field" minOccurs="1" maxOccurs="unbounded">
         <xs:complexType>
           <xs:attribute name="relatedProperty" type="Name_t" use="required">
             <xs:annotation>
@@ -417,7 +417,7 @@
         </xs:unique>
       </xs:element>
       <xs:element name="extension" type="extension_t" minOccurs="0" maxOccurs="unbounded" />      
-    </xs:sequence>
+    </xs:choice>
     <xs:attribute name="referencedEntity" type="xs:Name" use="optional">
       <xs:annotation>
         <xs:documentation>Имя сущности</xs:documentation>
