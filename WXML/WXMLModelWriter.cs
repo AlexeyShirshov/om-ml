@@ -631,7 +631,8 @@ namespace WXML.Model
                     var intElement = CreateElement("interface");
                     implElement.AppendChild(intElement);
                     intElement.SetAttribute("ref", interfaceId.Ref);
-                    intElement.SetAttribute("property", interfaceId.Prop);
+                    if (!string.IsNullOrEmpty(interfaceId.Prop))
+                        intElement.SetAttribute("property", interfaceId.Prop);
                 }
             }
 
