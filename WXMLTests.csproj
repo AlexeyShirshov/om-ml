@@ -77,9 +77,9 @@
     <Compile Include="VSCodeGenAccessors.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WXMLModel\WXMLModel.csproj">
+    <ProjectReference Include="..\WXMLModel\WXML.Model.csproj">
       <Project>{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}</Project>
-      <Name>WXMLModel</Name>
+      <Name>WXML.Model</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
