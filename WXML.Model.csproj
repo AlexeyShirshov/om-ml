@@ -38,6 +38,11 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <TargetFrameworkProfile />
+    <UpdateAssemblyVersion>True</UpdateAssemblyVersion>
+    <UpdateAssemblyFileVersion>True</UpdateAssemblyFileVersion>
+    <UpdateAssemblyInfoVersion>False</UpdateAssemblyInfoVersion>
+    <AssemblyVersionSettings>None.None.IncrementOnDemand.None</AssemblyVersionSettings>
+    <AssemblyFileVersionSettings>None.None.Increment.DateStamp</AssemblyFileVersionSettings>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -179,7 +184,7 @@
   -->
   <PropertyGroup>
     <PostBuildEvent>$(SolutionDir)ilmerge /v4 /log /keyfile:$(SolutionDir)wxml.snk /t:library /xmldocs /out:$(TargetDir)$(TargetName)-Full.dll $(TargetPath) $(TargetDir)Mvp.Xml.dll $(TargetDir)LinqToCodedom.dll
-rem $(SolutionDir)ilmerge /log /keyfile:$(SolutionDir)wxml.snk /t:library /xmldocs /out:$(TargetPath) $(TargetDir)$(TargetName)-Full.dll
-rem del /Q $(TargetDir)$(TargetName)-Full*</PostBuildEvent>
+$(SolutionDir)ilmerge /v4 /log /keyfile:$(SolutionDir)wxml.snk /t:library /xmldocs /out:$(TargetPath) $(TargetDir)$(TargetName)-Full.dll
+del /Q $(TargetDir)$(TargetName)-Full*</PostBuildEvent>
   </PropertyGroup>
 </Project>
