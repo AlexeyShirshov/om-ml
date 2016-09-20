@@ -85,9 +85,9 @@
       <Project>{CD2D4A37-6DD4-4E5B-B306-F6660858E07F}</Project>
       <Name>Repository</Name>
     </ProjectReference>
-    <ProjectReference Include="..\WXMLModel\WXMLModel.csproj">
+    <ProjectReference Include="..\WXMLModel\WXML.Model.csproj">
       <Project>{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}</Project>
-      <Name>WXMLModel</Name>
+      <Name>WXML.Model</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
