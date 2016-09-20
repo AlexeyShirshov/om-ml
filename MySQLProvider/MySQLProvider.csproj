@@ -49,9 +49,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WXMLModel\WXMLModel.csproj">
+    <ProjectReference Include="..\WXMLModel\WXML.Model.csproj">
       <Project>{4d2f19ca-42f7-4dec-8aa4-7d33e9ec2605}</Project>
-      <Name>WXMLModel</Name>
+      <Name>WXML.Model</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

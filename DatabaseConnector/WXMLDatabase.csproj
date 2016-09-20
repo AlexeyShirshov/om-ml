@@ -101,9 +101,9 @@
       <Project>{0b290026-7ae0-462c-becc-7659da733d7a}</Project>
       <Name>MySQLProvider</Name>
     </ProjectReference>
-    <ProjectReference Include="..\WXMLModel\WXMLModel.csproj">
+    <ProjectReference Include="..\WXMLModel\WXML.Model.csproj">
       <Project>{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}</Project>
-      <Name>WXMLModel</Name>
+      <Name>WXML.Model</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

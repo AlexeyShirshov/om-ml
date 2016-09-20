@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binaries", "Binaries", "{0626EF5D-2788-40A4-AC76-D9B33FE387BA}"
 	ProjectSection(SolutionItems) = preProject
@@ -37,7 +37,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Binaries", "Binaries", "{87
 		Worm4.0\Binaries\Worm.Orm.xml = Worm4.0\Binaries\Worm.Orm.xml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLModel", "WXMLModel\WXMLModel.csproj", "{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXML.Model", "WXMLModel\WXML.Model.csproj", "{4D2F19CA-42F7-4DEC-8AA4-7D33E9EC2605}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLDatabase", "DatabaseConnector\WXMLDatabase.csproj", "{F657DAB2-909A-4D7C-8B88-38A7CCF0BF40}"
 EndProject
@@ -57,53 +57,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXMLToWorm", "Worm4.0\WXMLT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MySQLProvider", "MySQLProvider\MySQLProvider.csproj", "{0B290026-7AE0-462C-BECC-7659DA733D7A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WXML.NuGet", "WXML.NuGet\WXML.NuGet.csproj", "{0451BAEF-DF2E-4B98-8644-94EE9415E389}"
+EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 11
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs04
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = DatabaseConnector\\WXMLDatabase.csproj
-		SccProjectTopLevelParentUniqueName1 = WXML.sln
-		SccProjectName1 = DatabaseConnector
-		SccLocalPath1 = DatabaseConnector
-		SccProjectUniqueName2 = WXMLModel\\WXMLModel.csproj
-		SccProjectTopLevelParentUniqueName2 = WXML.sln
-		SccProjectName2 = WXMLModel
-		SccLocalPath2 = WXMLModel
-		SccProjectUniqueName3 = LinqCodeGenTests\\LinqCodeGenTests.csproj
-		SccProjectTopLevelParentUniqueName3 = WXML.sln
-		SccProjectName3 = LinqCodeGenTests
-		SccLocalPath3 = LinqCodeGenTests
-		SccProjectUniqueName4 = WXMLTests\\WXMLTests.csproj
-		SccProjectTopLevelParentUniqueName4 = WXML.sln
-		SccProjectName4 = WXMLTests
-		SccLocalPath4 = WXMLTests
-		SccProjectUniqueName5 = Repository\\Repository.vbproj
-		SccProjectTopLevelParentUniqueName5 = WXML.sln
-		SccProjectName5 = Repository
-		SccLocalPath5 = Repository
-		SccProjectUniqueName6 = LinqCodeGenerator\\WXML2Linq.csproj
-		SccProjectTopLevelParentUniqueName6 = WXML.sln
-		SccProjectName6 = LinqCodeGenerator
-		SccLocalPath6 = LinqCodeGenerator
-		SccProjectUniqueName7 = Worm4.0\\WormCodeGenTests\\WormCodeGenTests.csproj
-		SccProjectTopLevelParentUniqueName7 = WXML.sln
-		SccProjectName7 = Worm4.0/WormCodeGenTests
-		SccLocalPath7 = Worm4.0\\WormCodeGenTests
-		SccProjectUniqueName8 = Worm4.0\\WormGenerator\\WormCodeGenerator.csproj
-		SccProjectTopLevelParentUniqueName8 = WXML.sln
-		SccProjectName8 = Worm4.0/WormGenerator
-		SccLocalPath8 = Worm4.0\\WormGenerator
-		SccProjectUniqueName9 = Worm4.0\\WXMLToWorm\\WXMLToWorm.csproj
-		SccProjectTopLevelParentUniqueName9 = WXML.sln
-		SccProjectName9 = Worm4.0/WXMLToWorm
-		SccLocalPath9 = Worm4.0\\WXMLToWorm
-		SccProjectUniqueName10 = MySQLProvider\\MySQLProvider.csproj
-		SccProjectTopLevelParentUniqueName10 = WXML.sln
-		SccProjectName10 = MySQLProvider
-		SccLocalPath10 = MySQLProvider
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug AddIn|Any CPU = Debug AddIn|Any CPU
 		Debug_Trace|Any CPU = Debug_Trace|Any CPU
@@ -212,6 +168,16 @@ Global
 		{0B290026-7AE0-462C-BECC-7659DA733D7A}.DebugNonUserInstance|Any CPU.Build.0 = Debug|Any CPU
 		{0B290026-7AE0-462C-BECC-7659DA733D7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B290026-7AE0-462C-BECC-7659DA733D7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Debug AddIn|Any CPU.ActiveCfg = Debug|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Debug AddIn|Any CPU.Build.0 = Debug|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Debug_Trace|Any CPU.ActiveCfg = Debug|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Debug_Trace|Any CPU.Build.0 = Debug|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.DebugNonUserInstance|Any CPU.ActiveCfg = Debug|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.DebugNonUserInstance|Any CPU.Build.0 = Debug|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0451BAEF-DF2E-4B98-8644-94EE9415E389}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -228,6 +194,55 @@ Global
 		{ADEDBCD7-24DA-43CF-A5A0-0FBB4F12A001} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{30E7CEF4-A9D4-4B6F-AC1A-7D0DEA3DD7D9} = {6D9187BB-6467-42E5-853C-85A048443B79}
 		{0B290026-7AE0-462C-BECC-7659DA733D7A} = {DB99EDB8-B342-4AE1-B78D-E106230A7E19}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 12
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs04
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = DatabaseConnector\\WXMLDatabase.csproj
+		SccProjectTopLevelParentUniqueName1 = WXML.sln
+		SccProjectName1 = DatabaseConnector
+		SccLocalPath1 = DatabaseConnector
+		SccProjectUniqueName2 = LinqCodeGenTests\\LinqCodeGenTests.csproj
+		SccProjectTopLevelParentUniqueName2 = WXML.sln
+		SccProjectName2 = LinqCodeGenTests
+		SccLocalPath2 = LinqCodeGenTests
+		SccProjectUniqueName3 = WXMLTests\\WXMLTests.csproj
+		SccProjectTopLevelParentUniqueName3 = WXML.sln
+		SccProjectName3 = WXMLTests
+		SccLocalPath3 = WXMLTests
+		SccProjectUniqueName4 = Repository\\Repository.vbproj
+		SccProjectTopLevelParentUniqueName4 = WXML.sln
+		SccProjectName4 = Repository
+		SccLocalPath4 = Repository
+		SccProjectUniqueName5 = LinqCodeGenerator\\WXML2Linq.csproj
+		SccProjectTopLevelParentUniqueName5 = WXML.sln
+		SccProjectName5 = LinqCodeGenerator
+		SccLocalPath5 = LinqCodeGenerator
+		SccProjectUniqueName6 = Worm4.0\\WormCodeGenTests\\WormCodeGenTests.csproj
+		SccProjectTopLevelParentUniqueName6 = WXML.sln
+		SccProjectName6 = Worm4.0/WormCodeGenTests
+		SccLocalPath6 = Worm4.0\\WormCodeGenTests
+		SccProjectUniqueName7 = Worm4.0\\WormGenerator\\WormCodeGenerator.csproj
+		SccProjectTopLevelParentUniqueName7 = WXML.sln
+		SccProjectName7 = Worm4.0/WormGenerator
+		SccLocalPath7 = Worm4.0\\WormGenerator
+		SccProjectUniqueName8 = Worm4.0\\WXMLToWorm\\WXMLToWorm.csproj
+		SccProjectTopLevelParentUniqueName8 = WXML.sln
+		SccProjectName8 = Worm4.0/WXMLToWorm
+		SccLocalPath8 = Worm4.0\\WXMLToWorm
+		SccProjectUniqueName9 = MySQLProvider\\MySQLProvider.csproj
+		SccProjectTopLevelParentUniqueName9 = WXML.sln
+		SccProjectName9 = MySQLProvider
+		SccLocalPath9 = MySQLProvider
+		SccProjectUniqueName10 = WXML.NuGet\\WXML.NuGet.csproj
+		SccProjectName10 = WXML.NuGet
+		SccLocalPath10 = WXML.NuGet
+		SccProjectUniqueName11 = WXMLModel\\WXML.Model.csproj
+		SccProjectTopLevelParentUniqueName11 = WXML.sln
+		SccProjectName11 = WXMLModel
+		SccLocalPath11 = WXMLModel
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = WXML.vsmdi
