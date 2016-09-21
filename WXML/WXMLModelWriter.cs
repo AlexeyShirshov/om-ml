@@ -92,6 +92,7 @@ namespace WXML.Model
                 extensionElement.SetAttribute("action", extension.Key.Action.ToString());
 
             var el = extension.Value;
+            //extensionElement.InnerXml = el.ToString();
             //if (el.Name != XName.Get("extension", WXMLModel.NS_PREFIX))
             //{
             //    var e = _ormXmlDocumentMain.CreateElement(el.Name.LocalName, el.Name.NamespaceName);
@@ -102,12 +103,11 @@ namespace WXML.Model
             //    }
             //    extensionElement = e;
             //}
-            //using (var reader = el.CreateReader())
-            //{
-            //    reader.MoveToContent();
-            //    extensionElement.InnerXml = reader.ReadInnerXml();
-            //}
-            extensionElement.InnerXml = el.ToString();
+            using (var reader = el.CreateReader())
+            {
+                reader.MoveToContent();
+                extensionElement.InnerXml = reader.ReadInnerXml();
+            }
         }
 
         private void FillLinqSettings()
@@ -562,8 +562,7 @@ namespace WXML.Model
 
             if (rp.Attributes != Field2DbRelations.None)
             {
-                propertyElement.SetAttribute("attributes",
-                    Enum.GetName(typeof(Field2DbRelations), rp.Attributes));
+                propertyElement.SetAttribute("attributes", rp.Attributes.ToString().Replace(",",""));
             }
 
             if (rp.SourceFragment != null)
