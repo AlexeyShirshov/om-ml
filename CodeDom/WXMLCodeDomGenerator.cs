@@ -125,6 +125,17 @@ namespace WXML.CodeDom
                         )
                     );
             }
+            else if (propertyDesc.PropertyType.IsEnum)
+            {
+                setValueStatement.TrueStatements.Add(
+                    Emit.@ifelse((object value) => LinqToCodedom.Generator.CodeDom.Is(value, null),
+                        /* true statements */   new[] { Emit.assignField(fieldName, (object value) => LinqToCodedom.Generator.CodeDom.cast(propertyDesc.PropertyType.ToCodeType(Settings), null)) },
+                        /* false statements */  Emit.assignField(fieldName, (object value) => LinqToCodedom.Generator.CodeDom.cast(propertyDesc.PropertyType.ToCodeType(Settings),
+                            LinqToCodedom.Generator.CodeDom.Call<object>(LinqToCodedom.Generator.CodeDom.MethodRef(typeof(Enum), "ToObject"))(new CodeTypeOfExpression(propertyDesc.PropertyType.ToCodeType(Settings)), value)
+                            ))
+                        )
+                    );
+            }
             else if (propertyDesc.PropertyType.IsValueType && (!propertyDesc.PropertyType.IsNullableType || !(propertyDesc.PropertyType.IsClrType && propertyDesc.PropertyType.ClrType.GetGenericArguments()[0].Equals(typeof(Guid)))))
             {
                 //old: simple cast
@@ -138,7 +149,7 @@ namespace WXML.CodeDom
                     Emit.@ifelse((object value)=>LinqToCodedom.Generator.CodeDom.Is(value, null),
                         /* true statements */   new [] {Emit.assignField(fieldName, (object value) => LinqToCodedom.Generator.CodeDom.cast(propertyDesc.PropertyType.ToCodeType(Settings), null))},
                         /* false statements */  Emit.assignField(fieldName, (object value) => LinqToCodedom.Generator.CodeDom.cast(propertyDesc.PropertyType.ToCodeType(Settings),
-                            Convert.ChangeType(value, LinqToCodedom.Generator.CodeDom.TypeOf(propertyDesc.PropertyType.ClrType))
+                            LinqToCodedom.Generator.CodeDom.Call<object>("Convert.ChangeType")(value, new CodeTypeOfExpression(propertyDesc.PropertyType.ToCodeType(Settings)))
                             ))
                         )
                     );
