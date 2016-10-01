@@ -13,7 +13,8 @@ namespace WXML.Model.Descriptors
         private readonly EntityDefinition _entity;
         private readonly UserTypeHintFlags? _userTpeHint;
         private CodeTypeReference _tr;
-
+        private Type _cachedUserType;
+        private bool _checked;
         #region Ctors
 
         public TypeDefinition(CodeTypeReference tr)
@@ -175,8 +176,33 @@ namespace WXML.Model.Descriptors
 
             return _entity.Identifier;
         }
+        public Type GetClrType()
+        {
+            if (_clrType != null)
+                return _clrType;
 
-        private Type GetTypeByName(string typeName)
+            if (!string.IsNullOrEmpty(_userType))
+            {
+                if (_cachedUserType == null && !_checked)
+                {
+                    foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+                    {
+                        Type type = assembly.GetType(_userType, false, true);
+                        if (type != null)
+                        {
+                            _cachedUserType = type;
+                            break;
+                        }
+                    }
+                    _checked = true;
+                }
+
+                return _cachedUserType;
+            }
+
+            return null;
+        }
+        public static Type GetTypeByName(string typeName)
         {
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
