@@ -138,7 +138,7 @@ namespace WXML.SourceConnector
                     foreach (PropertyDefinition pd in ed.GetActiveProperties()
                         .Where(item=>
                             !string.IsNullOrEmpty(item.Description) &&
-                            item.Description.StartsWith("Auto generated from ")
+                            item.Description.StartsWith("Auto generated from ", StringComparison.Ordinal)
                         ).ToArray()
                     )
                     {
@@ -889,7 +889,9 @@ l1:
                 if (capitalizeNames)
                     ename = Capitalize(ename);
 
-                e = new EntityDefinition(entityId, ename, string.Empty, null, Model);
+                e = new EntityDefinition(entityId, ename, string.Empty, 
+                    string.Format("Auto generated from {0}", string.IsNullOrEmpty(sf.Selector) ? sf.Name : $"{sf.Selector}.{sf.Name}"), 
+                    Model);
                 var t = new SourceFragmentRefDefinition(GetSourceFragment(sf));
                 e.AddSourceFragment(t);
                 //odef.AddEntity(e);

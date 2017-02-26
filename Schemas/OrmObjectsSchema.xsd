@@ -204,8 +204,10 @@
     <xs:sequence minOccurs="0" maxOccurs="unbounded">
       <xs:element name="condition" minOccurs="1" maxOccurs="1">
         <xs:complexType>
-          <xs:attribute name="refColumn" type="xs:string" use="optional" />
+          <xs:attribute name="refColumn" type="xs:string" use="optional"  />
           <xs:attribute name="joinColumn" type="xs:string" use="optional" />
+          <!--<xs:attribute name="ownProperty" type="xs:string" use="optional" />
+          <xs:attribute name="joinProperty" type="xs:string" use="optional" />-->
           <xs:attribute name="constant" type="xs:string" use="optional" />
         </xs:complexType>
       </xs:element>
@@ -1068,6 +1070,8 @@
     </xs:sequence>
     <xs:attribute name="name" use="required" />
     <xs:attribute name="action" type="MergeAction_t" use="optional" default="Merge" />
+    <xs:attribute name="targetType" type="ExtensionTarget_t" use="optional" default="self" />
+    <xs:attribute name="target" type="xs:string" use="optional" />
   </xs:complexType>
   <xs:simpleType name="RelationConstraintEnum_t">
     <xs:annotation>
@@ -1083,7 +1087,23 @@
       </xs:simpleType>
     </xs:list>
   </xs:simpleType>
-  
+  <xs:simpleType name="ExtensionTarget_t">
+    <xs:annotation>
+      <xs:documentation>Объект расширения</xs:documentation>
+    </xs:annotation>
+    <xs:list>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="self" />
+          <xs:enumeration value="property" />
+          <xs:enumeration value="entity" />
+          <xs:enumeration value="relation" />
+          <xs:enumeration value="schema" />
+          <xs:enumeration value="sourceFragment" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:list>
+  </xs:simpleType>
   <xs:complexType name="Interface_t" mixed="false">
     <xs:annotation>
       <xs:documentation>Интерфейс для реализации</xs:documentation>
