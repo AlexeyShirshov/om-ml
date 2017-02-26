@@ -1069,8 +1069,9 @@ namespace WXMLToWorm
 
 			meth.Parameters.Add(
 				new CodeParameterDeclarationExpression(
-					new CodeTypeReference(new CodeTypeReference(typeof(PKDesc)), 1), "pks")
-			);
+                    //new CodeTypeReference(new CodeTypeReference(typeof(PKDesc)), 1), "pks")
+                    new CodeTypeReference(typeof(IEnumerable<PKDesc>)), "pks")
+            );
 
 			//meth.Parameters.Add(
 			//    new CodeParameterDeclarationExpression(
@@ -1144,11 +1145,12 @@ namespace WXMLToWorm
 			if (entity.OwnProperties.Where(item => item.HasAttribute(Field2DbRelations.PK)).Count() == 0)
 				return;
 
-			CodeTypeReference tr = new CodeTypeReference(typeof(PKDesc));
+            CodeTypeReference trArr = new CodeTypeReference(typeof(PKDesc));
+            CodeTypeReference tr = new CodeTypeReference(typeof(IEnumerable<PKDesc>));
 			CodeMemberMethod meth = new CodeMemberMethod
 			{
 				Name = "GetPKValues",
-				ReturnType = new CodeTypeReference(tr, 1),
+				ReturnType = tr,
 				Attributes = MemberAttributes.Public | MemberAttributes.Override
 			};
 			// тип возвращаемого значения
@@ -1157,15 +1159,15 @@ namespace WXMLToWorm
 
 			entityClass.Members.Add(meth);
 
-			meth.Statements.Add(new CodeVariableDeclarationStatement(new CodeTypeReference(tr, 1), "basePks", new CodeMethodInvokeExpression(new CodeBaseReferenceExpression(), meth.Name)));
+			meth.Statements.Add(new CodeVariableDeclarationStatement(tr, "basePks", new CodeMethodInvokeExpression(new CodeBaseReferenceExpression(), meth.Name)));
 			meth.Statements.Add(
 				new CodeVariableDeclarationStatement(
-					new CodeTypeReference(tr, 1),
+					new CodeTypeReference(trArr, 1),
 					"result",
 					new CodeArrayCreateExpression(
-						new CodeTypeReference(tr, 1),
+						new CodeTypeReference(trArr, 1),
 						new CodeBinaryOperatorExpression(
-							new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("basePks"), "Length"),
+							new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("basePks"), "Count"),
 							CodeBinaryOperatorType.Add,
 							new CodePrimitiveExpression(entity.GetPkProperties().Count())
 						)
@@ -1180,15 +1182,15 @@ namespace WXMLToWorm
 			//Array.Copy(f, v, f.Length);
 			//Array.Copy(s, 0, v, f.Length, s.Length);
 
-			meth.Statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(Array)), "Copy", new CodeVariableReferenceExpression("basePks"), new CodeVariableReferenceExpression("result"), new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("basePks"), "Length")));
+			//meth.Statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(Array)), "Copy", new CodeVariableReferenceExpression("basePks"), new CodeVariableReferenceExpression("result"), new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("basePks"), "Length")));
 			meth.Statements.Add(
 				new CodeVariableDeclarationStatement(
-					new CodeTypeReference(tr, 1),
+					new CodeTypeReference(trArr, 1),
 					"newPks",
 					new CodeArrayCreateExpression(
-						new CodeTypeReference(tr, 1),
+						new CodeTypeReference(trArr, 1),
 						entity.OwnProperties.Where(item => item.HasAttribute(Field2DbRelations.PK) && !item.Disabled)
-						.Select(pd_ => new CodeObjectCreateExpression(tr, new CodePrimitiveExpression(pd_.PropertyAlias),
+						.Select(pd_ => new CodeObjectCreateExpression(trArr, new CodePrimitiveExpression(pd_.PropertyAlias),
 							  new CodeFieldReferenceExpression(
 								  new CodeThisReferenceExpression(),
 								  new WXMLCodeDomGeneratorNameHelper(Settings).GetPrivateMemberName
@@ -1198,9 +1200,9 @@ namespace WXMLToWorm
 					)
 				)
 			);
-			meth.Statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(Array)), "Copy", new CodeVariableReferenceExpression("basePks"), new CodeVariableReferenceExpression("result"), new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("basePks"), "Length")));
+			meth.Statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(Array)), "Copy", new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("basePks"),"ToArray"), new CodeVariableReferenceExpression("result"), new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("basePks"), "Count")));
 
-			meth.Statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(Array)), "Copy", new CodeVariableReferenceExpression("newPks"), new CodePrimitiveExpression(0), new CodeVariableReferenceExpression("result"), new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("basePks"), "Length"), new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("newPks"), "Length")));
+			meth.Statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(Array)), "Copy", new CodeVariableReferenceExpression("newPks"), new CodePrimitiveExpression(0), new CodeVariableReferenceExpression("result"), new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("basePks"), "Count"), new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("newPks"), "Length")));
 
 			meth.Statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("result")));
 		}

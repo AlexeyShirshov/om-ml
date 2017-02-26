@@ -136,7 +136,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)ilmerge /v4 /log /t:exe /xmldocs /out:$(TargetDir)$(TargetName)-Full.exe $(TargetPath) $(TargetDir)WXML.Model.dll $(TargetDir)Mvp.Xml.dll $(TargetDir)LinqToCodedom.dll $(TargetDir)WXMLToWorm.dll $(SolutionDir)Worm4.0\Binaries\Worm.Orm.dll
+    <PostBuildEvent>$(SolutionDir)ilmerge /v4 /log /t:exe /xmldocs /out:$(TargetDir)$(TargetName)-Full.exe $(TargetPath) $(TargetDir)WXML.Model.dll $(TargetDir)WXMLToWorm.dll $(SolutionDir)Worm4.0\Binaries\Worm.Orm.dll
 $(SolutionDir)ilmerge /v4 /log /t:exe /xmldocs /out:$(TargetPath) $(TargetDir)$(TargetName)-Full.exe
 del /Q $(TargetDir)$(TargetName)-Full*</PostBuildEvent>
   </PropertyGroup>
