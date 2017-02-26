@@ -79,7 +79,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeDomExtensions\CodeEntityInterfaceDeclaration.cs" />
-    <Compile Include="CodeDomExtensions\CodeEntityProperty.cs" />
     <Compile Include="CodeDomExtensions\CodeEntityPropertyField.cs" />
     <Compile Include="CodeDomExtensions\CodeEntitySetValueMethod.cs" />
     <Compile Include="CodeDomExtensions\CodeEntityTypeDeclaration.cs" />

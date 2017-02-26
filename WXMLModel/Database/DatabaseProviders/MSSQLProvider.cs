@@ -26,7 +26,11 @@ namespace WXML.Model.Database.Providers
             base(server, db, false, user, psw)
         {
         }
+        public MSSQLProvider(string conn) :
+            base(conn)
+        {
 
+        }
         public SourceView GetSourceView()
         {
             return GetSourceView(null, null, true, true);
@@ -96,6 +100,9 @@ namespace WXML.Model.Database.Providers
 
         public override DbConnection GetDBConn()
         {
+            if (!string.IsNullOrEmpty(_conn))
+                return new System.Data.SqlClient.SqlConnection(_conn);
+
             System.Data.SqlClient.SqlConnectionStringBuilder cb = new System.Data.SqlClient.SqlConnectionStringBuilder();
             string srv = _server;
             string path = _server;

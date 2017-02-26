@@ -13,7 +13,7 @@ namespace WXMLDatabase
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Worm xml schema generator. v0.2 2007");
+            Console.WriteLine("Worm xml schema generator. v0.3 2007");
             if (args.Length == 0)
             {
                 ShowUsage();
@@ -143,6 +143,10 @@ namespace WXMLDatabase
                 ss = "false";
             bool showStatement = bool.Parse(ss);
 
+            string v = "1";
+            if (!param.TryGetParam("V", out v))
+                v = "1";
+
             DatabaseProvider dp = null;
             string m = null;
             if (!param.TryGetParam("M", out m))
@@ -199,7 +203,7 @@ namespace WXMLDatabase
             {
                 model = new WXMLModel();
                 model.Namespace = namesp;
-                model.SchemaVersion = "1";
+                model.SchemaVersion = v;
                 if (!Path.IsPathRooted(file))
                     file = Path.Combine(Directory.GetCurrentDirectory(), file);
                 //File.Create(file);
@@ -283,7 +287,7 @@ namespace WXMLDatabase
 "Example: -F=error. Default is merge.\n");
             Console.WriteLine("  -R\t\t-  Drop deleted columns. Meaningfull only with merge behavior.\n");
             Console.WriteLine("  -N=value\t-  Objects namespace. Example: -N=test.\n");
-            Console.WriteLine("  -Y\t\t-  Unify entyties with the same PK(1-1 relation). Example: -Y.\n");
+            Console.WriteLine("  -Y\t\t-  Unify entities with the same PK(1-1 relation). Example: -Y.\n");
             Console.WriteLine("  -H\t\t-  Make hierarchy from 1-1 relations. Example: -H.\n");
             Console.WriteLine("  -T\t\t-  Transform property names. Example: -T. "+
 "Removes id, _id, _dt postfix and other cleanup processing\n");
@@ -292,6 +296,7 @@ namespace WXMLDatabase
             Console.WriteLine("  -CN\t\t-  Capitalize names. Example: -CN. Default is true. "+
 "Linq never capitalize names so this option for linq compatibility. Column [name] will be a property called Name (in linq - name).");
             Console.WriteLine("  -SS\t\t-  Show query schema statement. Example: -SS. Default is false\n");
+            Console.WriteLine("  -V=value\t-  Schema version. Example: -V=1. Default is 1\n");
         }
     }
 }

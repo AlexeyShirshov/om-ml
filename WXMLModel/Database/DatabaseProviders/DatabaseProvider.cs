@@ -15,6 +15,7 @@ namespace WXML.Model.Database.Providers
         protected bool _integratedSecurity;
         protected string _user;
         protected string _psw;
+        protected string _conn;
 
         public delegate void DatabaseConnectingDelegate(DatabaseProvider sender, string conn);
         public event DatabaseConnectingDelegate OnDatabaseConnecting;
@@ -32,7 +33,10 @@ namespace WXML.Model.Database.Providers
             _user = user;
             _psw = psw;
         }
-
+        protected DatabaseProvider(string conn)
+        {
+            _conn = conn;
+        }
         public abstract SourceView GetSourceView(string schemas, string namelike, bool escapeTableNames, bool escapeColumnNames);
         public abstract void GenerateCreateScript(IEnumerable<PropertyDefinition> props, StringBuilder script, bool unicodeStrings);
         public abstract void GenerateCreateScript(RelationDefinitionBase rel, StringBuilder script, bool unicodeStrings);

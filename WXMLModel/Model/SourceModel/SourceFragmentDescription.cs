@@ -26,9 +26,9 @@ namespace WXML.Model.Descriptors
 		public SourceFragmentDefinition(string id, string name, string selector)
 		{
 			if (string.IsNullOrEmpty(id))
-				throw new ArgumentNullException("id");
+				throw new ArgumentNullException(nameof(id));
 			if (string.IsNullOrEmpty(name))
-				throw new ArgumentNullException("name");
+				throw new ArgumentNullException(nameof(name));
 
 			Identifier = id;
 			Name = name;
