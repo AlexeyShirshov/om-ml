@@ -828,6 +828,7 @@
           <xs:enumeration value="PrimaryKey" />
           <xs:enumeration value="Private" />
           <xs:enumeration value="Factory" />
+          <xs:enumeration value="Hidden" />
         </xs:restriction>
       </xs:simpleType>
     </xs:list>

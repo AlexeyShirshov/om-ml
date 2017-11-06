@@ -99,6 +99,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeDom\CodeCompileFileUnit.cs" />
+    <Compile Include="CodeDom\CodeDomPatterns.cs" />
+    <Compile Include="CodeDom\WXMLCodeDomGenerator.cs" />
+    <Compile Include="CodeDom\WXMLCodeDomGeneratorHelper.cs" />
+    <Compile Include="CodeDom\WXMLCodeDomGeneratorNameHelper.cs" />
+    <Compile Include="CodeDom\WXMLCodeDomGeneratorSettings.cs" />
     <Compile Include="Database\DatabaseProviders\SQLCEProvider.cs" />
     <Compile Include="Model\Descriptors\CustomProperty.cs" />
     <Compile Include="Model\Descriptors\EntityProperty.cs" />
@@ -119,13 +124,8 @@
     <Compile Include="Model\SourceModel\SourceFragmentDescription.cs" />
     <Compile Include="Model\Enums.cs" />
     <Compile Include="SourceConnector\ModelToSourceConnector.cs" />
-    <Compile Include="CodeDom\WXMLCodeDomGenerator.cs" />
-    <Compile Include="CodeDom\WXMLCodeDomGeneratorHelper.cs" />
-    <Compile Include="CodeDom\WXMLCodeDomGeneratorNameHelper.cs" />
-    <Compile Include="CodeDom\CodeDomPatterns.cs" />
     <Compile Include="Model\Descriptors\TypeDescription.cs" />
     <Compile Include="Exceptions.cs" />
-    <Compile Include="CodeDom\WXMLCodeDomGeneratorSettings.cs" />
     <Compile Include="Model\Descriptors\EntityDescription.cs" />
     <Compile Include="Model\Descriptors\LinkTarget.cs" />
     <Compile Include="Model\Descriptors\PropertyDescription.cs" />
@@ -183,7 +183,8 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)ilmerge /v4 /log /keyfile:$(SolutionDir)wxml.snk /t:library /xmldocs /out:$(TargetDir)$(TargetName)-Full.dll $(TargetPath) $(TargetDir)Mvp.Xml.dll $(TargetDir)LinqToCodedom.dll
+    <PostBuildEvent>$(SolutionDir)ilmerge /v4 /log /keyfile:$(SolutionDir)wxml.snk /t:library /xmldocs /out:$(TargetDir)$(TargetName)-Full.dll $(TargetPath) $(TargetDir)Mvp.Xml.dll 
+rem $(TargetDir)LinqToCodedom.dll
 $(SolutionDir)ilmerge /v4 /log /keyfile:$(SolutionDir)wxml.snk /t:library /xmldocs /out:$(TargetPath) $(TargetDir)$(TargetName)-Full.dll
 del /Q $(TargetDir)$(TargetName)-Full*</PostBuildEvent>
   </PropertyGroup>
