@@ -287,7 +287,8 @@ namespace WXML.SourceConnector
                 {
                     bool propCreated;
                     PropertyDefinition prop = AppendFK(e, sf, fk, rb, out propCreated, transforRawNamesToReadableForm, capitalizeNames, caseSensitive);
-                    RaiseOnPropertyCreated(prop, propCreated);
+                    if (prop != null)
+                        RaiseOnPropertyCreated(prop, propCreated);
                 }
 
                 if (masterEntity != null)
@@ -621,9 +622,22 @@ namespace WXML.SourceConnector
                     item.SourceFields.Any(sff=>sf2.SourceFieldExpression.Trim('[',']') == sff.SourceFieldExpression.Trim('[',']'))
                     ));
             }
-
+            
             if (ep == null)
             {
+                var one2one = fk.SourceFields.All(sss => sss.IsPK);
+
+                if (one2one && e.BaseEntity == re)
+                {
+                    foreach (var sfd_ in fk.SourceFields)
+                    {
+                        bool x;
+                        var xx = AppendColumn(e, sfd_, out x, transforRawNamesToReadableForm, capitalizeNames, caseSensitive);
+                        RaiseOnPropertyCreated(xx, x);
+                    }
+                    return null;
+                }
+
                 int cnt = e.OwnProperties.Count(p => p.Name == propName);
                 if (cnt > 0)
                 {
@@ -838,6 +852,14 @@ l1:
                     sp.SourceField = c;
                 }
             
+                if ((attrs & Field2DbRelations.PK) == Field2DbRelations.PK && e.BaseEntity != null && e.BaseEntity.GetPkProperties().Any())
+                {
+                    attrs = attrs & ~Field2DbRelations.PK;
+                }
+
+                if (attrs == Field2DbRelations.None)
+                    attrs = pe.Attributes;
+
                 pe.Attributes = attrs;
             }
             return pe;

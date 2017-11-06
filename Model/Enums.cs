@@ -36,6 +36,7 @@ namespace WXML.Model
     [Flags]
     public enum Field2DbRelations
     {
+        Hidden = 0x100,
         Factory = 0x80,
         InsertDefault = 8,
         None = 0,
